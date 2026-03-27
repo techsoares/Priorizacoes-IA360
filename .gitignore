@@ -1,0 +1,51 @@
+# ========================
+# SEGURANÇA: Arquivos de ambiente (NUNCA subir)
+# ========================
+.env
+.env.local
+.env.production
+backend/.env
+frontend/.env
+
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# ========================
+# Node / Frontend
+# ========================
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+.eslintcache
+
+# ========================
+# IDEs
+# ========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ========================
+# OS
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ========================
+# Supabase local
+# ========================
+supabase/.temp/

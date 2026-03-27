@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Scrollbar dark theme */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(155, 93, 229, 0.2);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(155, 93, 229, 0.4);
+  }
+
+  /* Select dropdown dark style */
+  select option {
+    background: #111C44;
+    color: #e5e7eb;
+  }
+
+  /* Smooth transitions globais */
+  * {
+    scroll-behavior: smooth;
+  }
+}

@@ -54,8 +54,8 @@ export async function bulkUpdateCosts(items) {
     const { jira_key, ...fields } = item
     const updateData = Object.fromEntries(Object.entries(fields).filter(([, v]) => v != null))
     if (!Object.keys(updateData).length) continue
-    const { data } = await supabase.from('initiatives').update(updateData).eq('jira_key', jira_key)
-    if (data) updated++
+    const { error } = await supabase.from('initiatives').update(updateData).eq('jira_key', jira_key)
+    if (!error) updated++
   }
   return { message: `Custos atualizados para ${updated} iniciativas.`, count: updated }
 }

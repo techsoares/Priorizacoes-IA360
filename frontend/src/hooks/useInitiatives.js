@@ -44,6 +44,10 @@ export default function useInitiatives() {
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState(null)
+  const errorTimerRef = useCallback((msg) => {
+    setError(msg)
+    if (msg) setTimeout(() => setError(null), 5000)
+  }, [])
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
 
   const fetchInitiatives = useCallback(async () => {
@@ -53,7 +57,7 @@ export default function useInitiatives() {
       setInitiatives(data)
       setError(null)
     } catch (err) {
-      setError(err.response?.data?.detail || 'Erro ao carregar iniciativas.')
+      errorTimerRef(err.message || 'Erro ao carregar iniciativas.')
     } finally {
       setLoading(false)
     }
@@ -70,7 +74,7 @@ export default function useInitiatives() {
       setInitiatives(data)
       setError(null)
     } catch (err) {
-      setError(err.response?.data?.detail || 'Erro ao sincronizar com Jira.')
+      errorTimerRef(err.message || 'Erro ao sincronizar com Jira.')
     } finally {
       setSyncing(false)
     }
@@ -88,7 +92,7 @@ export default function useInitiatives() {
         ordered_ids: updated.map((item) => item.id),
       })
     } catch (err) {
-      setError('Erro ao salvar nova ordem.')
+      errorTimerRef('Erro ao salvar nova ordem.')
       fetchInitiatives()
     }
   }
@@ -112,7 +116,7 @@ export default function useInitiatives() {
           return { ...reverted, metrics: calculateMetrics(reverted) }
         })
       )
-      setError(err.response?.data?.detail || 'Erro ao salvar alteração.')
+      errorTimerRef(err.message || 'Erro ao salvar alteração.')
     }
   }
 

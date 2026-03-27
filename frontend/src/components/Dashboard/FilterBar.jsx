@@ -224,7 +224,7 @@ function StatusMultiFilter({
   const summary =
     selectedStatuses.length === 0
       ? 'Status'
-      : `Status ${operator === 'not_equals' ? '!=' : '='} ${selectedStatuses.length}`
+      : `${operator === 'not_equals' ? 'Excluindo' : 'Apenas'}: ${selectedStatuses.join(', ')}`
 
   return (
     <div ref={containerRef} className="relative">

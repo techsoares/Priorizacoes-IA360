@@ -171,14 +171,16 @@ export default function SortableRow({ initiative, index, columns, onUpdateField,
       onClick={handleRowClick}
       className={`border-b border-white/5 transition-colors cursor-pointer ${
         isSelected
-          ? 'bg-[rgba(53,89,235,0.10)] ring-1 ring-inset ring-[#3559EB]/40'
+          ? 'bg-[rgba(53,89,235,0.12)] ring-1 ring-inset ring-[#3559EB]/50'
           : 'hover:bg-[rgba(53,89,235,0.05)]'
       } ${isDragging ? 'bg-[#3559EB]/10 shadow-[0_0_22px_rgba(53,89,235,0.18)]' : ''}`}
     >
-      {columns.map((column) => (
+      {columns.map((column, colIdx) => (
         <td
           key={column.key}
-          className={`px-3 py-2.5 align-middle ${column.key !== 'summary' ? 'overflow-hidden' : ''}`}
+          className={`px-3 py-2.5 align-middle ${column.key !== 'summary' ? 'overflow-hidden' : ''} ${
+            isSelected && colIdx === 0 ? 'border-l-2 border-[#3559EB]' : ''
+          }`}
           style={column.width
             ? { width: `${column.width}px`, minWidth: `${column.minWidth}px`, maxWidth: `${column.width}px` }
             : { minWidth: `${column.minWidth}px` }

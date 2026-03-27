@@ -328,6 +328,13 @@ export default function DeliveriesView({ initiatives }) {
                 </td>
               </tr>
             ))}
+            {filteredInitiatives.length === 0 && (
+              <tr>
+                <td colSpan={11} className="py-14 text-center text-sm text-gray-500">
+                  Nenhuma entrega concluída encontrada.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

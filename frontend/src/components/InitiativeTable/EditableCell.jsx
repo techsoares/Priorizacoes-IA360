@@ -52,7 +52,7 @@ export default function EditableCell({ value, field, onSave }) {
 
   return (
     <span
-      className="cursor-pointer hover:bg-accent-purple/10 px-2 py-1 rounded text-sm block text-gray-300"
+      className="cursor-pointer px-2 py-1 rounded text-sm block text-gray-300 border border-transparent hover:border-[#3559EB]/40 hover:bg-accent-purple/10 transition-colors group relative"
       onClick={() => setEditing(true)}
       title="Clique para editar"
     >
@@ -60,7 +60,7 @@ export default function EditableCell({ value, field, onSave }) {
         ? typeof value === 'number'
           ? value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
           : value
-        : '—'}
+        : <span className="text-gray-600 text-xs italic">editar</span>}
     </span>
   )
 }

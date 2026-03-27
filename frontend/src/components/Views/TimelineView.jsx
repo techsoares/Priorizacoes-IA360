@@ -179,7 +179,12 @@ export default function TimelineView({ initiatives, filteredInitiatives, filters
           </div>
 
           {/* ── Scrollable calendar ── */}
-          <div ref={scrollRef} className="flex-1 overflow-x-auto">
+          <div ref={scrollRef} className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+            <div className="pointer-events-none sticky top-0 z-20 flex justify-end pr-2 pt-1" style={{ height: 0 }}>
+              <span className="translate-y-1 rounded bg-white/5 px-1.5 py-0.5 text-[9px] text-gray-600">
+                ← scroll →
+              </span>
+            </div>
             <div style={{ width: totalW }}>
 
               {/* calendar header */}

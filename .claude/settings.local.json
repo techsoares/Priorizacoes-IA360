@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find '/c/Users/andressa.soares/Desktop/Dashboard de priorização IA360' -type f -name *.tsx -o -name *.ts -o -name *.jsx -o -name *.js -o -name *.py -o -name *.sql -o -name *.json)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -r Tooltip '/c/Users/andressa.soares/Desktop/Dashboard de priorização IA360/frontend/src/' --include=*.jsx)"
+    ]
+  }
+}

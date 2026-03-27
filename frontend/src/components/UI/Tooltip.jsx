@@ -1,25 +1,57 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 export default function Tooltip({ content }) {
   const [visible, setVisible] = useState(false)
+  const [position, setPosition] = useState('bottom')
+  const triggerRef = useRef(null)
+  const tooltipRef = useRef(null)
+
+  useEffect(() => {
+    if (!visible || !triggerRef.current || !tooltipRef.current) return
+
+    const triggerRect = triggerRef.current.getBoundingClientRect()
+    const tooltipRect = tooltipRef.current.getBoundingClientRect()
+
+    // If tooltip goes below viewport, show above
+    if (triggerRect.bottom + tooltipRect.height + 8 > window.innerHeight) {
+      setPosition('top')
+    } else {
+      setPosition('bottom')
+    }
+  }, [visible])
+
+  if (!content) return null
 
   return (
-    <span className="relative inline-block ml-1">
+    <span className="relative inline-flex" ref={triggerRef}>
       <button
         type="button"
-        className="text-gray-500 hover:text-primary-light transition-colors w-4 h-4 rounded-full border border-gray-600 hover:border-primary-light inline-flex items-center justify-center text-xs font-bold"
         onMouseEnter={() => setVisible(true)}
         onMouseLeave={() => setVisible(false)}
-        onClick={() => setVisible(!visible)}
-        aria-label="Informação"
+        onFocus={() => setVisible(true)}
+        onBlur={() => setVisible(false)}
+        className="cursor-help text-gray-500 transition-colors hover:text-gray-300"
+        tabIndex={-1}
       >
-        i
+        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
       </button>
+
       {visible && (
-        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-surface text-gray-200 text-xs rounded-lg p-3 shadow-lg whitespace-pre-line border border-white/10">
+        <span
+          ref={tooltipRef}
+          className={`pointer-events-none absolute left-1/2 z-[9999] w-max max-w-[260px] -translate-x-1/2 rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-[11px] font-normal normal-case tracking-normal text-gray-300 shadow-xl ${
+            position === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
+          }`}
+        >
           {content}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-surface" />
-        </div>
+        </span>
       )}
     </span>
   )

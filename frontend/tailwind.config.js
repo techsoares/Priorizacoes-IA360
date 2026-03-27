@@ -5,21 +5,21 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#3559EB',
-          dark: '#0120EB',
-          light: '#6B8AFF',
+          DEFAULT: 'rgb(var(--color-primary) / <alpha-value>)',
+          dark: 'rgb(var(--color-primary-dark) / <alpha-value>)',
+          light: 'rgb(var(--color-primary-light) / <alpha-value>)',
         },
         accent: {
-          pink: '#FE70BD',
-          gray: '#CCCCCC',
-          purple: '#9B5DE5',
-          'purple-light': '#B07FEE',
-          'purple-dark': '#7B2FD4',
+          pink: 'rgb(var(--color-accent-pink) / <alpha-value>)',
+          gray: 'rgb(var(--color-accent-gray) / <alpha-value>)',
+          purple: 'rgb(var(--color-accent-purple) / <alpha-value>)',
+          'purple-light': 'rgb(var(--color-accent-purple-light) / <alpha-value>)',
+          'purple-dark': 'rgb(var(--color-accent-purple-dark) / <alpha-value>)',
         },
         surface: {
-          DEFAULT: '#0B1437',
-          card: '#111C44',
-          hover: '#1A2555',
+          DEFAULT: 'rgb(var(--color-surface) / <alpha-value>)',
+          card: 'rgb(var(--color-surface-card) / <alpha-value>)',
+          hover: 'rgb(var(--color-surface-hover) / <alpha-value>)',
         },
       },
       fontFamily: {

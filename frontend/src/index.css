@@ -3,30 +3,171 @@
 @tailwind utilities;
 
 @layer base {
-  /* Scrollbar dark theme */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  :root,
+  [data-theme='dark'] {
+    --color-primary: 53 89 235;              /* #3559EB */
+    --color-primary-dark: 1 32 235;          /* #0120EB */
+    --color-primary-light: 61 183 244;       /* #3DB7F4 */
+    --color-accent-pink: 254 112 189;        /* #FE70BD */
+    --color-accent-gray: 204 204 204;        /* #CCCCCC */
+    --color-accent-purple: 53 89 235;        /* #3559EB */
+    --color-accent-purple-light: 61 183 244; /* #3DB7F4 */
+    --color-accent-purple-dark: 1 32 235;    /* #0120EB */
+    --color-surface: 18 26 65;
+    --color-surface-card: 28 40 90;
+    --color-surface-hover: 36 58 131;        /* #243A83 */
+
+    --text-base: 255 255 255;
+    --text-muted: 148 163 184;
+    --text-subtle: 100 116 139;
+    --text-faint: 71 85 105;
+    --border-subtle: rgba(255,255,255,0.08);
+    --border-medium: rgba(255,255,255,0.10);
+    --surface-glass: rgba(255,255,255,0.03);
+    --surface-glass-hover: rgba(53,89,235,0.05);
+    --surface-glass-selected: rgba(53,89,235,0.10);
   }
-  ::-webkit-scrollbar-track {
-    background: transparent;
+
+  [data-theme='light'] {
+    --color-primary: 53 89 235;              /* #3559EB */
+    --color-primary-dark: 1 32 235;          /* #0120EB */
+    --color-primary-light: 61 183 244;       /* #3DB7F4 */
+    --color-accent-pink: 254 112 189;        /* #FE70BD */
+    --color-accent-gray: 100 116 139;
+    --color-accent-purple: 53 89 235;        /* #3559EB */
+    --color-accent-purple-light: 1 32 235;   /* #0120EB — darker for contrast on white */
+    --color-accent-purple-dark: 1 32 235;
+    --color-surface: 240 244 255;            /* very light blue-white */
+    --color-surface-card: 255 255 255;
+    --color-surface-hover: 224 232 255;
+
+    --text-base: 15 23 42;
+    --text-muted: 51 65 85;
+    --text-subtle: 71 85 105;
+    --text-faint: 148 163 184;
+    --border-subtle: rgba(53,89,235,0.12);
+    --border-medium: rgba(53,89,235,0.18);
+    --surface-glass: rgba(53,89,235,0.04);
+    --surface-glass-hover: rgba(53,89,235,0.07);
+    --surface-glass-selected: rgba(53,89,235,0.12);
   }
+
+  html {
+    background: rgb(var(--color-surface));
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top left, rgba(61, 183, 244, 0.10), transparent 30%),
+      radial-gradient(circle at top right, rgba(254, 112, 189, 0.12), transparent 32%),
+      radial-gradient(circle at bottom center, rgba(1, 32, 235, 0.08), transparent 40%),
+      rgb(var(--color-surface));
+    color: rgb(var(--text-base));
+    transition: background-color 180ms ease, color 180ms ease;
+  }
+
+  [data-theme='light'] body {
+    background:
+      radial-gradient(circle at top left, rgba(61, 183, 244, 0.06), transparent 30%),
+      radial-gradient(circle at top right, rgba(254, 112, 189, 0.07), transparent 32%),
+      rgb(var(--color-surface));
+  }
+
+  ::selection {
+    background: rgba(53, 89, 235, 0.25);
+    color: inherit;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
-    background: rgba(155, 93, 229, 0.2);
-    border-radius: 3px;
+    background: rgba(53, 89, 235, 0.35);
+    border-radius: 999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(155, 93, 229, 0.4);
+    background: rgba(61, 183, 244, 0.5);
   }
 
-  /* Select dropdown dark style */
   select option {
-    background: #111C44;
-    color: #e5e7eb;
+    background: rgb(var(--color-surface-card));
+    color: rgb(var(--text-base));
   }
 
-  /* Smooth transitions globais */
-  * {
-    scroll-behavior: smooth;
+  * { scroll-behavior: smooth; }
+
+  /* ── Light mode overrides for hardcoded dark classes ── */
+
+  [data-theme='light'] .text-white { color: rgb(15 23 42) !important; }
+  [data-theme='light'] .text-gray-600 { color: rgb(148 163 184) !important; }
+  [data-theme='light'] .text-gray-500 { color: rgb(71 85 105) !important; }
+  [data-theme='light'] .text-gray-400 { color: rgb(51 65 85) !important; }
+  [data-theme='light'] .text-gray-300 { color: rgb(30 41 59) !important; }
+  [data-theme='light'] .text-gray-200 { color: rgb(15 23 42) !important; }
+
+  /* Borders */
+  [data-theme='light'] .border-white\/8,
+  [data-theme='light'] .border-white\/10 {
+    border-color: rgba(53,89,235,0.15) !important;
   }
+  [data-theme='light'] .border-white\/5,
+  [data-theme='light'] .border-white\/6 {
+    border-color: rgba(53,89,235,0.10) !important;
+  }
+
+  /* Glass surfaces */
+  [data-theme='light'] .bg-white\/\[0\.03\] { background-color: rgba(53,89,235,0.04) !important; }
+  [data-theme='light'] .bg-white\/5 { background-color: rgba(53,89,235,0.06) !important; }
+  [data-theme='light'] .bg-white\/\[0\.02\] { background-color: rgba(53,89,235,0.03) !important; }
+
+  /* Table header gradient */
+  [data-theme='light'] .bg-\[linear-gradient\(90deg\2c rgba\(1\2c 32\2c 235\2c 0\.25\)\2c rgba\(254\2c 112\2c 189\2c 0\.15\)\)\] {
+    background: linear-gradient(90deg, rgba(53,89,235,0.12), rgba(254,112,189,0.10)) !important;
+  }
+
+  /* Tooltip popup bg */
+  [data-theme='light'] .bg-\[\#1a1a2e\] {
+    background-color: #ffffff !important;
+    border-color: rgba(53,89,235,0.20) !important;
+    box-shadow: 0 4px 24px rgba(53,89,235,0.12) !important;
+  }
+
+  /* surface-card with opacity */
+  [data-theme='light'] .bg-surface-card\/70,
+  [data-theme='light'] .bg-surface-card\/80 {
+    background-color: rgba(255,255,255,0.92) !important;
+    backdrop-filter: blur(12px);
+  }
+
+  /* Hardcoded blue/pink pill backgrounds */
+  [data-theme='light'] .bg-\[\#3559EB\]\/10,
+  [data-theme='light'] .bg-\[rgba\(53\2c 89\2c 235\2c 0\.10\)\] {
+    background-color: rgba(53,89,235,0.08) !important;
+  }
+  [data-theme='light'] .bg-\[rgba\(53\2c 89\2c 235\2c 0\.05\)\] {
+    background-color: rgba(53,89,235,0.05) !important;
+  }
+
+  /* ROI positive green — keep readable on light */
+  [data-theme='light'] .text-\[\#40EB4F\] { color: #1a8f24 !important; }
+  [data-theme='light'] .bg-\[\#40EB4F\]\/10 { background-color: rgba(26,143,36,0.08) !important; }
+  [data-theme='light'] .border-\[\#40EB4F\]\/20 { border-color: rgba(26,143,36,0.20) !important; }
+
+  /* Yellow — darken for light bg */
+  [data-theme='light'] .text-\[\#F2F24B\] { color: #8a8a00 !important; }
+  [data-theme='light'] .bg-\[\#F2F24B\]\/10 { background-color: rgba(138,138,0,0.08) !important; }
+  [data-theme='light'] .border-\[\#F2F24B\]\/20 { border-color: rgba(138,138,0,0.20) !important; }
+
+  /* Pink accent — slightly darken */
+  [data-theme='light'] .text-\[\#FE70BD\] { color: #c4006e !important; }
+  [data-theme='light'] .bg-\[\#FE70BD\]\/10 { background-color: rgba(196,0,110,0.07) !important; }
+  [data-theme='light'] .border-\[\#FE70BD\]\/20 { border-color: rgba(196,0,110,0.18) !important; }
+
+  /* Blue light text on light bg */
+  [data-theme='light'] .text-\[\#3DB7F4\] { color: #0120EB !important; }
+  [data-theme='light'] .bg-\[\#3559EB\]\/15 { background-color: rgba(53,89,235,0.10) !important; }
+  [data-theme='light'] .border-\[\#3559EB\]\/20 { border-color: rgba(53,89,235,0.20) !important; }
+  [data-theme='light'] .border-\[\#3559EB\]\/40 { border-color: rgba(53,89,235,0.35) !important; }
+
+  /* surface-card base */
+  [data-theme='light'] .bg-surface-card { background-color: #ffffff !important; }
 }

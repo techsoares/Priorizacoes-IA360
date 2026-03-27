@@ -1,44 +1,74 @@
 from app.initiatives.models import CalculatedMetrics
 
 
+def _to_float(value) -> float:
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def calculate_metrics(data: dict) -> CalculatedMetrics:
     """
-    Calcula Ganhos, Custos, ROI e Payback de uma iniciativa.
+    Calcula ganhos, custos, ROI (anual) e payback.
 
-    Fórmulas:
-    - Ganhos = (horas_economizadas × custo_hora)
-              + (redução_headcount × custo_mensal_funcionário)
-              + (aumento_produtividade × valor_tarefa_adicional)
+    Economia mensal:
+      horas_por_pessoa = time_saved_per_day × execution_days_per_month
+      horas_totais     = horas_por_pessoa × affected_people_count
+      ganho_mensal      = horas_totais × cost_per_hour
 
-    - Custos = (tokens_usados × custo_token)
-              + custo_infra_cloud
-              + (horas_manutenção × custo_hora_técnico)
+    Custos (investimento único):
+      dev  = (development_estimate_seconds / 3600) × tech_hour_cost
+      terc = third_party_hours × third_party_hour_cost
+      total_costs = dev + terc + token_cost + cloud_infra_cost
 
-    - ROI (%) = ((Ganhos - Custos) / Custos) × 100
-    - Payback (meses) = Custos / (Ganhos / 12)  →  equivale a Custos × 12 / Ganhos
+    ROI anual  = ((ganho_mensal × 12) − total_costs) / total_costs × 100
+    Payback    = total_costs / ganho_mensal  (em meses)
     """
 
-    # Ganhos mensais
-    gain_hours = (data.get("hours_saved") or 0) * (data.get("cost_per_hour") or 0)
-    gain_headcount = (data.get("headcount_reduction") or 0) * (data.get("monthly_employee_cost") or 0)
-    gain_productivity = (data.get("productivity_increase") or 0) * (data.get("additional_task_value") or 0)
+    # --- Economia (por pessoa, por mês) ---
+    time_saved_per_day = _to_float(data.get("time_saved_per_day"))
+    execution_days_per_month = _to_float(data.get("execution_days_per_month"))
+    affected_people_count = _to_float(data.get("affected_people_count"))
+    cost_per_hour = _to_float(data.get("cost_per_hour"))
+
+    hours_per_person = time_saved_per_day * execution_days_per_month
+    total_hours_saved = hours_per_person * affected_people_count
+    gain_hours = total_hours_saved * cost_per_hour
+
+    # --- Ganhos complementares (headcount / produtividade) ---
+    headcount_reduction = _to_float(data.get("headcount_reduction"))
+    monthly_employee_cost = _to_float(data.get("monthly_employee_cost"))
+    productivity_increase = _to_float(data.get("productivity_increase"))
+    additional_task_value = _to_float(data.get("additional_task_value"))
+
+    gain_headcount = headcount_reduction * monthly_employee_cost
+    gain_productivity = productivity_increase * additional_task_value
+
     total_gains = gain_hours + gain_headcount + gain_productivity
 
-    # Custos mensais
-    cost_tokens = (data.get("tokens_used") or 0) * (data.get("token_cost") or 0)
-    cost_infra = data.get("cloud_infra_cost") or 0
-    cost_maintenance = (data.get("maintenance_hours") or 0) * (data.get("tech_hour_cost") or 0)
-    total_costs = cost_tokens + cost_infra + cost_maintenance
+    # --- Custos (investimento) ---
+    development_estimate_hours = _to_float(data.get("development_estimate_seconds")) / 3600
+    tech_hour_cost = _to_float(data.get("tech_hour_cost"))
+    third_party_hours = _to_float(data.get("third_party_hours"))
+    third_party_hour_cost = _to_float(data.get("third_party_hour_cost"))
+    token_cost = _to_float(data.get("token_cost"))
+    cloud_infra_cost = _to_float(data.get("cloud_infra_cost"))
 
-    # ROI — protege contra divisão por zero
+    development_cost = development_estimate_hours * tech_hour_cost
+    third_party_cost = third_party_hours * third_party_hour_cost
+    total_costs = development_cost + third_party_cost + token_cost + cloud_infra_cost
+
+    # --- ROI anual e Payback ---
+    annual_gains = total_gains * 12
+
     roi_percent = None
     if total_costs > 0:
-        roi_percent = round(((total_gains - total_costs) / total_costs) * 100, 2)
+        roi_percent = round(((annual_gains - total_costs) / total_costs) * 100, 2)
 
-    # Payback — protege contra ganhos zero
     payback_months = None
     if total_gains > 0:
-        payback_months = round((total_costs * 12) / total_gains, 2)
+        payback_months = round(total_costs / total_gains, 2)
 
     return CalculatedMetrics(
         total_gains=round(total_gains, 2),

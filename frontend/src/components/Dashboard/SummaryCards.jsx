@@ -1,126 +1,120 @@
 import Tooltip from '../UI/Tooltip'
 
-const ICONS = {
-  totalInitiatives: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-    </svg>
-  ),
-  avgRoi: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-    </svg>
-  ),
-  avgPayback: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  totalHoursSaved: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-    </svg>
-  ),
-  totalCosts: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-}
-
-const CARDS_CONFIG = [
+const CARD_CONFIG = [
   {
-    label: 'Iniciativas',
     key: 'totalInitiatives',
+    label: 'Iniciativas',
+    tooltip: 'Contagem simples das iniciativas exibidas após aplicar os filtros ativos.',
+    color: '#3559EB',
     format: (v) => v,
-    color: 'border-primary',
-    iconColor: 'text-primary-light bg-primary/10',
-    tooltip: 'Quantidade total de iniciativas exibidas (respeitando filtros ativos).',
   },
   {
-    label: 'ROI Médio',
-    key: 'avgRoi',
-    format: (v) => (v != null ? `${v.toFixed(1)}%` : 'N/A'),
-    color: 'border-accent-purple',
-    iconColor: 'text-accent-purple-light bg-accent-purple/10',
-    tooltip:
-      'ROI = ((Ganhos - Custos) / Custos) × 100\nMédia de todas as iniciativas com custos > 0.',
+    key: 'totalRoi',
+    label: 'ROI total',
+    tooltip: 'Soma do ROI de cada iniciativa com custo > 0. Fórmula por iniciativa: ROI = ((ganhos_mensais × 12) − custos_totais) ÷ custos_totais × 100',
+    color: '#3DB7F4',
+    format: (v) => (v != null ? `${v.toFixed(1)}%` : '—'),
   },
   {
-    label: 'Payback Médio',
     key: 'avgPayback',
-    format: (v) => (v != null ? `${v.toFixed(1)} meses` : 'N/A'),
-    color: 'border-accent-purple-light',
-    iconColor: 'text-accent-purple bg-accent-purple/10',
-    tooltip:
-      'Payback = (Custos × 12) / Ganhos\nTempo médio para recuperar o investimento.',
+    label: 'Payback médio',
+    tooltip: 'Média do payback das iniciativas com ganhos > 0. Fórmula por iniciativa: Payback (meses) = custos_totais ÷ ganhos_mensais',
+    color: '#FE70BD',
+    format: (v) => (v != null ? `${v.toFixed(1)} m` : '—'),
   },
   {
-    label: 'Economia de Tempo',
     key: 'totalHoursSaved',
+    label: 'Horas economizadas',
+    tooltip: 'Soma das horas economizadas por mês em todas as iniciativas. Fórmula por iniciativa: horas = horas_salvas_dia × dias_execução_mês × pessoas_afetadas',
+    color: '#3DB7F4',
     format: (v) => `${v.toLocaleString('pt-BR')} h/mês`,
-    color: 'border-primary',
-    iconColor: 'text-primary-light bg-primary/10',
-    tooltip: 'Soma de horas economizadas por mês de todas as iniciativas.',
   },
   {
-    label: 'Custo Total Dev',
+    key: 'totalEstimatedDevelopment',
+    label: 'Tempo dev',
+    tooltip: 'Soma do tempo estimado de desenvolvimento vindo do Jira. Fórmula: horas_dev = development_estimate_seconds ÷ 3600',
+    color: '#F2F24B',
+    format: (v) => `${v.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} h`,
+  },
+  {
     key: 'totalCosts',
-    format: (v) =>
-      v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-    color: 'border-accent-pink',
-    iconColor: 'text-accent-pink bg-accent-pink/10',
-    tooltip:
-      'Custos = (Tokens × Custo/Token) + Custo Infra + (Horas Manutenção × Custo/Hora Técnico)\nSoma mensal de todas as iniciativas.',
+    label: 'Custo total',
+    tooltip: 'Soma dos custos de todas as iniciativas. Fórmula por iniciativa: custos = (horas_dev × R$/h Dev) + (horas_terceiros × R$/h Terceiros) + token_cost + cloud_infra_cost',
+    color: '#FE70BD',
+    format: (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+  },
+  {
+    key: 'monthlySavings',
+    label: 'Economia/mês',
+    tooltip: 'Soma dos ganhos mensais de todas as iniciativas. Fórmula por iniciativa: ganhos = (horas_salvas_dia × dias_mês × pessoas × R$/h Pessoas) + (headcount × custo_funcionário) + (produtividade × valor_tarefa)',
+    color: '#40EB4F',
+    format: (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+  },
+  {
+    key: 'totalSavings',
+    label: 'Economia total',
+    tooltip: 'Projeção anual dos ganhos mensais. Fórmula: economia_total = economia_mensal × 12',
+    color: '#40EB4F',
+    format: (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
   },
 ]
 
-export default function SummaryCards({ initiatives }) {
+export default function SummaryCards({ initiatives, selectedInitiative, onClearSelection }) {
   const totalInitiatives = initiatives.length
 
   const withRoi = initiatives.filter((i) => i.metrics?.roi_percent != null)
-  const avgRoi =
-    withRoi.length > 0
-      ? withRoi.reduce((sum, i) => sum + i.metrics.roi_percent, 0) / withRoi.length
-      : null
+  const totalRoi = withRoi.length > 0
+    ? withRoi.reduce((s, i) => s + i.metrics.roi_percent, 0)
+    : null
 
   const withPayback = initiatives.filter((i) => i.metrics?.payback_months != null)
-  const avgPayback =
-    withPayback.length > 0
-      ? withPayback.reduce((sum, i) => sum + i.metrics.payback_months, 0) /
-        withPayback.length
-      : null
+  const avgPayback = withPayback.length > 0
+    ? withPayback.reduce((s, i) => s + i.metrics.payback_months, 0) / withPayback.length
+    : null
 
-  const totalHoursSaved = initiatives.reduce((sum, i) => sum + (i.hours_saved || 0), 0)
+  const totalHoursSaved = initiatives.reduce((s, i) => {
+    return s + (i.time_saved_per_day || 0) * (i.execution_days_per_month || 0) * (i.affected_people_count || 0)
+  }, 0)
 
-  const totalCosts = initiatives.reduce(
-    (sum, i) => sum + (i.metrics?.total_costs || 0),
-    0
-  )
+  const totalEstimatedDevelopment = initiatives.reduce((s, i) =>
+    s + (i.development_estimate_seconds ? i.development_estimate_seconds / 3600 : 0), 0)
 
-  const values = { totalInitiatives, avgRoi, avgPayback, totalHoursSaved, totalCosts }
+  const totalCosts = initiatives.reduce((s, i) => s + (i.metrics?.total_costs || 0), 0)
+  const monthlySavings = initiatives.reduce((s, i) => s + (i.metrics?.total_gains || 0), 0)
+  const totalSavings = monthlySavings * 12
+
+  const values = { totalInitiatives, totalRoi, avgPayback, totalHoursSaved, totalEstimatedDevelopment, totalCosts, monthlySavings, totalSavings }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-      {CARDS_CONFIG.map((card) => (
-        <div
-          key={card.key}
-          className={`bg-surface-card rounded-xl p-5 border-l-4 ${card.color} border border-white/5 hover:border-accent-purple/15 transition-all group`}
-        >
-          <div className="flex items-start justify-between mb-3">
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center gap-1">
-              {card.label}
-              <Tooltip content={card.tooltip} />
-            </span>
-            <span className={`p-1.5 rounded-lg ${card.iconColor} group-hover:scale-110 transition-transform`}>
-              {ICONS[card.key]}
-            </span>
-          </div>
-          <div className="text-2xl font-bold text-white tracking-tight">
-            {card.format(values[card.key])}
-          </div>
+    <div className="mb-6">
+      {selectedInitiative && (
+        <div className="mb-3 flex items-center gap-2 rounded-lg border border-[#3559EB]/20 bg-[#3559EB]/5 px-3 py-1.5 text-xs">
+          <span className="text-gray-500">Exibindo:</span>
+          <span className="font-medium text-[#3DB7F4] truncate">
+            {selectedInitiative.jira_key} — {selectedInitiative.summary}
+          </span>
+          <button
+            onClick={onClearSelection}
+            className="ml-auto shrink-0 text-gray-500 transition-colors hover:text-white"
+          >
+            ✕
+          </button>
         </div>
-      ))}
+      )}
+
+      <div className="flex flex-wrap gap-1.5">
+        {CARD_CONFIG.map((card) => (
+          <div
+            key={card.key}
+            className="flex items-center gap-2 rounded-lg border border-white/8 bg-white/[0.03] px-2.5 py-1.5"
+          >
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: card.color }} />
+            <span className="text-[10px] text-gray-500">{card.label}</span>
+            <span className="text-[11px] font-semibold text-white/80">{card.format(values[card.key])}</span>
+            <Tooltip content={card.tooltip} />
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

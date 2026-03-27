@@ -1,65 +1,103 @@
-import axios from 'axios'
 import { supabase } from './supabase'
+import { calculateMetrics } from '../utils/calculations'
 
-const LOCAL_API_CANDIDATES = [
-  'http://127.0.0.1:8001',
-  'http://127.0.0.1:8000',
-]
+const JIRA_BASE_URL = import.meta.env.VITE_JIRA_BASE_URL
 
-let cachedBaseUrl = null
-
-function isLocalhost() {
-  return typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
+function enrich(row) {
+  if (!row.jira_url && row.jira_key) {
+    row.jira_url = `${JIRA_BASE_URL}/browse/${row.jira_key}`
+  }
+  return { ...row, metrics: calculateMetrics(row) }
 }
 
-async function canReachApi(baseUrl) {
-  const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), 1200)
-
-  try {
-    const response = await fetch(`${baseUrl}/health`, {
-      method: 'GET',
-      signal: controller.signal,
-    })
-    return response.ok
-  } catch {
-    return false
-  } finally {
-    window.clearTimeout(timeout)
-  }
-}
-
-async function resolveBaseUrl() {
-  if (!isLocalhost()) {
-    return import.meta.env.VITE_API_URL
-  }
-
-  if (cachedBaseUrl) {
-    return cachedBaseUrl
-  }
-
-  for (const candidate of LOCAL_API_CANDIDATES) {
-    if (await canReachApi(candidate)) {
-      cachedBaseUrl = candidate
-      return candidate
-    }
-  }
-
-  cachedBaseUrl = LOCAL_API_CANDIDATES[0]
-  return cachedBaseUrl
-}
-
-const api = axios.create()
-
-api.interceptors.request.use(async (config) => {
-  config.baseURL = await resolveBaseUrl()
-
+async function getAuthHeader() {
   const { data: { session } } = await supabase.auth.getSession()
-  if (session?.access_token) {
-    config.headers.Authorization = `Bearer ${session.access_token}`
-  }
+  return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
+}
 
-  return config
-})
+export async function listInitiatives() {
+  const { data, error } = await supabase
+    .from('initiatives')
+    .select('*')
+    .order('priority_order', { ascending: true })
+  if (error) throw new Error(error.message)
+  return data.map(enrich)
+}
+
+export async function updateInitiative(id, payload) {
+  const { error } = await supabase.from('initiatives').update(payload).eq('id', id)
+  if (error) throw new Error(error.message)
+
+  const { data, error: fetchError } = await supabase
+    .from('initiatives')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (fetchError) throw new Error(fetchError.message)
+  return enrich(data)
+}
+
+export async function reorderInitiatives(orderedIds) {
+  for (let i = 0; i < orderedIds.length; i++) {
+    const { error } = await supabase
+      .from('initiatives')
+      .update({ priority_order: i + 1 })
+      .eq('id', orderedIds[i])
+    if (error) throw new Error(error.message)
+  }
+  return { message: 'Ordem atualizada com sucesso.', count: orderedIds.length }
+}
+
+export async function bulkUpdateCosts(items) {
+  let updated = 0
+  for (const item of items) {
+    const { jira_key, ...fields } = item
+    const updateData = Object.fromEntries(Object.entries(fields).filter(([, v]) => v != null))
+    if (!Object.keys(updateData).length) continue
+    const { data } = await supabase.from('initiatives').update(updateData).eq('jira_key', jira_key)
+    if (data) updated++
+  }
+  return { message: `Custos atualizados para ${updated} iniciativas.`, count: updated }
+}
+
+export async function syncJira() {
+  const headers = await getAuthHeader()
+  const res = await fetch('/api/sync-jira', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...headers },
+  })
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.error || 'Erro ao sincronizar com Jira')
+  }
+  const data = await res.json()
+  return data.map(enrich)
+}
+
+// Mantém compatibilidade com código que usa `api` como default (axios-style)
+const api = {
+  get: async (url) => {
+    if (url.startsWith('/api/initiatives')) {
+      return { data: await listInitiatives() }
+    }
+    throw new Error(`GET ${url} não suportado`)
+  },
+  post: async (url) => {
+    if (url.includes('sync-jira')) {
+      return { data: await syncJira() }
+    }
+    throw new Error(`POST ${url} não suportado`)
+  },
+  put: async (url, payload) => {
+    const id = url.split('/').pop()
+    return { data: await updateInitiative(id, payload) }
+  },
+  patch: async (url, payload) => {
+    if (url.includes('reorder')) {
+      return { data: await reorderInitiatives(payload.ordered_ids) }
+    }
+    throw new Error(`PATCH ${url} não suportado`)
+  },
+}
 
 export default api

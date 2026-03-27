@@ -22,7 +22,7 @@ export function getTimelineEndDate(initiative) {
 
 export function getLeadTimeDays(initiative) {
   const start = getStartDate(initiative)
-  const end = getResolutionDate(initiative)
+  const end = toDate(initiative?.due_date)
   if (!start || !end) return null
   const diff = end.getTime() - start.getTime()
   return diff < 0 ? 0 : Math.ceil(diff / (1000 * 60 * 60 * 24))

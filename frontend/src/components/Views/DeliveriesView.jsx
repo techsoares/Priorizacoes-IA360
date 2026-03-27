@@ -433,7 +433,7 @@ export default function DeliveriesView({ initiatives }) {
           sub="do início à conclusão"
           color="#F2F24B"
           icon="🗓️"
-          tooltip="Média de dias entre a data de início e a data de resolução das iniciativas."
+          tooltip="Média de dias entre a data de início e a data limite (due date) das iniciativas."
         />
       </div>
 

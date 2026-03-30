@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manual Técnico — Dashboard IA360°</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Poppins:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --azul-claro: #3559EB;
+      --azul-claro2: #3DB7F4;
+      --azul-escuro: #0120EB;
+      --navy: #243A83;
+      --rosa: #FE70BD;
+      --cinza: #CCCCCC;
+      --amarelo: #F2F24B;
+      --verde: #40EB4F;
+      --bg: #f5f7ff;
+      --surface: #ffffff;
+      --text: #1a1f36;
+      --muted: #5e6b92;
+      --border: #e2e8f7;
+      --code-bg: #0f1629;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 260px; height: 100vh;
+      background: var(--navy);
+      overflow-y: auto;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-logo {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar-logo .badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--azul-claro), var(--azul-claro2));
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .sidebar-logo p {
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+      font-weight: 300;
+    }
+
+    .sidebar-logo strong {
+      color: rgba(255,255,255,0.9);
+    }
+
+    nav {
+      padding: 16px 0;
+      flex: 1;
+    }
+
+    nav .nav-section {
+      padding: 8px 24px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--azul-claro2);
+    }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 24px;
+      color: rgba(255,255,255,0.72);
+      text-decoration: none;
+      font-size: 13.5px;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    nav a:hover,
+    nav a.active {
+      color: #fff;
+      background: rgba(255,255,255,0.07);
+      border-left-color: var(--azul-claro2);
+    }
+
+    nav a .icon { font-size: 15px; opacity: 0.8; }
+
+    /* ─── MAIN ─── */
+    main {
+      margin-left: 260px;
+      min-height: 100vh;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--azul-claro) 60%, var(--azul-claro2) 100%);
+      padding: 72px 64px 56px;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 320px; height: 320px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; right: 120px;
+      width: 180px; height: 180px;
+      border-radius: 50%;
+      background: rgba(254, 112, 189, 0.15);
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 42px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 span { color: var(--amarelo); }
+
+    .hero p {
+      font-size: 17px;
+      opacity: 0.85;
+      max-width: 600px;
+      font-weight: 300;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 32px;
+      margin-top: 36px;
+    }
+
+    .hero-meta .item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero-meta .label {
+      font-size: 11px;
+      opacity: 0.6;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .hero-meta .value {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    /* ─── CONTENT SECTIONS ─── */
+    .content {
+      padding: 0 64px 80px;
+    }
+
+    section {
+      padding-top: 60px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .section-header .icon-box {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--azul-claro), var(--azul-claro2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .section-header h2 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .section-header h2 small {
+      display: block;
+      font-family: 'Lato', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ─── CARDS ─── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .card h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card p, .card li {
+      color: var(--muted);
+      font-size: 14.5px;
+      line-height: 1.7;
+    }
+
+    .card ul, .card ol {
+      padding-left: 20px;
+    }
+
+    .card li { margin-bottom: 6px; }
+
+    .card li strong { color: var(--text); }
+
+    /* ─── GRID LAYOUTS ─── */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+    }
+
+    /* ─── STACK PILLS ─── */
+    .stack-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1.5px solid;
+    }
+
+    .pill.blue  { background: #eff3ff; color: var(--azul-claro); border-color: #c7d4fc; }
+    .pill.teal  { background: #e8f9ff; color: #0092c7;           border-color: #b8e8fb; }
+    .pill.green { background: #e8fff0; color: #0a9e3a;           border-color: #8ee8aa; }
+    .pill.pink  { background: #fff0f8; color: #d4006b;           border-color: #f8b8dd; }
+    .pill.gold  { background: #fffbea; color: #b08000;           border-color: #f0da7a; }
+    .pill.navy  { background: #f0f3ff; color: var(--navy);       border-color: #c4cdf8; }
+
+    /* ─── FORMULA BOXES ─── */
+    .formula-box {
+      background: var(--code-bg);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 16px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .formula-box::before {
+      content: 'FÓRMULA';
+      position: absolute;
+      top: 12px; right: 16px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--azul-claro2);
+      opacity: 0.7;
+    }
+
+    .formula-box .line {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      color: #e2e8ff;
+      line-height: 2;
+    }
+
+    .formula-box .line .kw  { color: var(--azul-claro2); }
+    .formula-box .line .op  { color: var(--rosa); }
+    .formula-box .line .val { color: var(--amarelo); }
+    .formula-box .line .cmt { color: rgba(255,255,255,0.35); font-style: italic; }
+    .formula-box .line .res { color: var(--verde); font-weight: 500; }
+
+    .formula-title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--navy);
+      margin: 20px 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .formula-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px; height: 18px;
+      border-radius: 4px;
+      background: linear-gradient(to bottom, var(--azul-claro), var(--azul-claro2));
+    }
+
+    /* ─── ARCHITECTURE DIAGRAM ─── */
+    .arch-diagram {
+      background: var(--code-bg);
+      border-radius: 12px;
+      padding: 32px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      color: #b8c4e8;
+      line-height: 1.9;
+      overflow-x: auto;
+    }
+
+    .arch-diagram .layer-label { color: var(--azul-claro2); font-weight: 500; }
+    .arch-diagram .box  { color: var(--amarelo); }
+    .arch-diagram .arrow { color: var(--rosa); }
+    .arch-diagram .comment { color: rgba(255,255,255,0.3); }
+
+    /* ─── API TABLE ─── */
+    .api-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    .api-table thead tr {
+      background: var(--navy);
+      color: #fff;
+    }
+
+    .api-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .api-table th:first-child { border-radius: 10px 0 0 0; }
+    .api-table th:last-child  { border-radius: 0 10px 0 0; }
+
+    .api-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    .api-table tbody tr:hover { background: #f5f7ff; }
+
+    .api-table td {
+      padding: 11px 16px;
+      color: var(--muted);
+    }
+
+    .api-table td:first-child { font-weight: 700; }
+
+    .method {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    .method.get    { background: #e8fff0; color: #0a9e3a; }
+    .method.post   { background: #fffbea; color: #b08000; }
+    .method.put    { background: #eff3ff; color: var(--azul-claro); }
+    .method.patch  { background: #fff0f8; color: #d4006b; }
+    .method.delete { background: #fff0f0; color: #cc0000; }
+
+    .endpoint {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    /* ─── DB TABLE ─── */
+    .db-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .db-table thead tr { background: #f0f3ff; }
+
+    .db-table th {
+      padding: 10px 14px;
+      text-align: left;
+      font-family: 'Poppins', sans-serif;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--navy);
+      border-bottom: 2px solid var(--border);
+    }
+
+    .db-table td {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .db-table td:first-child { color: var(--text); font-weight: 500; }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .tag.pk  { background: #fff0f8; color: #d4006b; }
+    .tag.fk  { background: #fffbea; color: #b08000; }
+    .tag.idx { background: #eff3ff; color: var(--azul-claro); }
+
+    /* ─── SECURITY ITEMS ─── */
+    .security-item {
+      display: flex;
+      gap: 16px;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .security-item:last-child { border-bottom: none; }
+
+    .security-item .icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--azul-claro) 0%, var(--azul-claro2) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .security-item .body h4 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+
+    .security-item .body p {
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+
+    /* ─── BENEFIT CARDS ─── */
+    .benefit-card {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--azul-claro) 100%);
+      color: #fff;
+      border-radius: 16px;
+      padding: 28px;
+    }
+
+    .benefit-card .number {
+      font-family: 'Poppins', sans-serif;
+      font-size: 38px;
+      font-weight: 700;
+      color: var(--amarelo);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .benefit-card h4 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .benefit-card p {
+      font-size: 13px;
+      opacity: 0.75;
+    }
+
+    /* ─── FLOW ─── */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+    }
+
+    .flow-step .left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .flow-step .num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--azul-claro), var(--azul-claro2));
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .flow-step .line {
+      width: 2px;
+      flex: 1;
+      min-height: 24px;
+      background: linear-gradient(to bottom, var(--azul-claro2), transparent);
+      margin: 4px 0;
+    }
+
+    .flow-step:last-child .line { display: none; }
+
+    .flow-step .body {
+      padding-bottom: 20px;
+    }
+
+    .flow-step .body h4 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+
+    .flow-step .body p {
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+
+    /* ─── ENV BLOCK ─── */
+    .env-block {
+      background: var(--code-bg);
+      border-radius: 10px;
+      padding: 20px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      line-height: 2;
+    }
+
+    .env-block .group-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--azul-claro2);
+      margin-top: 16px;
+      margin-bottom: 4px;
+    }
+
+    .env-block .group-label:first-child { margin-top: 0; }
+
+    .env-block .env-line { color: #b8c4e8; }
+    .env-block .env-key  { color: var(--amarelo); }
+    .env-block .env-val  { color: #78c78e; }
+    .env-block .env-cmt  { color: rgba(255,255,255,0.3); }
+
+    /* ─── INFO ALERT ─── */
+    .alert {
+      border-left: 4px solid;
+      border-radius: 0 10px 10px 0;
+      padding: 14px 18px;
+      margin: 12px 0;
+      font-size: 13.5px;
+    }
+
+    .alert.info  { background: #eff3ff; border-color: var(--azul-claro); color: var(--navy); }
+    .alert.warn  { background: #fffbea; border-color: #c79600; color: #6b4c00; }
+    .alert.tip   { background: #e8fff0; border-color: #0a9e3a; color: #064d1c; }
+
+    .alert strong { font-weight: 700; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      padding: 24px 64px;
+      font-size: 13px;
+    }
+
+    footer strong { color: rgba(255,255,255,0.9); }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+
+    @media (max-width: 1100px) {
+      .sidebar { display: none; }
+      main { margin-left: 0; }
+      .hero, .content { padding-left: 32px; padding-right: 32px; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="badge">IA360°</div>
+    <p><strong>Manual Técnico</strong><br />Dashboard de Priorização</p>
+  </div>
+  <nav>
+    <div class="nav-section">Visão Geral</div>
+    <a href="#overview">      <span class="icon">🏠</span> Introdução</a>
+    <a href="#benefits">      <span class="icon">✨</span> Benefícios</a>
+
+    <div class="nav-section">Técnico</div>
+    <a href="#stack">         <span class="icon">⚡</span> Stack Tecnológico</a>
+    <a href="#architecture">  <span class="icon">🏗️</span> Arquitetura</a>
+    <a href="#features">      <span class="icon">🎯</span> Funcionalidades</a>
+
+    <div class="nav-section">Dados</div>
+    <a href="#apis">          <span class="icon">🔌</span> APIs & Endpoints</a>
+    <a href="#database">      <span class="icon">🗄️</span> Banco de Dados</a>
+    <a href="#calculations">  <span class="icon">🧮</span> Cálculos & Fórmulas</a>
+
+    <div class="nav-section">Operações</div>
+    <a href="#security">      <span class="icon">🔒</span> Segurança</a>
+    <a href="#auth-flow">     <span class="icon">🔑</span> Fluxo de Autenticação</a>
+    <a href="#env">           <span class="icon">⚙️</span> Configuração</a>
+    <a href="#deploy">        <span class="icon">🚀</span> Deploy</a>
+  </nav>
+</aside>
+
+<!-- ════════════════════════════════════════════
+     MAIN
+════════════════════════════════════════════ -->
+<main>
+
+  <!-- ─── HERO ─── -->
+  <div class="hero">
+    <div class="hero-tag">📄 Manual Técnico &amp; Prático</div>
+    <h1>Dashboard de Priorização<br /><span>IA360°</span></h1>
+    <p>Documentação completa de arquitetura, funcionalidades, APIs, cálculos financeiros e segurança do sistema de priorização de iniciativas de automação.</p>
+    <div class="hero-meta">
+      <div class="item"><span class="label">Versão</span><span class="value">1.0.0</span></div>
+      <div class="item"><span class="label">Empresa</span><span class="value">PGMais</span></div>
+      <div class="item"><span class="label">Stack</span><span class="value">React + FastAPI + Supabase</span></div>
+      <div class="item"><span class="label">Atualização</span><span class="value">Março / 2026</span></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ─────────────────────────────────────
+         1. INTRODUÇÃO
+    ───────────────────────────────────────── -->
+    <section id="overview">
+      <div class="section-header">
+        <div class="icon-box">🏠</div>
+        <h2>Introdução<small>O que é e para que serve</small></h2>
+      </div>
+
+      <div class="card">
+        <h3>🎯 Propósito</h3>
+        <p>O <strong>Dashboard IA360°</strong> é uma plataforma centralizada de gestão e priorização de iniciativas de automação e inteligência artificial da PGMais. Ele integra dados do <strong>Jira</strong> com métricas financeiras calculadas em tempo real, permitindo que times de liderança tomem decisões baseadas em dados — com ROI, payback e ganhos mensais visíveis para cada iniciativa.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>🔄 Fluxo Principal</h3>
+          <ul>
+            <li>Iniciativas criadas no <strong>Jira</strong> são sincronizadas automaticamente</li>
+            <li>Gestores informam <strong>custos e parâmetros financeiros</strong> pelo Admin</li>
+            <li>O sistema calcula ROI, Payback e Ganhos em tempo real</li>
+            <li>A visão de <strong>Prioridade</strong> permite reordenar iniciativas via drag-and-drop</li>
+            <li>Relatórios visuais por <strong>Timeline</strong> (Gantt) e <strong>Entregas</strong></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>👥 Usuários-alvo</h3>
+          <ul>
+            <li><strong>Líderes de TI/IA:</strong> Priorização e visão estratégica</li>
+            <li><strong>Gestores de Negócio:</strong> ROI e justificativas financeiras</li>
+            <li><strong>Analistas de Processos:</strong> Acompanhamento de entregas</li>
+            <li><strong>Administradores:</strong> Custo-hora e parâmetros por iniciativa</li>
+            <li>Acesso restrito a <code>@pgmais.com.br</code></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────
+         2. BENEFÍCIOS
+    ───────────────────────────────────────── -->
+    <section id="benefits">
+      <div class="section-header">
+        <div class="icon-box">✨</div>
+        <h2>Benefícios<small>Por que usar este dashboard</small></h2>
+      </div>
+
+      <div class="grid-3">
+        <div class="benefit-card">
+          <div class="number">ROI</div>
+          <h4>Visibilidade Financeira</h4>
+          <p>Calcule automaticamente retorno sobre investimento e payback para cada projeto de automação.</p>
+        </div>
+        <div class="benefit-card">
+          <div class="number">360°</div>
+          <h4>Visão Completa</h4>
+          <p>4 visões integradas: Prioridade, Timeline (Gantt), Entregas e Administração de custos.</p>
+        </div>
+        <div class="benefit-card">
+          <div class="number">Sync</div>
+          <h4>Jira em Tempo Real</h4>
+          <p>Sincronização one-way do Jira: dados operacionais sempre atualizados sem esforço manual.</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:20px">
+        <div class="card">
+          <h3>📊 Ganhos Operacionais</h3>
+          <ul>
+            <li>Elimina planilhas manuais de acompanhamento</li>
+            <li>Centraliza 150+ iniciativas em uma única interface</li>
+            <li>Reordenação por drag-and-drop salva automaticamente</li>
+            <li>Filtros dinâmicos por tipo de atividade, responsável e status</li>
+            <li>Totalizadores em cards de resumo (KPIs) sempre visíveis</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>🔐 Segurança &amp; Governança</h3>
+          <ul>
+            <li>Acesso restrito ao domínio corporativo via Google OAuth</li>
+            <li>Políticas RLS no banco de dados (row-level security)</li>
+            <li>Separação clara entre campos manuais e campos Jira</li>
+            <li>Audit trail via <code>created_at</code> e <code>updated_at</code> automáticos</li>
+            <li>CORS restrito à URL de produção</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────
+         3. STACK
+    ───────────────────────────────────────── -->
+    <section id="stack">
+      <div class="section-header">
+        <div class="icon-box">⚡</div>
+        <h2>Stack Tecnológico<small>Bibliotecas, frameworks e serviços</small></h2>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>🖥️ Frontend</h3>
+          <div class="stack-grid">
+            <span class="pill blue">⚛️ React 18.3</span>
+            <span class="pill gold">⚡ Vite 6.0</span>
+            <span class="pill teal">🎨 Tailwind CSS 3.4</span>
+            <span class="pill blue">📦 Axios 1.7</span>
+            <span class="pill pink">🤚 dnd-kit 6.1</span>
+            <span class="pill navy">🗄️ Supabase JS 2.47</span>
+          </div>
+          <p style="margin-top:14px; font-size:13.5px; color:var(--muted)">SPA React com Vite para build otimizado. Tailwind para estilização utility-first. dnd-kit para drag-and-drop das iniciativas. Supabase JS SDK para auth e acesso ao banco.</p>
+        </div>
+        <div class="card">
+          <h3>⚙️ Backend</h3>
+          <div class="stack-grid">
+            <span class="pill green">🐍 Python 3.11+</span>
+            <span class="pill blue">🚀 FastAPI 0.115</span>
+            <span class="pill teal">🦄 Uvicorn 0.34</span>
+            <span class="pill gold">✅ Pydantic v2</span>
+            <span class="pill pink">🔐 python-jose 3.3</span>
+            <span class="pill navy">🌐 httpx 0.28</span>
+          </div>
+          <p style="margin-top:14px; font-size:13.5px; color:var(--muted)">FastAPI para API REST assíncrona de alta performance. Pydantic v2 para validação de dados. python-jose para verificação de JWT. httpx para chamadas HTTP ao Jira.</p>
+        </div>
+        <div class="card">
+          <h3>☁️ Infraestrutura</h3>
+          <div class="stack-grid">
+            <span class="pill blue">🐘 PostgreSQL</span>
+            <span class="pill green">🟢 Supabase</span>
+            <span class="pill gold">▲ Vercel</span>
+            <span class="pill pink">🔵 Google OAuth</span>
+            <span class="pill teal">📋 Jira Cloud</span>
+          </div>
+          <p style="margin-top:14px; font-size:13.5px; color:var(--muted)">Supabase como BaaS (banco + auth). Vercel para deploy do frontend e Serverless Functions do backend. Jira Cloud como fonte de dados de iniciativas.</p>
+        </div>
+        <div class="card">
+          <h3>🗄️ Banco de Dados</h3>
+          <div class="stack-grid">
+            <span class="pill blue">🔐 Row-Level Security</span>
+            <span class="pill green">⏱️ Auto-timestamps</span>
+            <span class="pill gold">🔑 UUID Primary Keys</span>
+            <span class="pill navy">📊 NUMERIC(12,2)</span>
+          </div>
+          <p style="margin-top:14px; font-size:13.5px; color:var(--muted)">PostgreSQL gerenciado pelo Supabase com RLS habilitado. Migrations versionadas em SQL. Índices em campos de filtro frequente.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────
+         4. ARQUITETURA
+    ───────────────────────────────────────── -->
+    <section id="architecture">
+      <div class="section-header">
+        <div class="icon-box">🏗️</div>
+        <h2>Arquitetura<small>Estrutura e fluxo de dados</small></h2>
+      </div>
+
+      <div class="card">
+        <h3>📐 Visão Geral — 3 Camadas</h3>
+        <div class="arch-diagram">
+<span class="layer-label">┌─────────────────────────────────────────────────────────────────────┐</span>
+<span class="layer-label">│                    CAMADA DE APRESENTAÇÃO (React/Vite)               │</span>
+<span class="layer-label">├─────────────────────────────────────────────────────────────────────┤</span>
+│  <span class="box">LoginPage</span>  →  AuthContext (Google OAuth)  →  JWT Supabase            │
+│                                                                     │
+│  <span class="box">DashboardView</span>   <span class="box">TimelineView</span>   <span class="box">DeliveriesView</span>   <span class="box">AdminView</span>      │
+│       ↕                ↕                  ↕                ↕        │
+│  <span class="box">useInitiatives</span> (hook central de estado + chamadas API)               │
+│       ↕                                                             │
+│  <span class="box">api.js</span> (Axios) ←→ <span class="box">supabase.js</span> (Supabase SDK)                    │
+<span class="layer-label">└──────────────────────┬──────────────────────────────────────────────┘</span>
+                       │  Bearer JWT (Supabase Token)
+                       ↓
+<span class="layer-label">┌─────────────────────────────────────────────────────────────────────┐</span>
+<span class="layer-label">│                    CAMADA DE APLICAÇÃO (FastAPI)                     │</span>
+<span class="layer-label">├─────────────────────────────────────────────────────────────────────┤</span>
+│  <span class="box">main.py</span> → CORS middleware → Router → <span class="box">auth/dependencies.py</span>          │
+│                                              ↓                      │
+│                                   Valida JWT via Supabase Auth API   │
+│                                   Verifica domínio @pgmais.com.br    │
+│                                              ↓                      │
+│  <span class="box">initiatives/router.py</span>                                              │
+│  ├── GET    /api/initiatives/           → Lista ordenada             │
+│  ├── POST   /api/initiatives/sync-jira  → Sincroniza Jira            │
+│  ├── PUT    /api/initiatives/{id}       → Atualiza campos manuais    │
+│  ├── POST   /api/initiatives/bulk-costs → Custos em lote             │
+│  └── PATCH  /api/initiatives/reorder   → Salva drag-and-drop         │
+│                                              ↓                      │
+│  <span class="box">calculations.py</span> → ROI, Payback, Ganhos, Custos calculados          │
+<span class="layer-label">└──────────────────────┬──────────────────────────────────────────────┘</span>
+                       │  Supabase Service Key (admin)
+                       ↓
+<span class="layer-label">┌─────────────────────────────────────────────────────────────────────┐</span>
+<span class="layer-label">│                    CAMADA DE DADOS                                   │</span>
+<span class="layer-label">├──────────────────────────────────┬──────────────────────────────────┤</span>
+│    <span class="box">Supabase PostgreSQL</span>           │      <span class="box">Jira Cloud API</span>           │
+│    • Tabela: initiatives         │      • POST /rest/api/3/search   │
+│    • RLS: usuários autenticados  │      • Basic Auth (email+token)  │
+│    • 9 migrations versionadas    │      • 18+ custom fields         │
+│    • Auto-timestamps             │      • JQL configurável          │
+<span class="layer-label">└──────────────────────────────────┴──────────────────────────────────┘</span>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>📁 Estrutura de Pastas</h3>
+          <div class="arch-diagram" style="padding:16px 20px; font-size:12px">
+<span class="layer-label">Dashboard de priorização IA360/</span>
+├── <span class="box">backend/</span>
+│   └── app/
+│       ├── main.py            <span class="comment"># FastAPI + CORS</span>
+│       ├── config.py          <span class="comment"># Env vars</span>
+│       ├── auth/              <span class="comment"># JWT + domínio</span>
+│       ├── database/          <span class="comment"># Supabase client</span>
+│       ├── initiatives/       <span class="comment"># Router + models</span>
+│       └── jira/              <span class="comment"># Jira service</span>
+├── <span class="box">frontend/</span>
+│   └── src/
+│       ├── App.jsx            <span class="comment"># Rotas</span>
+│       ├── contexts/          <span class="comment"># AuthContext</span>
+│       ├── components/        <span class="comment"># UI + InitiativeDetail</span>
+│       ├── hooks/             <span class="comment"># useInitiatives</span>
+│       ├── services/          <span class="comment"># api.js + supabase</span>
+│       └── utils/             <span class="comment"># calculations.js</span>
+├── <span class="box">supabase/</span>
+│   └── migrations/            <span class="comment"># 9 arquivos SQL</span>
+└── manual.html
+          </div>
+        </div>
+        <div class="card">
+          <h3>🔄 Sincronização Jira → DB</h3>
+          <div class="flow">
+            <div class="flow-step">
+              <div class="left"><div class="num">1</div><div class="line"></div></div>
+              <div class="body"><h4>Frontend dispara sync</h4><p>Usuário clica em "Sincronizar Jira" → <code>POST /api/initiatives/sync-jira</code></p></div>
+            </div>
+            <div class="flow-step">
+              <div class="left"><div class="num">2</div><div class="line"></div></div>
+              <div class="body"><h4>Backend consulta Jira</h4><p>JQL configurável → <code>POST /rest/api/3/search/jql</code> com Basic Auth</p></div>
+            </div>
+            <div class="flow-step">
+              <div class="left"><div class="num">3</div><div class="line"></div></div>
+              <div class="body"><h4>Extração de campos</h4><p>18+ campos extraídos incluindo 8 custom fields numéricos e metadados do responsável</p></div>
+            </div>
+            <div class="flow-step">
+              <div class="left"><div class="num">4</div><div class="line"></div></div>
+              <div class="body"><h4>Upsert inteligente</h4><p>Nova issue → INSERT com próximo priority_order. Existente → UPDATE preservando campos manuais</p></div>
+            </div>
+            <div class="flow-step">
+              <div class="left"><div class="num">5</div><div class="line"></div></div>
+              <div class="body"><h4>Cálculo e retorno</h4><p>Métricas financeiras calculadas em tempo real. Lista completa retornada ao frontend</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────
+         5. FUNCIONALIDADES
+    ───────────────────────────────────────── -->
+    <section id="features">
+      <div class="section-header">
+        <div class="icon-box">🎯</div>
+        <h2>Funcionalidades<small>O que o sistema faz</small></h2>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>📋 View: Dashboard (Prioridade)</h3>
+          <ul>
+            <li>Lista paginada de todas as iniciativas com métricas</li>
+            <li>Drag-and-drop para reordenar prioridades</li>
+            <li>Filtros por: <strong>Status</strong>, <strong>Tipo de Atividade</strong>, <strong>Responsável</strong></li>
+            <li>Filtro padrão: exclui "Concluído" e "Cancelado"</li>
+            <li>Cards de KPI: Total ROI, Payback médio, Economia mensal/anual</li>
+            <li>Coluna de <strong>Ganhos Intangíveis</strong> com tooltip</li>
+            <li><strong>Painel Matriz</strong>: ao clicar em uma iniciativa, exibe painel detalhado com cenário atual vs automação</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>📅 View: Timeline (Gantt)</h3>
+          <ul>
+            <li>Gráfico Gantt horizontal por iniciativa</li>
+            <li>Eixo temporal baseado em <code>start_date</code> → <code>due_date</code></li>
+            <li>Lead time calculado automaticamente em dias</li>
+            <li>Identificação visual de atrasos e iniciativas sem data</li>
+            <li>Ordenado por <code>priority_order</code></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>🚚 View: Entregas</h3>
+          <ul>
+            <li>Visão executiva orientada a deliverables</li>
+            <li>Status visual com badges coloridos por categoria</li>
+            <li>Resumo de responsável com avatar e nome</li>
+            <li>Datas de início, prazo e resolução</li>
+            <li>Métricas de ROI e payback por linha</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>⚙️ View: Admin (Editor de Custos)</h3>
+          <ul>
+            <li>Edição inline de todos os campos financeiros</li>
+            <li>Campos: custo/hora, redução de headcount, tokens, infra</li>
+            <li>Validação com tooltips de ajuda por campo</li>
+            <li>Atualização via <code>PUT /api/initiatives/{id}</code></li>
+            <li>Campos Jira são somente-leitura (protegidos)</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Painel Matriz -->
+      <div class="card" style="margin-top:20px">
+        <h3>🧩 Painel Matriz — Cenário Atual vs Com Automação</h3>
+        <p style="margin-bottom:14px;">Ao clicar em qualquer iniciativa na tabela do Dashboard, um painel detalhado é exibido entre os KPIs e a tabela. Ele apresenta uma visão comparativa dividida em duas colunas:</p>
+        <div class="grid-2" style="gap:16px">
+          <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:18px;">
+            <h4 style="font-family:'Poppins',sans-serif; font-size:13px; font-weight:600; color:#8b95b8; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+              <span style="display:inline-flex; width:20px; height:20px; align-items:center; justify-content:center; border-radius:4px; background:rgba(255,255,255,0.08); font-size:10px; color:#aaa;">1</span>
+              Cenário Atual
+            </h4>
+            <ul>
+              <li><strong>Tempo economizado/dia</strong> — horas liberadas por pessoa por dia (<code>time_saved_per_day</code>)</li>
+              <li><strong>Frequência de execução</strong> — dias úteis de execução por mês (<code>execution_days_per_month</code>)</li>
+              <li><strong>Pessoas impactadas</strong> — quantidade de colaboradores afetados (<code>affected_people_count</code>)</li>
+              <li><strong>Custo-hora do colaborador</strong> — valor R$/hora das pessoas envolvidas (<code>cost_per_hour</code>)</li>
+              <li><strong>Tipo de atividade</strong> — classificação da iniciativa (ex: Governança, RPA)</li>
+              <li><strong>Ferramenta</strong> — tecnologia utilizada (N8N, Python, etc.)</li>
+              <li><strong>Responsável</strong> — nome e avatar do responsável no Jira</li>
+              <li><strong>Lead time</strong> — dias entre <code>start_date</code> e <code>due_date</code></li>
+            </ul>
+          </div>
+          <div style="background:rgba(53,89,235,0.04); border:1px solid rgba(53,89,235,0.15); border-radius:12px; padding:18px;">
+            <h4 style="font-family:'Poppins',sans-serif; font-size:13px; font-weight:600; color:#3DB7F4; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+              <span style="display:inline-flex; width:20px; height:20px; align-items:center; justify-content:center; border-radius:4px; background:rgba(53,89,235,0.15); font-size:10px; color:#3DB7F4;">2</span>
+              Com Automação
+            </h4>
+            <ul>
+              <li><strong>Horas economizadas/mês</strong> — total calculado: <code>tempo/dia × dias/mês × pessoas</code></li>
+              <li><strong>Economia mensal por tipo</strong> — separada em: horas, headcount e produtividade</li>
+              <li><strong>Total ganhos mensais</strong> — soma das três fontes de ganho (destaque verde)</li>
+              <li><strong>Economia anual projetada</strong> — ganhos mensais × 12</li>
+              <li><strong>Investimento detalhado</strong> — custo dev, terceiros, tokens LLM, infra cloud</li>
+              <li><strong>Total investimento</strong> — soma de todos os custos (destaque rosa)</li>
+              <li><strong>Tempo dev estimado</strong> — horas de desenvolvimento previstas</li>
+              <li><strong>ROI e Payback</strong> — cards destacados com valores calculados em tempo real</li>
+            </ul>
+          </div>
+        </div>
+        <div class="alert info" style="margin-top:14px"><strong>Ganhos intangíveis:</strong> Quando preenchido, um rodapé adicional exibe os ganhos qualitativos da iniciativa (ex: redução de erros, compliance, satisfação do cliente).</div>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <h3>🔗 Jira Custom Fields Mapeados</h3>
+        <div style="overflow-x:auto">
+          <table class="db-table">
+            <thead>
+              <tr>
+                <th>Campo no Dashboard</th>
+                <th>Campo no Jira</th>
+                <th>Tipo</th>
+                <th>Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>time_saved_per_day</td><td>customfield_10936</td><td>Numérico</td><td>Horas economizadas por pessoa por dia</td></tr>
+              <tr><td>affected_people_count</td><td>customfield_10937</td><td>Numérico</td><td>Quantidade de pessoas impactadas</td></tr>
+              <tr><td>execution_days_per_month</td><td>customfield_10938</td><td>Numérico</td><td>Dias de execução por mês (padrão: 26)</td></tr>
+              <tr><td>activity_type</td><td>customfield_10934</td><td>Opção</td><td>Tipo da atividade (Governança, RPA, etc.)</td></tr>
+              <tr><td>tool</td><td>customfield_10935</td><td>Opção</td><td>Ferramenta utilizada (N8N, Python, etc.)</td></tr>
+              <tr><td>gain_type</td><td>customfield_10950</td><td>Opção</td><td>Tipo de ganho esperado</td></tr>
+              <tr><td>gain</td><td>customfield_10949</td><td>Opção</td><td>Classificação do ganho</td></tr>
+              <tr><td>category</td><td>customfield_10951</td><td>Opção</td><td>Categoria da iniciativa</td></tr>
+              <tr><td>cost_center</td><td>customfield_10201</td><td>Texto</td><td>Centro de custo</td></tr>
+              <tr><td>start_date</td><td>customfield_10015</td><td>Data</td><td>Data de início da sprint/projeto</td></tr>
+              <tr><td>development_estimate_seconds</td><td>timeoriginalestimate</td><td>Segundos</td><td>Estimativa de desenvolvimento original</td></tr>
+              <tr><td>time_spent_seconds</td><td>aggregateprogress.progress</td><td>Segundos</td><td>Tempo total gasto registrado</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────
+         6. APIs
+    ───────────────────────────────────────── -->
+    <section id="apis">
+      <div class="section-header">
+        <div class="icon-box">🔌</div>
+        <h2>APIs &amp; Endpoints<small>Contratos e rotas disponíveis</small></h2>
+      </div>
+
+      <div class="card">
+        <h3>📡 Endpoints da API Interna (FastAPI)</h3>
+        <div class="alert info"><strong>Base URL:</strong> Produção via Vercel Functions em <code>/api</code> — Desenvolvimento local em <code>http://localhost:8001</code></div>
+        <div style="overflow-x:auto; margin-top:16px">
+          <table class="api-table">
+            <thead>
+              <tr>
+                <th>Método</th>
+                <th>Rota</th>
+                <th>Auth</th>
+                <th>Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="method get">GET</span></td>
+                <td><span class="endpoint">/health</span></td>
+                <td>—</td>
+                <td>Health check — verifica se a API está ativa</td>
+              </tr>
+              <tr>
+                <td><span class="method get">GET</span></td>
+                <td><span class="endpoint">/api/initiatives/</span></td>
+                <td>Bearer JWT</td>
+                <td>Lista todas as iniciativas ordenadas por <code>priority_order ASC</code>, retorna métricas calculadas</td>
+              </tr>
+              <tr>
+                <td><span class="method post">POST</span></td>
+                <td><span class="endpoint">/api/initiatives/sync-jira</span></td>
+                <td>Bearer JWT</td>
+                <td>Busca issues no Jira via JQL, faz upsert no banco. Novas issues recebem próximo <code>priority_order</code></td>
+              </tr>
+              <tr>
+                <td><span class="method put">PUT</span></td>
+                <td><span class="endpoint">/api/initiatives/{id}</span></td>
+                <td>Bearer JWT</td>
+                <td>Atualiza campos manuais (custos, headcount, tokens, etc). Campos Jira são preservados</td>
+              </tr>
+              <tr>
+                <td><span class="method post">POST</span></td>
+                <td><span class="endpoint">/api/initiatives/bulk-costs</span></td>
+                <td>Bearer JWT</td>
+                <td>Atualização em lote de campos de custo identificados por <code>jira_key</code></td>
+              </tr>
+              <tr>
+                <td><span class="method patch">PATCH</span></td>
+                <td><span class="endpoint">/api/initiatives/reorder</span></td>
+                <td>Bearer JWT</td>
+                <td>Salva nova ordem de prioridade após drag-and-drop. Payload: <code>[{id, priority_order}]</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>📤 Exemplo de Resposta — Iniciativa</h3>
+          <div class="formula-box">
+            <div class="line"><span class="kw">{</span></div>
+            <div class="line">  <span class="val">"id"</span><span class="op">:</span> <span class="res">"uuid-gerado-automaticamente"</span>,</div>
+            <div class="line">  <span class="val">"jira_key"</span><span class="op">:</span> <span class="res">"IA360-42"</span>,</div>
+            <div class="line">  <span class="val">"summary"</span><span class="op">:</span> <span class="res">"Automação de onboarding"</span>,</div>
+            <div class="line">  <span class="val">"jira_status"</span><span class="op">:</span> <span class="res">"Em Progresso"</span>,</div>
+            <div class="line">  <span class="val">"assignee"</span><span class="op">:</span> <span class="res">"Ana Souza"</span>,</div>
+            <div class="line">  <span class="val">"priority_order"</span><span class="op">:</span> <span class="kw">1</span>,</div>
+            <div class="line">  <span class="val">"metrics"</span><span class="op">: {</span></div>
+            <div class="line">    <span class="val">"total_gains"</span><span class="op">:</span> <span class="kw">950.12</span>,   <span class="cmt">// R$/mês</span></div>
+            <div class="line">    <span class="val">"total_costs"</span><span class="op">:</span> <span class="kw">1348.94</span>,  <span class="cmt">// R$ total</span></div>
+            <div class="line">    <span class="val">"roi_percent"</span><span class="op">:</span> <span class="kw">745.22</span>,   <span class="cmt">// % ao ano</span></div>
+            <div class="line">    <span class="val">"payback_months"</span><span class="op">:</span> <span class="kw">1.42</span>  <span class="cmt">// meses</span></div>
+            <div class="line">  <span class="op">}</span></div>
+            <div class="line"><span class="kw">}</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>🌐 API Externa — Jira Cloud</h3>
+          <p style="margin-bottom:12px;">O backend consome a API REST v3 do Jira com autenticação Basic (email + API Token).</p>
+          <div class="formula-box">
+            <div class="line"><span class="kw">POST</span> <span class="res">/rest/api/3/search/jql</span></div>
+            <div class="line"></div>
+            <div class="line"><span class="cmt">// Authorization: Basic base64(email:token)</span></div>
+            <div class="line"><span class="cmt">// Content-Type: application/json</span></div>
+            <div class="line"></div>
+            <div class="line"><span class="kw">{</span></div>
+            <div class="line">  <span class="val">"jql"</span><span class="op">:</span> <span class="res">"project = IA360 ORDER BY created DESC"</span>,</div>
+            <div class="line">  <span class="val">"maxResults"</span><span class="op">:</span> <span class="kw">100</span>,</div>
+            <div class="line">  <span class="val">"fields"</span><span class="op">:</span> [<span class="res">"summary"</span>, <span class="res">"status"</span>, <span class="res">"assignee"</span>,</div>
+            <div class="line">    <span class="res">"customfield_10936"</span>, <span class="res">"customfield_10937"</span>, ...]</div>
+            <div class="line"><span class="kw">}</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────
+         7. BANCO DE DADOS
+    ───────────────────────────────────────── -->
+    <section id="database">
+      <div class="section-header">
+        <div class="icon-box">🗄️</div>
+        <h2>Banco de Dados<small>Estrutura, migrações e políticas</small></h2>
+      </div>
+
+      <div class="card">
+        <h3>📊 Tabela Principal: <code>initiatives</code></h3>
+        <div class="alert info"><strong>9 migrations versionadas</strong> em <code>supabase/migrations/</code>. Aplicadas sequencialmente do 001 ao 009.</div>
+        <div style="overflow-x:auto; margin-top:16px">
+          <table class="db-table">
+            <thead>
+              <tr><th>Coluna</th><th>Tipo</th><th>Padrão</th><th>Tag</th><th>Descrição</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>id</td><td>UUID</td><td>gen_random_uuid()</td><td><span class="tag pk">PK</span></td><td>Identificador único auto-gerado</td></tr>
+              <tr><td>jira_key</td><td>TEXT</td><td>—</td><td><span class="tag idx">UNIQUE</span></td><td>Ex: "IA360-42" — chave de sincronização</td></tr>
+              <tr><td>summary</td><td>TEXT</td><td>''</td><td></td><td>Nome da iniciativa</td></tr>
+              <tr><td>jira_status</td><td>TEXT</td><td>''</td><td><span class="tag idx">IDX</span></td><td>Ex: "Em Progresso", "Concluído"</td></tr>
+              <tr><td>priority_order</td><td>INTEGER</td><td>0</td><td><span class="tag idx">IDX</span></td><td>Posição na lista (drag-and-drop)</td></tr>
+              <tr><td>assignee</td><td>TEXT</td><td>''</td><td><span class="tag idx">IDX</span></td><td>Nome do responsável</td></tr>
+              <tr><td>assignee_email</td><td>TEXT</td><td>''</td><td></td><td>Email para avatar</td></tr>
+              <tr><td>assignee_avatar_url</td><td>TEXT</td><td>NULL</td><td></td><td>URL da foto do Jira</td></tr>
+              <tr><td>activity_type</td><td>TEXT</td><td>''</td><td><span class="tag idx">IDX</span></td><td>Tipo de atividade (filtro)</td></tr>
+              <tr><td>start_date</td><td>DATE</td><td>NULL</td><td></td><td>Início do projeto</td></tr>
+              <tr><td>due_date</td><td>DATE</td><td>NULL</td><td></td><td>Prazo de entrega</td></tr>
+              <tr><td>time_saved_per_day</td><td>NUMERIC(12,2)</td><td>0</td><td></td><td>Horas/dia economizadas (Jira)</td></tr>
+              <tr><td>affected_people_count</td><td>NUMERIC(12,2)</td><td>0</td><td></td><td>Pessoas impactadas (Jira)</td></tr>
+              <tr><td>execution_days_per_month</td><td>NUMERIC(12,2)</td><td>0</td><td></td><td>Dias úteis/mês (Jira, padrão: 26)</td></tr>
+              <tr><td>development_estimate_seconds</td><td>NUMERIC(14,2)</td><td>0</td><td></td><td>Estimativa em segundos (Jira)</td></tr>
+              <tr><td>cost_per_hour</td><td>NUMERIC(12,2)</td><td>0</td><td></td><td>R$/hora dos colaboradores impactados</td></tr>
+              <tr><td>tech_hour_cost</td><td>NUMERIC(12,2)</td><td>0</td><td></td><td>R$/hora do desenvolvedor</td></tr>
+              <tr><td>headcount_reduction</td><td>NUMERIC(12,2)</td><td>0</td><td></td><td>FTEs eliminados</td></tr>
+              <tr><td>monthly_employee_cost</td><td>NUMERIC(12,2)</td><td>0</td><td></td><td>Custo mensal por funcionário (R$)</td></tr>
+              <tr><td>productivity_increase</td><td>NUMERIC(12,2)</td><td>0</td><td></td><td>Tarefas adicionais/mês</td></tr>
+              <tr><td>additional_task_value</td><td>NUMERIC(12,2)</td><td>0</td><td></td><td>Valor por tarefa adicional (R$)</td></tr>
+              <tr><td>token_cost</td><td>NUMERIC(12,6)</td><td>0</td><td></td><td>Custo mensal de tokens LLM (R$)</td></tr>
+              <tr><td>cloud_infra_cost</td><td>NUMERIC(12,2)</td><td>0</td><td></td><td>Custo de infra em nuvem (R$/mês)</td></tr>
+              <tr><td>third_party_hours</td><td>NUMERIC(12,2)</td><td>0</td><td></td><td>Horas de terceiros (h)</td></tr>
+              <tr><td>third_party_hour_cost</td><td>NUMERIC(12,2)</td><td>0</td><td></td><td>Custo R$/hora de terceiros</td></tr>
+              <tr><td>intangible_gains</td><td>TEXT</td><td>''</td><td></td><td>Ganhos qualitativos (texto livre)</td></tr>
+              <tr><td>created_at</td><td>TIMESTAMPTZ</td><td>now()</td><td></td><td>Auto-set na inserção</td></tr>
+              <tr><td>updated_at</td><td>TIMESTAMPTZ</td><td>now()</td><td></td><td>Auto-atualizado em cada UPDATE</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>🔐 Políticas RLS</h3>
+          <div class="formula-box">
+            <div class="line"><span class="cmt">-- Apenas usuários autenticados</span></div>
+            <div class="line"><span class="kw">CREATE POLICY</span> <span class="res">"select_authenticated"</span></div>
+            <div class="line">  <span class="kw">ON</span> initiatives <span class="kw">FOR SELECT</span></div>
+            <div class="line">  <span class="kw">USING</span> (auth.role() <span class="op">=</span> <span class="res">'authenticated'</span>);</div>
+            <div class="line"></div>
+            <div class="line"><span class="kw">CREATE POLICY</span> <span class="res">"insert_authenticated"</span></div>
+            <div class="line">  <span class="kw">ON</span> initiatives <span class="kw">FOR INSERT</span></div>
+            <div class="line">  <span class="kw">WITH CHECK</span> (auth.role() <span class="op">=</span> <span class="res">'authenticated'</span>);</div>
+            <div class="line"></div>
+            <div class="line"><span class="kw">CREATE POLICY</span> <span class="res">"update_authenticated"</span></div>
+            <div class="line">  <span class="kw">ON</span> initiatives <span class="kw">FOR UPDATE</span></div>
+            <div class="line">  <span class="kw">USING</span> (auth.role() <span class="op">=</span> <span class="res">'authenticated'</span>);</div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>📌 Histórico de Migrações</h3>
+          <ul>
+            <li><strong>001</strong> — Criação da tabela initiatives</li>
+            <li><strong>002</strong> — Adiciona campo <code>assignee</code></li>
+            <li><strong>003</strong> — Adiciona <code>activity_type</code></li>
+            <li><strong>004</strong> — Expansão dos campos Jira</li>
+            <li><strong>005</strong> — Garante coluna <code>assignee</code></li>
+            <li><strong>006</strong> — Campos de custo Admin</li>
+            <li><strong>007</strong> — Avatar do responsável</li>
+            <li><strong>008</strong> — Importação de custos pré-populados (150+ keys)</li>
+            <li><strong>009</strong> — Adiciona <code>intangible_gains</code></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────
+         8. CÁLCULOS
+    ───────────────────────────────────────── -->
+    <section id="calculations">
+      <div class="section-header">
+        <div class="icon-box">🧮</div>
+        <h2>Cálculos &amp; Fórmulas<small>Todos os algoritmos financeiros utilizados</small></h2>
+      </div>
+
+      <div class="alert info"><strong>Moeda:</strong> Todos os valores monetários em <strong>Reais (R$)</strong>. Tempo em horas. Implementação espelhada em <code>backend/app/initiatives/calculations.py</code> e <code>frontend/src/utils/calculations.js</code>.</div>
+
+      <!-- GANHOS -->
+      <div class="formula-title">💰 1. Ganhos Mensais — <code>total_gains</code></div>
+      <div class="card">
+        <p>O ganho mensal é composto por <strong>três fontes independentes</strong>. A soma delas representa o valor que a automação gera por mês para a empresa.</p>
+
+        <p class="formula-title" style="font-size:14px; margin-top:16px">1A — Ganho por Horas de Trabalho Economizadas</p>
+        <div class="formula-box">
+          <div class="line"><span class="cmt">// Passo 1: Horas economizadas por pessoa por mês</span></div>
+          <div class="line"><span class="kw">horas_por_pessoa</span> <span class="op">=</span> <span class="val">time_saved_per_day</span> <span class="op">×</span> <span class="val">execution_days_per_month</span></div>
+          <div class="line"><span class="cmt">// Ex: 1.0 h/dia × 26 dias/mês = 26 horas/mês</span></div>
+          <div class="line"></div>
+          <div class="line"><span class="cmt">// Passo 2: Total de horas economizadas considerando todas as pessoas</span></div>
+          <div class="line"><span class="kw">total_horas_economizadas</span> <span class="op">=</span> <span class="val">horas_por_pessoa</span> <span class="op">×</span> <span class="val">affected_people_count</span></div>
+          <div class="line"><span class="cmt">// Ex: 26 h × 1 pessoa = 26 horas</span></div>
+          <div class="line"></div>
+          <div class="line"><span class="cmt">// Passo 3: Conversão para valor monetário</span></div>
+          <div class="line"><span class="kw">ganho_horas</span> <span class="op">=</span> <span class="val">total_horas_economizadas</span> <span class="op">×</span> <span class="val">cost_per_hour</span></div>
+          <div class="line"><span class="res">// Ex: 26 h × R$36,62/h = R$950,12/mês</span></div>
+        </div>
+
+        <p class="formula-title" style="font-size:14px; margin-top:16px">1B — Ganho por Redução de Headcount</p>
+        <div class="formula-box">
+          <div class="line"><span class="kw">ganho_headcount</span> <span class="op">=</span> <span class="val">headcount_reduction</span> <span class="op">×</span> <span class="val">monthly_employee_cost</span></div>
+          <div class="line"><span class="cmt">// Ex: 0.5 FTE × R$6.000/mês = R$3.000/mês</span></div>
+          <div class="line"><span class="cmt">// Aplicável quando a automação substitui função antes realizada por pessoa</span></div>
+        </div>
+
+        <p class="formula-title" style="font-size:14px; margin-top:16px">1C — Ganho por Aumento de Produtividade</p>
+        <div class="formula-box">
+          <div class="line"><span class="kw">ganho_produtividade</span> <span class="op">=</span> <span class="val">productivity_increase</span> <span class="op">×</span> <span class="val">additional_task_value</span></div>
+          <div class="line"><span class="cmt">// Ex: 200 tarefas/mês × R$5,00/tarefa = R$1.000/mês</span></div>
+          <div class="line"><span class="cmt">// Aplicável quando a automação processa mais volume no mesmo tempo</span></div>
+        </div>
+
+        <p class="formula-title" style="font-size:14px; margin-top:16px">Ganho Total Mensal</p>
+        <div class="formula-box">
+          <div class="line"><span class="kw">total_gains</span> <span class="op">=</span> <span class="val">ganho_horas</span> <span class="op">+</span> <span class="val">ganho_headcount</span> <span class="op">+</span> <span class="val">ganho_produtividade</span></div>
+          <div class="line"><span class="res">// Ex: R$950,12 + R$0 + R$0 = R$950,12/mês</span></div>
+        </div>
+      </div>
+
+      <!-- CUSTOS -->
+      <div class="formula-title">💸 2. Custo Total de Investimento — <code>total_costs</code></div>
+      <div class="card">
+        <p>O custo é composto pelo investimento em desenvolvimento mais os custos operacionais recorrentes. Representa o <strong>desembolso total para implantar e manter</strong> a automação.</p>
+
+        <p class="formula-title" style="font-size:14px; margin-top:16px">2A — Custo de Desenvolvimento (interno)</p>
+        <div class="formula-box">
+          <div class="line"><span class="kw">horas_estimadas</span> <span class="op">=</span> <span class="val">development_estimate_seconds</span> <span class="op">÷</span> <span class="kw">3600</span></div>
+          <div class="line"><span class="cmt">// Ex: 144.000 segundos ÷ 3.600 = 40 horas</span></div>
+          <div class="line"></div>
+          <div class="line"><span class="kw">custo_desenvolvimento</span> <span class="op">=</span> <span class="val">horas_estimadas</span> <span class="op">×</span> <span class="val">tech_hour_cost</span></div>
+          <div class="line"><span class="res">// Ex: 40 h × R$33,64/h = R$1.345,60</span></div>
+        </div>
+
+        <p class="formula-title" style="font-size:14px; margin-top:16px">2B — Custo de Terceiros (vendor/consultoria)</p>
+        <div class="formula-box">
+          <div class="line"><span class="kw">custo_terceiros</span> <span class="op">=</span> <span class="val">third_party_hours</span> <span class="op">×</span> <span class="val">third_party_hour_cost</span></div>
+          <div class="line"><span class="cmt">// Ex: 10 h × R$150/h = R$1.500,00</span></div>
+        </div>
+
+        <p class="formula-title" style="font-size:14px; margin-top:16px">2C — Custo de Tokens LLM (mensal)</p>
+        <div class="formula-box">
+          <div class="line"><span class="kw">custo_tokens</span> <span class="op">=</span> <span class="val">token_cost</span> <span class="cmt">// valor direto do campo (R$/mês)</span></div>
+          <div class="line"><span class="res">// Ex: R$0,22/mês (custo de API de IA generativa)</span></div>
+        </div>
+
+        <p class="formula-title" style="font-size:14px; margin-top:16px">2D — Custo de Infraestrutura em Nuvem (mensal)</p>
+        <div class="formula-box">
+          <div class="line"><span class="kw">custo_infra</span> <span class="op">=</span> <span class="val">cloud_infra_cost</span> <span class="cmt">// valor direto do campo (R$/mês)</span></div>
+          <div class="line"><span class="res">// Ex: R$2,72/mês (N8N, Cloud Functions, etc.)</span></div>
+        </div>
+
+        <p class="formula-title" style="font-size:14px; margin-top:16px">Custo Total</p>
+        <div class="formula-box">
+          <div class="line"><span class="kw">total_costs</span> <span class="op">=</span> <span class="val">custo_desenvolvimento</span> <span class="op">+</span> <span class="val">custo_terceiros</span></div>
+          <div class="line">             <span class="op">+</span> <span class="val">custo_tokens</span> <span class="op">+</span> <span class="val">custo_infra</span></div>
+          <div class="line"><span class="res">// Ex: R$1.345,60 + R$0 + R$0,22 + R$2,72 = R$1.348,54</span></div>
+        </div>
+      </div>
+
+      <!-- ROI -->
+      <div class="formula-title">📈 3. ROI — <code>roi_percent</code></div>
+      <div class="card">
+        <p>O ROI compara o <strong>ganho mensal</strong> com o <strong>custo total de investimento</strong>. Responde: "Qual o retorno percentual da automação em relação ao investimento?"</p>
+
+        <div class="formula-box">
+          <div class="line"><span class="kw">roi_percent</span> <span class="op">=</span> ((<span class="val">total_gains</span> <span class="op">-</span> <span class="val">total_costs</span>) <span class="op">/</span> <span class="val">total_costs</span>) <span class="op">×</span> <span class="kw">100</span></div>
+          <div class="line"></div>
+          <div class="line"><span class="cmt">// Exemplo numérico:</span></div>
+          <div class="line"><span class="kw">roi_percent</span> <span class="op">=</span> ((R$950,12 <span class="op">-</span> R$1.348,54) <span class="op">/</span> R$1.348,54) <span class="op">×</span> 100</div>
+          <div class="line">           <span class="op">=</span> (R$-398,42 <span class="op">/</span> R$1.348,54) <span class="op">×</span> 100</div>
+          <div class="line"><span class="res">           = -29,5%  →  No primeiro mês, ainda não recuperou o investimento</span></div>
+          <div class="line"></div>
+          <div class="line"><span class="cmt">// Caso especial: se total_costs = 0 → ROI = None (indefinido)</span></div>
+          <div class="line"></div>
+          <div class="line"><span class="cmt">// Nota: o Payback indica em quantos meses o investimento é recuperado</span></div>
+          <div class="line"><span class="cmt">// e a "Economia total" nos cards mostra a projeção anual (× 12)</span></div>
+        </div>
+
+        <div class="alert tip" style="margin-top:12px"><strong>Interpretação:</strong> ROI positivo significa que os ganhos mensais já superam o investimento total. ROI negativo indica que a iniciativa ainda está dentro do período de payback. Use o payback para saber em quantos meses o projeto se paga.</div>
+      </div>
+
+      <!-- PAYBACK -->
+      <div class="formula-title">⏱️ 4. Prazo de Retorno — <code>payback_months</code></div>
+      <div class="card">
+        <p>O payback indica em <strong>quantos meses</strong> o projeto gera ganhos suficientes para cobrir o custo de investimento.</p>
+
+        <div class="formula-box">
+          <div class="line"><span class="kw">payback_months</span> <span class="op">=</span> <span class="val">total_costs</span> <span class="op">/</span> <span class="val">total_gains</span></div>
+          <div class="line"></div>
+          <div class="line"><span class="cmt">// Exemplo:</span></div>
+          <div class="line"><span class="kw">payback_months</span> <span class="op">=</span> R$1.348,54 <span class="op">/</span> R$950,12 <span class="op">=</span> <span class="res">1,42 meses</span></div>
+          <div class="line"></div>
+          <div class="line"><span class="cmt">// Caso especial: se total_gains = 0 → payback = None (infinito)</span></div>
+        </div>
+
+        <div class="alert tip" style="margin-top:12px"><strong>Interpretação:</strong> Payback de 1,42 meses significa que após 43 dias de operação, o investimento está recuperado e a automação passa a gerar lucro líquido.</div>
+      </div>
+
+      <!-- HORAS ECONOMIZADAS -->
+      <div class="formula-title">🕐 5. Horas Economizadas Mensais — <code>hours_saved</code></div>
+      <div class="card">
+        <p>Calculado durante a sincronização com o Jira para popular o campo <code>hours_saved</code>:</p>
+        <div class="formula-box">
+          <div class="line"><span class="kw">hours_saved</span> <span class="op">=</span> <span class="val">time_saved_per_day</span> <span class="op">×</span> <span class="val">execution_days_per_month</span></div>
+          <div class="line"><span class="res">// Ex: 1,0 h/dia × 26 dias = 26 h/mês economizadas por pessoa</span></div>
+        </div>
+      </div>
+
+      <!-- LEAD TIME -->
+      <div class="formula-title">📏 6. Lead Time — Visão Timeline</div>
+      <div class="card">
+        <p>Calculado no frontend para exibição na visão Gantt:</p>
+        <div class="formula-box">
+          <div class="line"><span class="kw">lead_time_dias</span> <span class="op">=</span> <span class="val">due_date</span> <span class="op">-</span> <span class="val">start_date</span>  <span class="cmt">// diferença em dias corridos</span></div>
+          <div class="line"><span class="res">// Ex: 30 de abril - 1 de abril = 29 dias de lead time</span></div>
+        </div>
+      </div>
+
+      <!-- TOTALIZADORES -->
+      <div class="formula-title">📊 7. Totalizadores dos Cards de KPI</div>
+      <div class="card">
+        <p>Exibidos nos cards de resumo do Dashboard, agregam todas as iniciativas visíveis após filtros:</p>
+        <div class="formula-box">
+          <div class="line"><span class="cmt">// ROI Total (soma dos ROIs individuais)</span></div>
+          <div class="line"><span class="kw">total_roi</span> <span class="op">=</span> <span class="kw">SOMA</span>(<span class="val">roi_percent</span> para cada iniciativa com ROI definido)</div>
+          <div class="line"></div>
+          <div class="line"><span class="cmt">// Payback Médio</span></div>
+          <div class="line"><span class="kw">payback_medio</span> <span class="op">=</span> <span class="kw">MEDIA</span>(<span class="val">payback_months</span> para cada iniciativa com payback definido)</div>
+          <div class="line"></div>
+          <div class="line"><span class="cmt">// Horas Economizadas por Mês (total)</span></div>
+          <div class="line"><span class="kw">total_horas</span> <span class="op">=</span> <span class="kw">SOMA</span>(<span class="val">time_saved_per_day</span> <span class="op">×</span> <span class="val">execution_days_per_month</span> <span class="op">×</span> <span class="val">affected_people_count</span>)</div>
+          <div class="line"></div>
+          <div class="line"><span class="cmt">// Economia Mensal Total</span></div>
+          <div class="line"><span class="kw">economia_mensal</span> <span class="op">=</span> <span class="kw">SOMA</span>(<span class="val">total_gains</span> para todas as iniciativas)</div>
+          <div class="line"></div>
+          <div class="line"><span class="cmt">// Economia Anual Projetada</span></div>
+          <div class="line"><span class="kw">economia_anual</span> <span class="op">=</span> <span class="val">economia_mensal</span> <span class="op">×</span> <span class="kw">12</span></div>
+          <div class="line"></div>
+          <div class="line"><span class="cmt">// Horas de Desenvolvimento Estimadas</span></div>
+          <div class="line"><span class="kw">total_horas_dev</span> <span class="op">=</span> <span class="kw">SOMA</span>(<span class="val">development_estimate_seconds</span> <span class="op">÷</span> <span class="kw">3600</span>)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────
+         9. SEGURANÇA
+    ───────────────────────────────────────── -->
+    <section id="security">
+      <div class="section-header">
+        <div class="icon-box">🔒</div>
+        <h2>Segurança<small>Camadas de proteção do sistema</small></h2>
+      </div>
+
+      <div class="card">
+        <div class="security-item">
+          <div class="icon">🔑</div>
+          <div class="body">
+            <h4>Google OAuth 2.0 (via Supabase Auth)</h4>
+            <p>Autenticação delegada ao Google. Nenhuma senha armazenada no sistema. O fluxo OAuth retorna um JWT assinado pelo Supabase, válido por sessão.</p>
+          </div>
+        </div>
+        <div class="security-item">
+          <div class="icon">📧</div>
+          <div class="body">
+            <h4>Whitelist de Domínio de E-mail</h4>
+            <p>Após autenticação, o sistema verifica se o e-mail termina com <code>@pgmais.com.br</code>. Qualquer outro domínio resulta em logout imediato. Verificação realizada tanto no frontend (AuthContext) quanto no backend (domain_check.py).</p>
+          </div>
+        </div>
+        <div class="security-item">
+          <div class="icon">🛡️</div>
+          <div class="body">
+            <h4>JWT Validation no Backend</h4>
+            <p>Cada requisição autenticada envia o token no header <code>Authorization: Bearer {token}</code>. O backend valida via <code>GET /auth/v1/user</code> da API do Supabase — garantindo que o token é genuíno e não expirado.</p>
+          </div>
+        </div>
+        <div class="security-item">
+          <div class="icon">🗄️</div>
+          <div class="body">
+            <h4>Row-Level Security (RLS)</h4>
+            <p>Habilitado na tabela <code>initiatives</code>. O Supabase Anon Key (usado no frontend) respeita as políticas: SELECT, INSERT e UPDATE apenas para <code>auth.role() = 'authenticated'</code>. DELETE não é permitido — exclusão via mudança de status.</p>
+          </div>
+        </div>
+        <div class="security-item">
+          <div class="icon">🌐</div>
+          <div class="body">
+            <h4>CORS Restrito</h4>
+            <p>O backend FastAPI aceita requisições somente da <code>FRONTEND_URL</code> configurada. Sem wildcard (<code>*</code>). Métodos permitidos: GET, POST, PUT, PATCH, DELETE. Headers: Authorization e Content-Type.</p>
+          </div>
+        </div>
+        <div class="security-item">
+          <div class="icon">🔐</div>
+          <div class="body">
+            <h4>Separação de Chaves Supabase</h4>
+            <p><strong>Anon Key</strong> (pública, no frontend): respeita RLS. <strong>Service Key</strong> (privada, apenas no backend): bypassa RLS para operações de admin como upsert do Jira. Nunca exposta ao cliente.</p>
+          </div>
+        </div>
+        <div class="security-item">
+          <div class="icon">✅</div>
+          <div class="body">
+            <h4>Validação de Dados com Pydantic v2</h4>
+            <p>Todos os modelos de entrada têm constraints: campos numéricos com <code>ge=0</code>, tipos enforçados, comprimento máximo. Requests inválidas retornam <code>400 Bad Request</code> antes de chegar ao banco.</p>
+          </div>
+        </div>
+        <div class="security-item">
+          <div class="icon">🔒</div>
+          <div class="body">
+            <h4>Variáveis de Ambiente</h4>
+            <p>Todas as chaves sensíveis (Supabase, Jira, Google OAuth) ficam em <code>.env</code> nunca commitado no repositório. O arquivo <code>.env.example</code> mostra a estrutura sem valores reais.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────
+         10. FLUXO DE AUTH
+    ───────────────────────────────────────── -->
+    <section id="auth-flow">
+      <div class="section-header">
+        <div class="icon-box">🔑</div>
+        <h2>Fluxo de Autenticação<small>Passo a passo do login até a API</small></h2>
+      </div>
+
+      <div class="card">
+        <div class="flow">
+          <div class="flow-step">
+            <div class="left"><div class="num">1</div><div class="line"></div></div>
+            <div class="body"><h4>Usuário clica em "Entrar com Google"</h4><p>Frontend chama <code>supabase.auth.signInWithOAuth({ provider: 'google' })</code>. Redireciona para página de autenticação do Google.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="left"><div class="num">2</div><div class="line"></div></div>
+            <div class="body"><h4>Google autentica e retorna</h4><p>Google valida credenciais e retorna callback para Supabase com <code>id_token</code>. Supabase cria sessão e emite JWT assinado.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="left"><div class="num">3</div><div class="line"></div></div>
+            <div class="body"><h4>Frontend verifica domínio</h4><p><code>AuthContext.jsx</code> extrai o e-mail do usuário. Se não terminar em <code>@pgmais.com.br</code> → <code>supabase.auth.signOut()</code> imediato. Exibe mensagem de acesso negado.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="left"><div class="num">4</div><div class="line"></div></div>
+            <div class="body"><h4>JWT armazenado na sessão</h4><p>Token válido salvo pelo Supabase SDK no localStorage do browser. <code>AuthContext</code> disponibiliza <code>user</code> e <code>session</code> para toda a aplicação.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="left"><div class="num">5</div><div class="line"></div></div>
+            <div class="body"><h4>Requisições autenticadas ao Backend</h4><p><code>api.js</code> injeta <code>Authorization: Bearer {access_token}</code> em todas as chamadas ao FastAPI.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="left"><div class="num">6</div><div class="line"></div></div>
+            <div class="body"><h4>Backend valida o token</h4><p><code>auth/dependencies.py</code> chama <code>GET {SUPABASE_URL}/auth/v1/user</code> com o token. Supabase confirma validade e retorna dados do usuário. Backend verifica domínio novamente.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="left"><div class="num">7</div><div class="line"></div></div>
+            <div class="body"><h4>Acesso autorizado</h4><p>Requisição prossegue para o router da iniciativa. Backend usa <code>SUPABASE_SERVICE_KEY</code> para operações no banco (bypassa RLS com segurança).</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────
+         11. CONFIGURAÇÃO
+    ───────────────────────────────────────── -->
+    <section id="env">
+      <div class="section-header">
+        <div class="icon-box">⚙️</div>
+        <h2>Configuração de Ambiente<small>Variáveis necessárias para rodar o sistema</small></h2>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>⚙️ Backend — <code>.env</code></h3>
+          <div class="env-block">
+            <div class="group-label">Supabase</div>
+            <div class="env-line"><span class="env-key">SUPABASE_URL</span>=<span class="env-val">https://xxxx.supabase.co</span></div>
+            <div class="env-line"><span class="env-key">SUPABASE_ANON_KEY</span>=<span class="env-val">eyJhbGc...</span>  <span class="env-cmt"># chave pública</span></div>
+            <div class="env-line"><span class="env-key">SUPABASE_SERVICE_KEY</span>=<span class="env-val">eyJhbGc...</span>  <span class="env-cmt"># privada!</span></div>
+            <div class="env-line"><span class="env-key">SUPABASE_JWT_SECRET</span>=<span class="env-val">seu-segredo-jwt</span></div>
+
+            <div class="group-label">Google OAuth</div>
+            <div class="env-line"><span class="env-key">GOOGLE_CLIENT_ID</span>=<span class="env-val">xxx.apps.googleusercontent.com</span></div>
+            <div class="env-line"><span class="env-key">GOOGLE_CLIENT_SECRET</span>=<span class="env-val">GOCSPX-...</span></div>
+
+            <div class="group-label">Jira Cloud</div>
+            <div class="env-line"><span class="env-key">JIRA_BASE_URL</span>=<span class="env-val">https://empresa.atlassian.net</span></div>
+            <div class="env-line"><span class="env-key">JIRA_EMAIL</span>=<span class="env-val">bot@pgmais.com.br</span></div>
+            <div class="env-line"><span class="env-key">JIRA_API_TOKEN</span>=<span class="env-val">seu-api-token</span></div>
+            <div class="env-line"><span class="env-key">JIRA_PROJECT_KEY</span>=<span class="env-val">IA360</span></div>
+
+            <div class="group-label">Domínio & CORS</div>
+            <div class="env-line"><span class="env-key">ALLOWED_EMAIL_DOMAIN</span>=<span class="env-val">pgmais.com.br</span></div>
+            <div class="env-line"><span class="env-key">FRONTEND_URL</span>=<span class="env-val">https://dashboard.pgmais.com.br</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>🖥️ Frontend — <code>.env</code> (Vite)</h3>
+          <div class="env-block">
+            <div class="group-label">Supabase (públicas — VITE_*)</div>
+            <div class="env-line"><span class="env-key">VITE_SUPABASE_URL</span>=<span class="env-val">https://xxxx.supabase.co</span></div>
+            <div class="env-line"><span class="env-key">VITE_SUPABASE_ANON_KEY</span>=<span class="env-val">eyJhbGc...</span></div>
+
+            <div class="group-label">Jira (para link externo)</div>
+            <div class="env-line"><span class="env-key">VITE_JIRA_BASE_URL</span>=<span class="env-val">https://empresa.atlassian.net</span></div>
+          </div>
+
+          <div class="alert warn" style="margin-top:16px">
+            <strong>⚠️ Atenção:</strong> Variáveis prefixadas com <code>VITE_</code> são <strong>expostas no bundle do browser</strong>. Nunca coloque Service Keys ou secrets aqui — apenas a Anon Key pública.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────
+         12. DEPLOY
+    ───────────────────────────────────────── -->
+    <section id="deploy">
+      <div class="section-header">
+        <div class="icon-box">🚀</div>
+        <h2>Deploy<small>Publicação em produção</small></h2>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>▲ Vercel (Frontend + Serverless)</h3>
+          <ul>
+            <li>Build: <code>npm run build</code> gera <code>dist/</code></li>
+            <li>Vercel serve o React como SPA estático</li>
+            <li>Funções serverless em <code>/api</code> via <code>vercel.json</code></li>
+            <li>Variáveis de ambiente configuradas no painel Vercel</li>
+            <li>Deploy automático via push para <code>main</code></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>🟢 Supabase (Banco + Auth)</h3>
+          <ul>
+            <li>Projeto criado no console Supabase</li>
+            <li>Migrations aplicadas via <code>supabase db push</code></li>
+            <li>Google OAuth configurado em Authentication → Providers</li>
+            <li>RLS habilitado e políticas criadas pelas migrations</li>
+            <li>URL de redirect: <code>https://seu-dominio.vercel.app</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 20px">
+        <h3>📋 Checklist de Deploy</h3>
+        <div class="grid-2">
+          <ul>
+            <li>✅ Variáveis <code>.env</code> configuradas no Vercel</li>
+            <li>✅ Google OAuth redirect URL atualizada no Google Console</li>
+            <li>✅ Supabase Site URL atualizada para produção</li>
+            <li>✅ CORS <code>FRONTEND_URL</code> aponta para domínio de prod</li>
+          </ul>
+          <ul>
+            <li>✅ Migrations aplicadas no banco de prod</li>
+            <li>✅ Jira API Token válido e com permissão de leitura</li>
+            <li>✅ Domínio <code>@pgmais.com.br</code> configurado no whitelist</li>
+            <li>✅ Service Key do Supabase nunca exposta no frontend</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+
+  <footer>
+    <strong>Dashboard IA360°</strong> — Manual Técnico &amp; Prático &nbsp;·&nbsp; PGMais &nbsp;·&nbsp; 2026
+    <br /><span style="font-size:11px; opacity:0.5">Gerado automaticamente com base no código-fonte do projeto</span>
+  </footer>
+
+</main>
+
+<script>
+  // Highlight active nav link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('nav a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

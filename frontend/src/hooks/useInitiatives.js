@@ -2,32 +2,40 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import api from '../services/api'
 
 function calculateMetrics(data) {
-  // Economia: horas por pessoa × pessoas × custo/hora
   const hoursPerPerson = (data.time_saved_per_day || 0) * (data.execution_days_per_month || 0)
   const totalHoursSaved = hoursPerPerson * (data.affected_people_count || 0)
   const gainHours = totalHoursSaved * (data.cost_per_hour || 0)
-
   const gainHC = (data.headcount_reduction || 0) * (data.monthly_employee_cost || 0)
   const gainProd = (data.productivity_increase || 0) * (data.additional_task_value || 0)
   const totalGains = gainHours + gainHC + gainProd
 
-  // Custos (investimento)
   const developmentHours = (data.development_estimate_seconds || 0) / 3600
   const costDevelopment = developmentHours * (data.tech_hour_cost || 0)
   const costThirdParty = (data.third_party_hours || 0) * (data.third_party_hour_cost || 0)
-  const costTokens = data.token_cost || 0
-  const costInfra = data.cloud_infra_cost || 0
-  const totalCosts = costDevelopment + costThirdParty + costTokens + costInfra
+  const totalCosts = costDevelopment + costThirdParty + (data.token_cost || 0) + (data.cloud_infra_cost || 0)
 
-  // ROI anual e Payback
-  const annualGains = totalGains * 12
-  const roiPercent = totalCosts > 0 ? ((annualGains - totalCosts) / totalCosts) * 100 : null
+  // ROI da automação: ganho de 1 mês vs investimento
+  const roiPercent = totalCosts > 0 ? ((totalGains - totalCosts) / totalCosts) * 100 : null
+
+  // ROI acumulado real: meses desde a entrega
+  let roiAccumulated = null
+  let monthsLive = null
+  if (data.resolution_date) {
+    const diffMs = Date.now() - new Date(data.resolution_date).getTime()
+    monthsLive = Math.max(0, diffMs / (1000 * 60 * 60 * 24 * 30.44))
+    if (totalCosts > 0 && monthsLive > 0) {
+      roiAccumulated = ((totalGains * monthsLive - totalCosts) / totalCosts) * 100
+    }
+  }
+
   const paybackMonths = totalGains > 0 ? totalCosts / totalGains : null
 
   return {
     total_gains: Math.round(totalGains * 100) / 100,
     total_costs: Math.round(totalCosts * 100) / 100,
     roi_percent: roiPercent != null ? Math.round(roiPercent * 100) / 100 : null,
+    roi_accumulated: roiAccumulated != null ? Math.round(roiAccumulated * 100) / 100 : null,
+    months_live: monthsLive != null ? Math.round(monthsLive * 10) / 10 : null,
     payback_months: paybackMonths != null ? Math.round(paybackMonths * 100) / 100 : null,
   }
 }

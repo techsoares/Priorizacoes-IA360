@@ -30,8 +30,7 @@ export function calculateMetrics(data) {
 
   const totalCosts = devHours * techHourCost + thirdPartyHours * thirdPartyHourCost + tokenCost + cloudInfraCost
 
-  const annualGains = totalGains * 12
-  const roiPercent = totalCosts > 0 ? Math.round(((annualGains - totalCosts) / totalCosts) * 10000) / 100 : null
+  const roiPercent = totalCosts > 0 ? Math.round(((totalGains - totalCosts) / totalCosts) * 10000) / 100 : null
   const paybackMonths = totalGains > 0 ? Math.round((totalCosts / totalGains) * 100) / 100 : null
 
   return {

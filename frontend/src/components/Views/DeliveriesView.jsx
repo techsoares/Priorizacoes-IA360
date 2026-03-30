@@ -414,10 +414,10 @@ export default function DeliveriesView({ initiatives }) {
         <HeroKpi
           label="ROI médio"
           value={avgRoi != null ? `${avgRoi.toFixed(1)}%` : '—'}
-          sub="retorno anual sobre investimento"
+          sub="retorno sobre investimento"
           color="#40EB4F"
           icon="📈"
-          tooltip="Média do ROI anual das iniciativas com dados financeiros preenchidos."
+          tooltip="Média do ROI das iniciativas com dados financeiros preenchidos. Fórmula: (ganhos_mensais − custos_totais) ÷ custos_totais × 100"
         />
         <HeroKpi
           label="Investimento total"

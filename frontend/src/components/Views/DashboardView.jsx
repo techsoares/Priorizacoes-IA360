@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import FilterBar from '../Dashboard/FilterBar'
+import InitiativeDetail from '../Dashboard/InitiativeDetail'
 import SummaryCards from '../Dashboard/SummaryCards'
 import InitiativeTable from '../InitiativeTable/InitiativeTable'
 
@@ -26,6 +27,13 @@ export default function DashboardView({
         selectedInitiative={selectedInitiative}
         onClearSelection={() => setSelectedId(null)}
       />
+
+      {selectedInitiative && (
+        <InitiativeDetail
+          initiative={selectedInitiative}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
 
       <div className="mb-4 flex items-center justify-end">
         <FilterBar

@@ -11,7 +11,7 @@ const CARD_CONFIG = [
   {
     key: 'totalRoi',
     label: 'ROI total',
-    tooltip: 'Soma do ROI de cada iniciativa com custo > 0. Fórmula por iniciativa: ROI = ((ganhos_mensais × 12) − custos_totais) ÷ custos_totais × 100',
+    tooltip: 'Soma do ROI de cada iniciativa com custo > 0. Fórmula por iniciativa: ROI = (ganhos_mensais − custos_totais) ÷ custos_totais × 100',
     color: '#3DB7F4',
     format: (v) => (v != null ? `${v.toFixed(1)}%` : '—'),
   },

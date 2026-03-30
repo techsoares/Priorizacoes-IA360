@@ -944,7 +944,7 @@
 │   └── src/
 │       ├── App.jsx            <span class="comment"># Rotas</span>
 │       ├── contexts/          <span class="comment"># AuthContext</span>
-│       ├── components/        <span class="comment"># UI components</span>
+│       ├── components/        <span class="comment"># UI + InitiativeDetail</span>
 │       ├── hooks/             <span class="comment"># useInitiatives</span>
 │       ├── services/          <span class="comment"># api.js + supabase</span>
 │       └── utils/             <span class="comment"># calculations.js</span>
@@ -1000,6 +1000,7 @@
             <li>Filtro padrão: exclui "Concluído" e "Cancelado"</li>
             <li>Cards de KPI: Total ROI, Payback médio, Economia mensal/anual</li>
             <li>Coluna de <strong>Ganhos Intangíveis</strong> com tooltip</li>
+            <li><strong>Painel Matriz</strong>: ao clicar em uma iniciativa, exibe painel detalhado com cenário atual vs automação</li>
           </ul>
         </div>
         <div class="card">
@@ -1032,6 +1033,47 @@
             <li>Campos Jira são somente-leitura (protegidos)</li>
           </ul>
         </div>
+      </div>
+
+      <!-- Painel Matriz -->
+      <div class="card" style="margin-top:20px">
+        <h3>🧩 Painel Matriz — Cenário Atual vs Com Automação</h3>
+        <p style="margin-bottom:14px;">Ao clicar em qualquer iniciativa na tabela do Dashboard, um painel detalhado é exibido entre os KPIs e a tabela. Ele apresenta uma visão comparativa dividida em duas colunas:</p>
+        <div class="grid-2" style="gap:16px">
+          <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:18px;">
+            <h4 style="font-family:'Poppins',sans-serif; font-size:13px; font-weight:600; color:#8b95b8; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+              <span style="display:inline-flex; width:20px; height:20px; align-items:center; justify-content:center; border-radius:4px; background:rgba(255,255,255,0.08); font-size:10px; color:#aaa;">1</span>
+              Cenário Atual
+            </h4>
+            <ul>
+              <li><strong>Tempo economizado/dia</strong> — horas liberadas por pessoa por dia (<code>time_saved_per_day</code>)</li>
+              <li><strong>Frequência de execução</strong> — dias úteis de execução por mês (<code>execution_days_per_month</code>)</li>
+              <li><strong>Pessoas impactadas</strong> — quantidade de colaboradores afetados (<code>affected_people_count</code>)</li>
+              <li><strong>Custo-hora do colaborador</strong> — valor R$/hora das pessoas envolvidas (<code>cost_per_hour</code>)</li>
+              <li><strong>Tipo de atividade</strong> — classificação da iniciativa (ex: Governança, RPA)</li>
+              <li><strong>Ferramenta</strong> — tecnologia utilizada (N8N, Python, etc.)</li>
+              <li><strong>Responsável</strong> — nome e avatar do responsável no Jira</li>
+              <li><strong>Lead time</strong> — dias entre <code>start_date</code> e <code>due_date</code></li>
+            </ul>
+          </div>
+          <div style="background:rgba(53,89,235,0.04); border:1px solid rgba(53,89,235,0.15); border-radius:12px; padding:18px;">
+            <h4 style="font-family:'Poppins',sans-serif; font-size:13px; font-weight:600; color:#3DB7F4; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+              <span style="display:inline-flex; width:20px; height:20px; align-items:center; justify-content:center; border-radius:4px; background:rgba(53,89,235,0.15); font-size:10px; color:#3DB7F4;">2</span>
+              Com Automação
+            </h4>
+            <ul>
+              <li><strong>Horas economizadas/mês</strong> — total calculado: <code>tempo/dia × dias/mês × pessoas</code></li>
+              <li><strong>Economia mensal por tipo</strong> — separada em: horas, headcount e produtividade</li>
+              <li><strong>Total ganhos mensais</strong> — soma das três fontes de ganho (destaque verde)</li>
+              <li><strong>Economia anual projetada</strong> — ganhos mensais × 12</li>
+              <li><strong>Investimento detalhado</strong> — custo dev, terceiros, tokens LLM, infra cloud</li>
+              <li><strong>Total investimento</strong> — soma de todos os custos (destaque rosa)</li>
+              <li><strong>Tempo dev estimado</strong> — horas de desenvolvimento previstas</li>
+              <li><strong>ROI e Payback</strong> — cards destacados com valores calculados em tempo real</li>
+            </ul>
+          </div>
+        </div>
+        <div class="alert info" style="margin-top:14px"><strong>Ganhos intangíveis:</strong> Quando preenchido, um rodapé adicional exibe os ganhos qualitativos da iniciativa (ex: redução de erros, compliance, satisfação do cliente).</div>
       </div>
 
       <div class="card" style="margin-top:20px">

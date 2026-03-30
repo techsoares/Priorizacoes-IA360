@@ -53,8 +53,10 @@ class CalculatedMetrics(BaseModel):
     """Métricas calculadas automaticamente."""
 
     total_gains: float = Field(0, description="Ganhos totais mensais (R$)")
-    total_costs: float = Field(0, description="Custos totais mensais (R$)")
-    roi_percent: float | None = Field(None, description="ROI (%) — None se custos = 0")
+    total_costs: float = Field(0, description="Custos totais do investimento (R$)")
+    roi_percent: float | None = Field(None, description="ROI da automação (%) — ganho mensal vs investimento")
+    roi_accumulated: float | None = Field(None, description="ROI acumulado real (%) — cresce desde a entrega")
+    months_live: float | None = Field(None, description="Meses desde a entrega (resolution_date)")
     payback_months: float | None = Field(None, description="Payback (meses) — None se ganhos = 0")
 
 

@@ -18,50 +18,50 @@ import SortableRow from './SortableRow'
 
 const COLUMNS = [
   { key: 'priority_order', label: '#', minWidth: 56, tooltip: 'Ordem atual de priorização da iniciativa.' },
-  { key: 'jira_key', label: 'Jira', minWidth: 92, tooltip: 'Chave da issue no Jira. Clique para abrir o ticket.' },
-  { key: 'summary', label: 'Iniciativa', minWidth: 280, tooltip: 'Resumo da demanda como veio do Jira. Passe o mouse para ver detalhes.' },
-  { key: 'jira_status', label: 'Status', minWidth: 140, badge: true, tooltip: 'Status atual da issue no Jira.' },
-  { key: 'hours_saved', label: 'Horas Econ.', minWidth: 112, tooltip: 'Tempo economizado por mês, derivado dos campos do Jira.' },
-  { key: 'development_estimate_seconds', label: 'Tempo Dev', minWidth: 112, tooltip: 'Tempo estimado de desenvolvimento vindo do Jira (horas).' },
-  {
-    key: 'total_gains',
-    label: 'Ganhos',
-    minWidth: 132,
-    computed: true,
-    tooltip: 'Ganhos financeiros mensais estimados da iniciativa.',
-  },
-  {
-    key: 'total_costs',
-    label: 'Custos',
-    minWidth: 132,
-    computed: true,
-    tooltip: 'Custos financeiros estimados da iniciativa.',
-  },
-  {
-    key: 'roi_percent',
-    label: 'ROI (%)',
-    minWidth: 110,
-    computed: true,
-    tooltip: 'Retorno sobre investimento calculado a partir de ganhos e custos.',
-  },
-  {
-    key: 'payback_months',
-    label: 'Payback',
-    minWidth: 116,
-    computed: true,
-    tooltip: 'Tempo, em meses, para recuperar o investimento estimado.',
-  },
+  { key: 'jira_key', label: 'Jira', minWidth: 92, tooltip: 'Chave da issue no Jira.' },
+  { key: 'summary', label: 'Iniciativa', minWidth: 280, tooltip: 'Resumo da demanda. Passe o mouse para ver detalhes.' },
+  { key: 'jira_status', label: 'Status', minWidth: 140, badge: true, tooltip: 'Status atual no Jira.' },
+  { key: 'hours_saved', label: 'Horas Econ.', minWidth: 112, sortable: true, tooltip: 'Tempo economizado por mês.' },
+  { key: 'development_estimate_seconds', label: 'Tempo Dev', minWidth: 112, sortable: true, tooltip: 'Tempo estimado de desenvolvimento (horas).' },
+  { key: 'total_gains', label: 'Ganhos/mês', minWidth: 132, computed: true, sortable: true, tooltip: 'Ganhos financeiros mensais estimados.' },
+  { key: 'total_costs', label: 'Custos', minWidth: 132, computed: true, sortable: true, tooltip: 'Custos totais do investimento.' },
+  { key: 'roi_percent', label: 'ROI Automação', minWidth: 130, computed: true, sortable: true, tooltip: 'ROI da automação: (ganho_mensal − custos) ÷ custos × 100. Mede se 1 mês de ganho já cobre o investimento.' },
+  { key: 'roi_accumulated', label: 'ROI Acumulado', minWidth: 130, computed: true, sortable: true, tooltip: 'ROI acumulado real desde a entrega: (ganhos_mensais × meses_desde_entrega − custos) ÷ custos × 100. Cresce mês a mês.' },
+  { key: 'payback_months', label: 'Payback', minWidth: 110, computed: true, sortable: true, tooltip: 'Meses para recuperar o investimento: custos ÷ ganhos_mensais.' },
 ]
 
-export default function InitiativeTable({
-  initiatives,
-  onReorder,
-  onUpdateField,
-  selectedId,
-  onSelect,
-}) {
+function SortIcon({ direction }) {
+  if (!direction) return (
+    <svg className="h-3 w-3 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+    </svg>
+  )
+  return direction === 'asc' ? (
+    <svg className="h-3 w-3 text-[#3DB7F4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+    </svg>
+  ) : (
+    <svg className="h-3 w-3 text-[#3DB7F4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+    </svg>
+  )
+}
+
+function getSortValue(initiative, key) {
+  if (key === 'hours_saved') return initiative.hours_saved || 0
+  if (key === 'development_estimate_seconds') return initiative.development_estimate_seconds || 0
+  if (['total_gains', 'total_costs', 'roi_percent', 'roi_accumulated', 'payback_months'].includes(key)) {
+    return initiative.metrics?.[key] ?? -Infinity
+  }
+  return initiative[key] ?? ''
+}
+
+export default function InitiativeTable({ initiatives, onReorder, onUpdateField, selectedId, onSelect }) {
   const [summaryWidth, setSummaryWidth] = useState(320)
   const [isResizing, setIsResizing] = useState(false)
+  const [sortKey, setSortKey] = useState(null)
+  const [sortDir, setSortDir] = useState('desc')
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -69,53 +69,53 @@ export default function InitiativeTable({
 
   useEffect(() => {
     if (!isResizing) return undefined
-
-    function handleMouseMove(event) {
-      setSummaryWidth((previous) => {
-        const next = previous + event.movementX
-        return Math.min(540, Math.max(180, next))
-      })
+    function handleMouseMove(e) {
+      setSummaryWidth((prev) => Math.min(540, Math.max(180, prev + e.movementX)))
     }
-
-    function handleMouseUp() {
-      setIsResizing(false)
-    }
-
+    function handleMouseUp() { setIsResizing(false) }
     window.addEventListener('mousemove', handleMouseMove)
     window.addEventListener('mouseup', handleMouseUp)
-
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUp)
     }
   }, [isResizing])
 
-  const columns = useMemo(
-    () =>
-      COLUMNS.map((column) =>
-        column.key === 'summary'
-          ? { ...column, width: summaryWidth, resizable: true }
-          : column
-      ),
+  const columns = useMemo(() =>
+    COLUMNS.map((col) => col.key === 'summary' ? { ...col, width: summaryWidth, resizable: true } : col),
     [summaryWidth]
   )
+
+  function handleSort(key) {
+    if (sortKey === key) {
+      setSortDir((d) => d === 'desc' ? 'asc' : 'desc')
+    } else {
+      setSortKey(key)
+      setSortDir('desc')
+    }
+  }
 
   function handleDragEnd(event) {
     const { active, over } = event
     if (!over || active.id === over.id) return
-
-    const oldIndex = initiatives.findIndex((initiative) => initiative.id === active.id)
-    const newIndex = initiatives.findIndex((initiative) => initiative.id === over.id)
-    const reordered = arrayMove(initiatives, oldIndex, newIndex)
-    onReorder(reordered)
+    const oldIndex = initiatives.findIndex((i) => i.id === active.id)
+    const newIndex = initiatives.findIndex((i) => i.id === over.id)
+    onReorder(arrayMove(initiatives, oldIndex, newIndex))
   }
 
+  const displayedInitiatives = useMemo(() => {
+    if (!sortKey) return initiatives
+    return [...initiatives].sort((a, b) => {
+      const va = getSortValue(a, sortKey)
+      const vb = getSortValue(b, sortKey)
+      if (va === vb) return 0
+      const cmp = va < vb ? -1 : 1
+      return sortDir === 'desc' ? -cmp : cmp
+    })
+  }, [initiatives, sortKey, sortDir])
+
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
-    >
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] rounded-3xl border border-white/10 bg-surface-card/70 shadow-[0_0_40px_rgba(53,89,235,0.08)]">
         <table className="min-w-full table-fixed text-sm">
           <thead className="sticky top-0 z-10">
@@ -129,33 +129,40 @@ export default function InitiativeTable({
                     : { minWidth: `${column.minWidth}px` }
                   }
                 >
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center justify-between gap-1">
                     <span className="flex items-center gap-1">
                       {column.label}
                       <Tooltip content={column.tooltip} />
                     </span>
-                    {column.resizable ? (
-                      <button
-                        type="button"
-                        aria-label="Redimensionar coluna Iniciativa"
-                        onMouseDown={(e) => {
-                          e.stopPropagation()
-                          setIsResizing(true)
-                        }}
-                        className="h-5 w-1.5 cursor-col-resize rounded-full bg-white/10 transition-colors hover:bg-[#3DB7F4]/60"
-                      />
-                    ) : null}
+                    <div className="flex items-center gap-1">
+                      {column.sortable && (
+                        <button
+                          type="button"
+                          onClick={() => handleSort(column.key)}
+                          className="opacity-50 hover:opacity-100 transition-opacity"
+                        >
+                          <SortIcon direction={sortKey === column.key ? sortDir : null} />
+                        </button>
+                      )}
+                      {column.resizable && (
+                        <button
+                          type="button"
+                          onMouseDown={(e) => { e.stopPropagation(); setIsResizing(true) }}
+                          className="h-5 w-1.5 cursor-col-resize rounded-full bg-white/10 hover:bg-[#3DB7F4]/60"
+                        />
+                      )}
+                    </div>
                   </div>
                 </th>
               ))}
             </tr>
           </thead>
           <SortableContext
-            items={initiatives.map((initiative) => initiative.id)}
+            items={displayedInitiatives.map((i) => i.id)}
             strategy={verticalListSortingStrategy}
           >
             <tbody>
-              {initiatives.map((initiative, index) => (
+              {displayedInitiatives.map((initiative, index) => (
                 <SortableRow
                   key={initiative.id}
                   initiative={initiative}

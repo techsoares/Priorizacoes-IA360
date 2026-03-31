@@ -36,6 +36,7 @@ function calculateMetrics(data) {
     roi_percent: roiPercent != null ? Math.round(roiPercent * 100) / 100 : null,
     roi_accumulated: roiAccumulated != null ? Math.round(roiAccumulated * 100) / 100 : null,
     months_live: monthsLive != null ? Math.round(monthsLive * 10) / 10 : null,
+    total_hours_saved: Math.round(totalHoursSaved * 10) / 10,
     payback_months: paybackMonths != null ? Math.round(paybackMonths * 100) / 100 : null,
   }
 }

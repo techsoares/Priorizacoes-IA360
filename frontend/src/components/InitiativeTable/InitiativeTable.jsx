@@ -21,7 +21,7 @@ const COLUMNS = [
   { key: 'jira_key', label: 'Jira', minWidth: 88, tooltip: 'Chave da issue no Jira.' },
   { key: 'summary', label: 'Iniciativa', minWidth: 280, tooltip: 'Resumo da demanda. Passe o mouse para ver detalhes.' },
   { key: 'jira_status', label: 'Status', minWidth: 130, badge: true, tooltip: 'Status atual no Jira.' },
-  { key: 'hours_saved', label: 'Horas Econ.', minWidth: 105, sortable: true, tooltip: 'Tempo economizado por mês.' },
+  { key: 'hours_saved', label: 'Horas Econ.', minWidth: 105, computed: true, sortable: true, tooltip: 'Tempo economizado por mês (horas_salvas_dia × dias_mês × pessoas_afetadas).' },
   { key: 'development_estimate_seconds', label: 'Tempo Dev', minWidth: 105, sortable: true, tooltip: 'Tempo estimado de desenvolvimento (horas).' },
   { key: 'total_gains', label: 'Ganhos/mês', minWidth: 120, computed: true, sortable: true, tooltip: 'Ganhos financeiros mensais estimados.' },
   { key: 'total_costs', label: 'Custos', minWidth: 120, computed: true, sortable: true, tooltip: 'Custos totais do investimento.' },

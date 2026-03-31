@@ -90,5 +90,6 @@ def calculate_metrics(data: dict) -> CalculatedMetrics:
         roi_percent=roi_percent,
         roi_accumulated=roi_accumulated,
         months_live=round(months_live, 1) if months_live > 0 else None,
+        total_hours_saved=round(total_hours_saved, 1),
         payback_months=payback_months,
     )

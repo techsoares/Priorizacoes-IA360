@@ -80,10 +80,6 @@ export default function SortableRow({ initiative, index, columns, onUpdateField,
       return <StatusBadge status={initiative[column.key]} />
     }
 
-    if (column.key === 'hours_saved') {
-      return <span className="text-[13px] text-gray-700 dark:text-gray-300">{formatHours(initiative.hours_saved)}</span>
-    }
-
     if (column.key === 'development_estimate_seconds') {
       return <span className="text-[13px] text-gray-700 dark:text-gray-300">{formatHours(getDevelopmentEstimateHours(initiative))}</span>
     }
@@ -92,12 +88,17 @@ export default function SortableRow({ initiative, index, columns, onUpdateField,
       const metrics = initiative.metrics || {}
       let value = null
 
+      if (column.key === 'hours_saved') value = metrics.total_hours_saved
       if (column.key === 'total_gains') value = metrics.total_gains
       if (column.key === 'total_costs') value = metrics.total_costs
       if (column.key === 'roi_percent') value = metrics.roi_percent
       if (column.key === 'payback_months') value = metrics.payback_months
 
       if (value == null) return <span className="text-[11px] text-gray-400 dark:text-gray-700">N/A</span>
+
+      if (column.key === 'hours_saved') {
+        return <span className="text-[13px] text-gray-700 dark:text-gray-300">{formatHours(value)}</span>
+      }
 
       if (column.key === 'total_gains') {
         const intangible = initiative.intangible_gains

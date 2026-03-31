@@ -57,6 +57,7 @@ class CalculatedMetrics(BaseModel):
     roi_percent: float | None = Field(None, description="ROI da automação (%) — ganho mensal vs investimento")
     roi_accumulated: float | None = Field(None, description="ROI acumulado real (%) — cresce desde a entrega")
     months_live: float | None = Field(None, description="Meses desde a entrega (resolution_date)")
+    total_hours_saved: float = Field(0, description="Total de horas economizadas por mês (considerando pessoas afetadas)")
     payback_months: float | None = Field(None, description="Payback (meses) — None se ganhos = 0")
 
 

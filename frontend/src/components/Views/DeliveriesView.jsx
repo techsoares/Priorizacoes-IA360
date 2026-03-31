@@ -37,7 +37,7 @@ function HeroKpi({ label, value, sub, color, tooltip, icon }) {
           </span>
           <span className="text-lg opacity-60" role="img" aria-hidden>{icon}</span>
         </div>
-        <div className="text-2xl font-bold tracking-tight text-white">{value}</div>
+        <div className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{value}</div>
         {sub && <div className="mt-1 text-[11px] text-gray-500">{sub}</div>}
       </div>
     </div>
@@ -81,9 +81,9 @@ function RankedList({ title, items, formatter, color, tooltip }) {
                   >
                     {i + 1}
                   </span>
-                  <span className="truncate text-[12px] text-gray-400">{item.label}</span>
+                  <span className="truncate text-[12px] text-gray-700 dark:text-gray-400">{item.label}</span>
                 </div>
-                <span className="shrink-0 text-[12px] font-semibold text-white">{formatter(item.value)}</span>
+                <span className="shrink-0 text-[12px] font-semibold text-gray-900 dark:text-white">{formatter(item.value)}</span>
               </div>
               <AnimatedBar pct={max > 0 ? (item.value / max) * 100 : 0} color={color} />
             </div>
@@ -260,7 +260,7 @@ function DetailTable({ items }) {
                     </a>
                   </td>
                   <td className="max-w-[240px] px-4 py-2.5">
-                    <span className="block truncate text-[12px] text-gray-400">{item.summary}</span>
+                    <span className="block truncate text-[12px] text-gray-900 dark:text-gray-400">{item.summary}</span>
                   </td>
                   <td className="px-4 py-2.5 text-[12px] text-gray-500">{item.activity_type || '—'}</td>
                   <td className="px-4 py-2.5 text-[12px] text-gray-400">{formatDays(getLeadTimeDays(item))}</td>
@@ -325,6 +325,15 @@ export default function DeliveriesView({ initiatives }) {
   const avgLead = leadTimes.length > 0 ? leadTimes.reduce((s, v) => s + v, 0) / leadTimes.length : null
   const withRoi = filtered.filter((i) => i.metrics?.roi_percent != null)
   const avgRoi = withRoi.length > 0 ? withRoi.reduce((s, i) => s + i.metrics.roi_percent, 0) / withRoi.length : null
+
+  const accumulatedGains = filtered.reduce((s, i) => {
+    const monthsLive = i.metrics?.months_live || 0
+    return s + (i.metrics?.total_gains || 0) * monthsLive
+  }, 0)
+
+  const accumulatedRoi = totalCosts > 0
+    ? ((accumulatedGains - totalCosts) / totalCosts) * 100
+    : null
 
   // Charts data
   const byCostCenter = Object.entries(groupBy(filtered, (i) => i.cost_center || 'Sem centro'))
@@ -391,7 +400,7 @@ export default function DeliveriesView({ initiatives }) {
       </div>
 
       {/* ── Hero KPIs ── */}
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <HeroKpi
           label="Economia anual projetada"
           value={fmtCompact(annualEconomy)}
@@ -423,6 +432,14 @@ export default function DeliveriesView({ initiatives }) {
           color="#FE70BD"
           icon="🏗️"
           tooltip="Soma dos custos de desenvolvimento, terceiros, tokens e infraestrutura."
+        />
+        <HeroKpi
+          label="ROI Acumulado"
+          value={accumulatedRoi != null ? `${accumulatedRoi.toFixed(1)}%` : '—'}
+          sub="retorno real acumulado"
+          color="#3DB7F4"
+          icon="📈"
+          tooltip="ROI acumulado considerando os ganhos mensais desde a data de entrega de cada iniciativa."
         />
         <HeroKpi
           label="Lead time médio"

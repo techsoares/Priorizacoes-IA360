@@ -57,13 +57,6 @@ const CARD_CONFIG = [
     color: '#40EB4F',
     format: (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
   },
-  {
-    key: 'totalAccumulatedRoi',
-    label: 'ROI acumulado',
-    tooltip: 'Soma do ROI acumulado real de todas as iniciativas entregues.',
-    color: '#3DB7F4',
-    format: (v) => (v != null ? `${v.toFixed(1)}%` : '—'),
-  },
 ]
 
 export default function SummaryCards({ initiatives, selectedInitiative, onClearSelection }) {
@@ -90,11 +83,6 @@ export default function SummaryCards({ initiatives, selectedInitiative, onClearS
   const monthlySavings = initiatives.reduce((s, i) => s + (i.metrics?.total_gains || 0), 0)
   const totalSavings = monthlySavings * 12
 
-  const withAccumulatedRoi = initiatives.filter((i) => i.metrics?.roi_accumulated != null)
-  const totalAccumulatedRoi = withAccumulatedRoi.length > 0
-    ? withAccumulatedRoi.reduce((s, i) => s + i.metrics.roi_accumulated, 0)
-    : null
-
   const values = {
     totalInitiatives,
     totalRoi,
@@ -104,7 +92,6 @@ export default function SummaryCards({ initiatives, selectedInitiative, onClearS
     totalCosts,
     monthlySavings,
     totalSavings,
-    totalAccumulatedRoi
   }
 
   return (
@@ -126,14 +113,23 @@ export default function SummaryCards({ initiatives, selectedInitiative, onClearS
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-9">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8">
         {CARD_CONFIG.map((card) => {
           const formattedValue = card.format(values[card.key])
           return (
             <div
               key={card.key}
-              className="group relative overflow-hidden rounded-xl border border-white/[0.05] bg-white/[0.02] p-3 transition-all hover:border-white/[0.08] hover:bg-white/[0.04]"
+              className="group relative overflow-hidden rounded-xl border border-white/[0.06] p-3 transition-all dark:border-white/[0.05] bg-white/[0.02] dark:bg-white/[0.02] hover:bg-white/[0.04] dark:hover:bg-white/[0.04]"
+              style={{
+                backgroundColor: `var(--card-bg-${card.key}, rgba(255,255,255,0.02))`,
+                borderColor: `var(--card-border-${card.key}, rgba(255,255,255,0.05))`
+              }}
             >
+              {/* Dynamic tinted background for light mode */}
+              <div
+                className="absolute inset-0 opacity-[0.03] dark:opacity-0 transition-opacity"
+                style={{ backgroundColor: card.color }}
+              />
               {/* Glow accent */}
               <div
                 className="pointer-events-none absolute -right-3 -top-3 h-10 w-10 rounded-full opacity-20 blur-xl transition-opacity group-hover:opacity-40"
@@ -143,7 +139,7 @@ export default function SummaryCards({ initiatives, selectedInitiative, onClearS
               <div className="relative">
                 <div className="mb-1.5 flex items-center gap-1">
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: card.color }} />
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-gray-500">{card.label}</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">{card.label}</span>
                   <Tooltip content={card.tooltip} />
                 </div>
                 <div className="text-[15px] font-bold tracking-tight text-gray-900 dark:text-white/90">{formattedValue}</div>

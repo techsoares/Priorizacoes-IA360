@@ -57,6 +57,13 @@ const CARD_CONFIG = [
     color: '#40EB4F',
     format: (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
   },
+  {
+    key: 'totalAccumulatedRoi',
+    label: 'ROI acumulado',
+    tooltip: 'Soma do ROI acumulado real de todas as iniciativas entregues.',
+    color: '#3DB7F4',
+    format: (v) => (v != null ? `${v.toFixed(1)}%` : '—'),
+  },
 ]
 
 export default function SummaryCards({ initiatives, selectedInitiative, onClearSelection }) {
@@ -83,7 +90,22 @@ export default function SummaryCards({ initiatives, selectedInitiative, onClearS
   const monthlySavings = initiatives.reduce((s, i) => s + (i.metrics?.total_gains || 0), 0)
   const totalSavings = monthlySavings * 12
 
-  const values = { totalInitiatives, totalRoi, avgPayback, totalHoursSaved, totalEstimatedDevelopment, totalCosts, monthlySavings, totalSavings }
+  const withAccumulatedRoi = initiatives.filter((i) => i.metrics?.roi_accumulated != null)
+  const totalAccumulatedRoi = withAccumulatedRoi.length > 0
+    ? withAccumulatedRoi.reduce((s, i) => s + i.metrics.roi_accumulated, 0)
+    : null
+
+  const values = {
+    totalInitiatives,
+    totalRoi,
+    avgPayback,
+    totalHoursSaved,
+    totalEstimatedDevelopment,
+    totalCosts,
+    monthlySavings,
+    totalSavings,
+    totalAccumulatedRoi
+  }
 
   return (
     <div className="mb-6">
@@ -104,7 +126,7 @@ export default function SummaryCards({ initiatives, selectedInitiative, onClearS
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-9">
         {CARD_CONFIG.map((card) => {
           const formattedValue = card.format(values[card.key])
           return (
@@ -124,7 +146,7 @@ export default function SummaryCards({ initiatives, selectedInitiative, onClearS
                   <span className="text-[10px] font-medium uppercase tracking-wider text-gray-500">{card.label}</span>
                   <Tooltip content={card.tooltip} />
                 </div>
-                <div className="text-[15px] font-bold tracking-tight text-white/90">{formattedValue}</div>
+                <div className="text-[15px] font-bold tracking-tight text-gray-900 dark:text-white/90">{formattedValue}</div>
               </div>
             </div>
           )

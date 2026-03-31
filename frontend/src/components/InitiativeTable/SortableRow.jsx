@@ -18,7 +18,7 @@ function IntangibleTooltipCell({ value, intangible }) {
 
   return (
     <span className="flex items-center gap-1">
-      <span className="font-medium text-gray-200">
+      <span className="font-medium text-gray-900 dark:text-gray-200">
         {value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
       </span>
       {intangible && (
@@ -71,7 +71,7 @@ export default function SortableRow({ initiative, index, columns, onUpdateField,
           <svg className="h-3 w-3 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
           </svg>
-          <span className="font-mono text-[11px] text-gray-500">{index + 1}</span>
+          <span className="font-mono text-[11px] text-gray-600 dark:text-gray-500">{index + 1}</span>
         </span>
       )
     }
@@ -81,11 +81,11 @@ export default function SortableRow({ initiative, index, columns, onUpdateField,
     }
 
     if (column.key === 'hours_saved') {
-      return <span className="text-[13px] text-gray-300">{formatHours(initiative.hours_saved)}</span>
+      return <span className="text-[13px] text-gray-700 dark:text-gray-300">{formatHours(initiative.hours_saved)}</span>
     }
 
     if (column.key === 'development_estimate_seconds') {
-      return <span className="text-[13px] text-gray-300">{formatHours(getDevelopmentEstimateHours(initiative))}</span>
+      return <span className="text-[13px] text-gray-700 dark:text-gray-300">{formatHours(getDevelopmentEstimateHours(initiative))}</span>
     }
 
     if (column.computed) {
@@ -97,7 +97,7 @@ export default function SortableRow({ initiative, index, columns, onUpdateField,
       if (column.key === 'roi_percent') value = metrics.roi_percent
       if (column.key === 'payback_months') value = metrics.payback_months
 
-      if (value == null) return <span className="text-[11px] text-gray-700">N/A</span>
+      if (value == null) return <span className="text-[11px] text-gray-400 dark:text-gray-700">N/A</span>
 
       if (column.key === 'total_gains') {
         const intangible = initiative.intangible_gains
@@ -107,16 +107,16 @@ export default function SortableRow({ initiative, index, columns, onUpdateField,
       }
 
       if (column.key === 'roi_percent') {
-        const color = value >= 0 ? 'text-[#40EB4F]' : 'text-[#FE70BD]'
+        const color = value >= 0 ? 'text-[#40EB4F] dark:text-[#40EB4F]' : 'text-[#FE70BD] dark:text-[#FE70BD]'
         return <span className={`text-[13px] font-semibold ${color}`}>{value.toFixed(1)}%</span>
       }
 
       if (column.key === 'payback_months') {
-        return <span className="text-[13px] font-medium text-gray-300">{value.toFixed(1)} m</span>
+        return <span className="text-[13px] font-medium text-gray-700 dark:text-gray-300">{value.toFixed(1)} m</span>
       }
 
       return (
-        <span className="text-[13px] font-medium text-gray-300">
+        <span className="text-[13px] font-medium text-gray-700 dark:text-gray-300">
           {value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
         </span>
       )
@@ -138,7 +138,7 @@ export default function SortableRow({ initiative, index, columns, onUpdateField,
           href={initiative.jira_url}
           target="_blank"
           rel="noreferrer"
-          className="truncate font-mono text-[11px] text-[#3DB7F4]/80 transition-colors hover:text-[#3DB7F4]"
+          className="truncate font-mono text-[11px] text-[#3DB7F4]/80 transition-colors hover:text-[#3DB7F4] dark:text-[#3DB7F4]/80"
           title={initiative.jira_key}
         >
           {initiative[column.key] || '\u2014'}
@@ -153,13 +153,13 @@ export default function SortableRow({ initiative, index, columns, onUpdateField,
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
         >
-          <span className="block truncate text-[13px] text-gray-300">{initiative.summary || '\u2014'}</span>
+          <span className="block truncate text-[13px] text-gray-900 dark:text-gray-300">{initiative.summary || '\u2014'}</span>
           {showTooltip && <InitiativeTooltip initiative={initiative} />}
         </div>
       )
     }
 
-    return <span className="truncate text-[13px] text-gray-400">{initiative[column.key] || '\u2014'}</span>
+    return <span className="truncate text-[13px] text-gray-700 dark:text-gray-400">{initiative[column.key] || '\u2014'}</span>
   }
 
   return (

@@ -26,7 +26,6 @@ const COLUMNS = [
   { key: 'total_gains', label: 'Ganhos/mês', minWidth: 120, computed: true, sortable: true, tooltip: 'Ganhos financeiros mensais estimados.' },
   { key: 'total_costs', label: 'Custos', minWidth: 120, computed: true, sortable: true, tooltip: 'Custos totais do investimento.' },
   { key: 'roi_percent', label: 'ROI Automação', minWidth: 125, computed: true, sortable: true, tooltip: 'ROI da automação: (ganho_mensal − custos) ÷ custos × 100. Mede se 1 mês de ganho já cobre o investimento.' },
-  { key: 'roi_accumulated', label: 'ROI Acumulado', minWidth: 125, computed: true, sortable: true, tooltip: 'ROI acumulado real desde a entrega: (ganhos_mensais × meses_desde_entrega − custos) ÷ custos × 100. Cresce mês a mês.' },
   { key: 'payback_months', label: 'Payback', minWidth: 100, computed: true, sortable: true, tooltip: 'Meses para recuperar o investimento: custos ÷ ganhos_mensais.' },
 ]
 

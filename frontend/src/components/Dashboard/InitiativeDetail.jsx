@@ -8,7 +8,7 @@ function Row({ label, value, accent }) {
   return (
     <div className="flex items-center justify-between gap-3 py-1.5">
       <span className="text-[11px] text-gray-500">{label}</span>
-      <span className={`text-[12px] font-medium ${accent || 'text-gray-300'}`}>{value}</span>
+      <span className={`text-[12px] font-medium ${accent || 'text-gray-900 dark:text-gray-300'}`}>{value}</span>
     </div>
   )
 }
@@ -50,11 +50,11 @@ export default function InitiativeDetail({ initiative, onClose }) {
           >
             {initiative.jira_key}
           </a>
-          <span className="truncate text-[13px] font-medium text-white">{initiative.summary}</span>
+          <span className="truncate text-[13px] font-medium text-gray-900 dark:text-white">{initiative.summary}</span>
         </div>
         <button
           onClick={onClose}
-          className="shrink-0 rounded-lg p-1 text-gray-600 transition-colors hover:bg-white/[0.04] hover:text-gray-300"
+          className="shrink-0 rounded-lg p-1 text-gray-600 transition-colors hover:bg-white/[0.04] hover:text-gray-900 dark:hover:text-gray-300"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -85,7 +85,7 @@ export default function InitiativeDetail({ initiative, onClose }) {
             {initiative.assignee && (
               <div className="flex items-center justify-between gap-3 py-1.5">
                 <span className="text-[11px] text-gray-500">Responsavel</span>
-                <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-300">
+                <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-900 dark:text-gray-300">
                   {initiative.assignee_avatar_url && (
                     <img
                       src={initiative.assignee_avatar_url}
@@ -187,11 +187,10 @@ export default function InitiativeDetail({ initiative, onClose }) {
         </div>
       </div>
 
-      {/* Intangible gains */}
       {initiative.intangible_gains && (
         <div className="border-t border-white/[0.04] px-5 py-3">
           <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#3DB7F4]">Ganhos intangiveis</span>
-          <p className="mt-1 text-[12px] leading-relaxed text-gray-400">{initiative.intangible_gains}</p>
+          <p className="mt-1 text-[12px] leading-relaxed text-gray-700 dark:text-gray-400">{initiative.intangible_gains}</p>
         </div>
       )}
     </div>

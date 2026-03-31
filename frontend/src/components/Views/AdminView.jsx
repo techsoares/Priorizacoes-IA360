@@ -34,7 +34,7 @@ const PILL_CONFIG = [
 
 function MetricPill({ label, value, color }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-white/8 bg-white/[0.03] px-2.5 py-1.5">
+    <div className="flex items-center gap-2 rounded-lg border border-white/[0.05] bg-white/[0.02] px-2.5 py-1.5">
       <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: color }} />
       <span className="text-[10px] text-gray-500">{label}</span>
       <span className="text-[11px] font-semibold text-white/80">{value}</span>
@@ -72,7 +72,7 @@ export default function AdminView({
           href={initiative.jira_url}
           target="_blank"
           rel="noreferrer"
-          className="font-mono text-xs text-accent-purple-light transition-colors hover:text-[#3DB7F4]"
+          className="font-mono text-[11px] text-[#3DB7F4]/80 transition-colors hover:text-[#3DB7F4]"
         >
           {initiative.jira_key}
         </a>
@@ -80,11 +80,11 @@ export default function AdminView({
     }
 
     if (column.key === 'summary') {
-      return <span className="block max-w-[340px] truncate text-gray-200">{initiative.summary}</span>
+      return <span className="block max-w-[340px] truncate text-[13px] text-gray-300">{initiative.summary}</span>
     }
 
     if (column.key === 'development_estimate') {
-      return <span className="text-gray-200">{formatHours(getDevelopmentEstimateHours(initiative))}</span>
+      return <span className="text-[13px] text-gray-300">{formatHours(getDevelopmentEstimateHours(initiative))}</span>
     }
 
     if (column.editable && column.text) {
@@ -111,25 +111,25 @@ export default function AdminView({
       const value = initiative.metrics?.[column.key]
 
       if (value == null) {
-        return <span className="text-xs text-gray-600">N/A</span>
+        return <span className="text-[11px] text-gray-700">N/A</span>
       }
 
       if (column.key === 'roi_percent') {
         return (
-          <span className={value >= 0 ? 'font-semibold text-[#40EB4F]' : 'font-semibold text-accent-pink'}>
+          <span className={value >= 0 ? 'text-[13px] font-semibold text-[#40EB4F]' : 'text-[13px] font-semibold text-accent-pink'}>
             {value.toFixed(1)}%
           </span>
         )
       }
 
       if (column.key === 'payback_months') {
-        return <span className="text-gray-200">{value.toFixed(1)} meses</span>
+        return <span className="text-[13px] text-gray-300">{value.toFixed(1)} meses</span>
       }
 
-      return <span className="text-gray-200">{formatCurrency(value)}</span>
+      return <span className="text-[13px] text-gray-300">{formatCurrency(value)}</span>
     }
 
-    return <span className="text-gray-300">{initiative[column.key] || '—'}</span>
+    return <span className="text-[13px] text-gray-400">{initiative[column.key] || '—'}</span>
   }
 
   return (
@@ -138,13 +138,13 @@ export default function AdminView({
         <div className="flex items-center gap-3">
           <div>
             <h2 className="text-sm font-semibold text-white">Administração de custos</h2>
-            <p className="text-xs text-gray-500">Campos manuais que não vêm do Jira. O tempo de desenvolvimento é lido automaticamente.</p>
+            <p className="text-[11px] text-gray-500">Campos manuais que não vêm do Jira. O tempo de desenvolvimento é lido automaticamente.</p>
           </div>
           <a
             href="/manual.html"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#3559EB]/30 bg-[linear-gradient(90deg,rgba(1,32,235,0.10),rgba(254,112,189,0.12))] px-3 py-1.5 text-xs font-medium text-[#3DB7F4] transition-colors hover:border-[#3559EB]/50 hover:text-white"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1.5 text-[11px] font-medium text-gray-400 transition-all hover:border-white/[0.1] hover:text-white"
           >
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
@@ -161,14 +161,14 @@ export default function AdminView({
         ))}
       </div>
 
-      <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] rounded-xl border border-white/8 bg-white/[0.03]">
+      <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] rounded-xl border border-white/[0.05] bg-surface-card/50 shadow-glow-sm">
         <table className="min-w-full table-auto text-sm">
           <thead className="sticky top-0 z-10">
-            <tr className="bg-[linear-gradient(90deg,rgba(1,32,235,0.30),rgba(254,112,189,0.18))] backdrop-blur-sm">
+            <tr className="bg-surface-elevated/90 backdrop-blur-sm">
               {ADMIN_COLUMNS.map((column) => (
                 <th
                   key={column.key}
-                  className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-widest text-gray-300 whitespace-nowrap border-b border-white/8"
+                  className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500 whitespace-nowrap border-b border-white/[0.04]"
                 >
                   <span className="flex items-center gap-1">
                     {column.label}
@@ -182,10 +182,10 @@ export default function AdminView({
             {adminInitiatives.map((initiative) => (
               <tr
                 key={initiative.id}
-                className="border-b border-white/5 transition-colors hover:bg-[rgba(53,89,235,0.05)]"
+                className="border-b border-white/[0.03] transition-colors hover:bg-white/[0.02]"
               >
                 {ADMIN_COLUMNS.map((column) => (
-                  <td key={column.key} className="px-3 py-2.5 align-middle">
+                  <td key={column.key} className="px-3 py-2 align-middle">
                     {renderCell(initiative, column)}
                   </td>
                 ))}
@@ -195,7 +195,7 @@ export default function AdminView({
         </table>
 
         {adminInitiatives.length === 0 ? (
-          <div className="py-14 text-center text-sm text-gray-500">
+          <div className="py-14 text-center text-sm text-gray-600">
             Nenhuma iniciativa encontrada para os filtros atuais.
           </div>
         ) : null}

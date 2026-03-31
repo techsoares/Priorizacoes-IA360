@@ -5,7 +5,7 @@ export default function InitiativeTooltip({ initiative }) {
   const devHours = getDevelopmentEstimateHours(initiative)
 
   return (
-    <div className="pointer-events-none absolute left-0 top-full z-[9999] mt-2 w-[340px] rounded-xl border border-white/10 bg-[#1a1a2e] p-4 shadow-2xl">
+    <div className="pointer-events-none absolute left-0 top-full z-[9999] mt-2 w-[320px] rounded-xl border border-white/[0.06] bg-surface-elevated p-4 shadow-xl">
       <div className="mb-3 text-sm font-semibold text-white">{initiative.summary}</div>
 
       <div className="mb-3 grid grid-cols-2 gap-2">

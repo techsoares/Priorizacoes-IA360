@@ -12,7 +12,6 @@ export default function Tooltip({ content }) {
     const triggerRect = triggerRef.current.getBoundingClientRect()
     const tooltipRect = tooltipRef.current.getBoundingClientRect()
 
-    // If tooltip goes below viewport, show above
     if (triggerRect.bottom + tooltipRect.height + 8 > window.innerHeight) {
       setPosition('top')
     } else {
@@ -30,10 +29,10 @@ export default function Tooltip({ content }) {
         onMouseLeave={() => setVisible(false)}
         onFocus={() => setVisible(true)}
         onBlur={() => setVisible(false)}
-        className="cursor-help text-gray-500 transition-colors hover:text-gray-300"
+        className="cursor-help text-gray-600 transition-colors hover:text-gray-400"
         tabIndex={-1}
       >
-        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -46,7 +45,7 @@ export default function Tooltip({ content }) {
       {visible && (
         <span
           ref={tooltipRef}
-          className={`pointer-events-none absolute left-1/2 z-[9999] w-max max-w-[260px] -translate-x-1/2 rounded-lg border border-white/10 bg-gray-900 px-3 py-2 text-[11px] font-normal normal-case tracking-normal text-gray-300 shadow-xl ${
+          className={`pointer-events-none absolute left-1/2 z-[9999] w-max max-w-[240px] -translate-x-1/2 rounded-lg border border-white/[0.06] bg-surface-elevated px-3 py-2 text-[11px] font-normal normal-case tracking-normal leading-relaxed text-gray-400 shadow-xl ${
             position === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
           }`}
         >

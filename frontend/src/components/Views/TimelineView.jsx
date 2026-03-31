@@ -65,7 +65,7 @@ function LabelRow({ initiative, rowIdx }) {
 
   return (
     <div
-      className={`border-r border-white/6 px-3 flex items-center ${rowIdx % 2 === 1 ? 'bg-white/[0.015]' : ''}`}
+      className={`border-r border-white/[0.04] px-3 flex items-center ${rowIdx % 2 === 1 ? 'bg-white/[0.01]' : ''}`}
       style={{ height: ROW_H }}
     >
       <div className="grid grid-cols-[72px_1fr_80px] items-center gap-2 w-full">
@@ -73,7 +73,7 @@ function LabelRow({ initiative, rowIdx }) {
           href={initiative.jira_url}
           target="_blank"
           rel="noreferrer"
-          className="truncate font-mono text-[11px] text-[#3DB7F4] hover:text-[#3559EB] transition-colors"
+          className="truncate font-mono text-[11px] text-[#3DB7F4]/80 hover:text-[#3DB7F4] transition-colors"
         >
           {initiative.jira_key}
         </a>
@@ -82,7 +82,7 @@ function LabelRow({ initiative, rowIdx }) {
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
         >
-          <p className="truncate text-xs text-white/80 cursor-default">{initiative.summary}</p>
+          <p className="truncate text-[12px] text-white/80 cursor-default">{initiative.summary}</p>
           <p className="truncate text-[10px] text-gray-600">{initiative.assignee || '—'}</p>
           {showTooltip && <InitiativeTooltip initiative={initiative} />}
         </div>
@@ -108,7 +108,6 @@ export default function TimelineView({ initiatives, filteredInitiatives, filters
 
   const totalW = days.length * COL_W
 
-  // scroll to today on mount and when items change
   useEffect(() => {
     if (!scrollRef.current || !todayInRange) return
     const scrollTo = todayOffset * COL_W - scrollRef.current.clientWidth / 2 + COL_W / 2
@@ -123,12 +122,12 @@ export default function TimelineView({ initiatives, filteredInitiatives, filters
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
           <h2 className="text-sm font-semibold text-white">Timeline</h2>
-          <p className="text-xs text-gray-500">Planejamento visual por início e data de resolução.</p>
+          <p className="text-[11px] text-gray-500">Planejamento visual por início e data de resolução.</p>
         </div>
         <FilterBar initiatives={initiatives} filters={filters} onFilterChange={onFilterChange} />
       </div>
 
-      <div className="rounded-xl border border-white/8 bg-white/[0.03] overflow-hidden">
+      <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] overflow-hidden">
         {/* ── Layout: fixed labels | scrollable calendar ── */}
         <div className="flex">
 
@@ -136,10 +135,10 @@ export default function TimelineView({ initiatives, filteredInitiatives, filters
           <div className="shrink-0 z-10 bg-surface-card/80" style={{ width: LABEL_W }}>
             {/* column header */}
             <div
-              className="border-b border-r border-white/8 px-3 flex items-end"
+              className="border-b border-r border-white/[0.04] px-3 flex items-end"
               style={{ height: HEADER_H }}
             >
-              <div className="grid grid-cols-[72px_1fr_80px] gap-2 pb-2 w-full text-[10px] uppercase tracking-widest text-gray-600">
+              <div className="grid grid-cols-[72px_1fr_80px] gap-2 pb-2 w-full text-[10px] uppercase tracking-[0.12em] text-gray-600">
                 <span>Jira</span>
                 <span>Iniciativa</span>
                 <span>Status</span>
@@ -152,27 +151,27 @@ export default function TimelineView({ initiatives, filteredInitiatives, filters
             ))}
 
             {items.length === 0 && (
-              <div className="flex items-center justify-center border-r border-white/6 px-3 text-xs text-gray-600" style={{ height: ROW_H * 3 }}>
+              <div className="flex items-center justify-center border-r border-white/[0.04] px-3 text-[12px] text-gray-600" style={{ height: ROW_H * 3 }}>
                 Sem iniciativas
               </div>
             )}
 
             {/* legend footer */}
-            <div className="border-t border-r border-white/6 px-3 py-2.5 flex flex-col gap-1.5">
-              <span className="flex items-center gap-1.5 text-[10px] text-gray-500">
-                <span className="h-1.5 w-5 rounded-full bg-[linear-gradient(90deg,#3559EB,#3DB7F4)]" />
+            <div className="border-t border-r border-white/[0.04] px-3 py-2.5 flex flex-col gap-1.5">
+              <span className="flex items-center gap-1.5 text-[10px] text-gray-600">
+                <span className="h-1 w-5 rounded-full bg-[linear-gradient(90deg,#3559EB,#3DB7F4)]" />
                 Concluído
               </span>
-              <span className="flex items-center gap-1.5 text-[10px] text-gray-500">
-                <span className="h-1.5 w-5 rounded-full bg-[linear-gradient(90deg,#3559EB,#FE70BD)]" />
+              <span className="flex items-center gap-1.5 text-[10px] text-gray-600">
+                <span className="h-1 w-5 rounded-full bg-[linear-gradient(90deg,#3559EB,#FE70BD)]" />
                 Em andamento
               </span>
-              <span className="flex items-center gap-1.5 text-[10px] text-gray-500">
-                <span className="h-1.5 w-5 rounded-full bg-[linear-gradient(90deg,#FE70BD,#3559EB)]" />
+              <span className="flex items-center gap-1.5 text-[10px] text-gray-600">
+                <span className="h-1 w-5 rounded-full bg-[linear-gradient(90deg,#FE70BD,#3559EB)]" />
                 Atrasado
               </span>
-              <span className="flex items-center gap-1.5 text-[10px] text-gray-500">
-                <span className="h-3 w-px bg-[#3DB7F4]/70" />
+              <span className="flex items-center gap-1.5 text-[10px] text-gray-600">
+                <span className="h-3 w-px bg-[#3DB7F4]/50" />
                 Hoje
               </span>
             </div>
@@ -181,20 +180,20 @@ export default function TimelineView({ initiatives, filteredInitiatives, filters
           {/* ── Scrollable calendar ── */}
           <div ref={scrollRef} className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             <div className="pointer-events-none sticky top-0 z-20 flex justify-end pr-2 pt-1" style={{ height: 0 }}>
-              <span className="translate-y-1 rounded bg-white/5 px-1.5 py-0.5 text-[9px] text-gray-600">
+              <span className="translate-y-1 rounded bg-white/[0.04] px-1.5 py-0.5 text-[9px] text-gray-700">
                 ← scroll →
               </span>
             </div>
             <div style={{ width: totalW }}>
 
               {/* calendar header */}
-              <div className="sticky top-0 z-10 border-b border-white/8 bg-surface-card/90 backdrop-blur-sm" style={{ height: HEADER_H }}>
+              <div className="sticky top-0 z-10 border-b border-white/[0.04] bg-surface-card/90 backdrop-blur-sm" style={{ height: HEADER_H }}>
                 {/* month row */}
-                <div className="flex border-b border-white/6">
+                <div className="flex border-b border-white/[0.03]">
                   {monthGroups.map((g) => (
                     <div
                       key={g.key}
-                      className="shrink-0 py-1.5 text-center text-[10px] font-medium uppercase tracking-widest text-gray-500"
+                      className="shrink-0 py-1.5 text-center text-[10px] font-medium uppercase tracking-[0.12em] text-gray-600"
                       style={{ width: g.count * COL_W }}
                     >
                       {g.label}
@@ -205,7 +204,7 @@ export default function TimelineView({ initiatives, filteredInitiatives, filters
                 <div className="flex relative">
                   {todayInRange && (
                     <div
-                      className="pointer-events-none absolute top-0 bottom-0 w-px bg-[#3DB7F4]/50"
+                      className="pointer-events-none absolute top-0 bottom-0 w-px bg-[#3DB7F4]/40"
                       style={{ left: todayLineLeft }}
                     />
                   )}
@@ -216,7 +215,7 @@ export default function TimelineView({ initiatives, filteredInitiatives, filters
                       <div
                         key={day.toISOString()}
                         className={`shrink-0 py-1 text-center text-[9px] ${
-                          isToday ? 'font-bold text-[#3DB7F4]' : isMon ? 'text-gray-400' : 'text-gray-700'
+                          isToday ? 'font-bold text-[#3DB7F4]' : isMon ? 'text-gray-500' : 'text-gray-700'
                         }`}
                         style={{ width: COL_W }}
                       >
@@ -239,20 +238,20 @@ export default function TimelineView({ initiatives, filteredInitiatives, filters
                 return (
                   <div
                     key={initiative.id}
-                    className={`relative ${rowIdx % 2 === 1 ? 'bg-white/[0.015]' : ''}`}
+                    className={`relative ${rowIdx % 2 === 1 ? 'bg-white/[0.01]' : ''}`}
                     style={{ height: ROW_H }}
                   >
                     {/* today line */}
                     {todayInRange && (
                       <div
-                        className="pointer-events-none absolute inset-y-0 w-px bg-[#3DB7F4]/25"
+                        className="pointer-events-none absolute inset-y-0 w-px bg-[#3DB7F4]/20"
                         style={{ left: todayLineLeft }}
                       />
                     )}
 
                     {/* bar */}
                     <div
-                      className={`absolute top-1/2 -translate-y-1/2 h-5 rounded-full ${
+                      className={`absolute top-1/2 -translate-y-1/2 h-4 rounded-full ${
                         resolved
                           ? 'bg-[linear-gradient(90deg,#3559EB,#3DB7F4)]'
                           : isLate
@@ -271,10 +270,10 @@ export default function TimelineView({ initiatives, filteredInitiatives, filters
 
               {/* empty state rows */}
               {items.length === 0 && (
-                <div className="relative flex items-center justify-center text-xs text-gray-600" style={{ height: ROW_H * 3 }}>
+                <div className="relative flex items-center justify-center text-[12px] text-gray-600" style={{ height: ROW_H * 3 }}>
                   {todayInRange && (
                     <div
-                      className="pointer-events-none absolute inset-y-0 w-px bg-[#3DB7F4]/40"
+                      className="pointer-events-none absolute inset-y-0 w-px bg-[#3DB7F4]/30"
                       style={{ left: todayLineLeft }}
                     />
                   )}
@@ -283,7 +282,7 @@ export default function TimelineView({ initiatives, filteredInitiatives, filters
               )}
 
               {/* footer spacer to match legend height */}
-              <div className="border-t border-white/6" style={{ height: 72 }} />
+              <div className="border-t border-white/[0.04]" style={{ height: 72 }} />
             </div>
           </div>
         </div>

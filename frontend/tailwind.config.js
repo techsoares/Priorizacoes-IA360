@@ -20,10 +20,22 @@ export default {
           DEFAULT: 'rgb(var(--color-surface) / <alpha-value>)',
           card: 'rgb(var(--color-surface-card) / <alpha-value>)',
           hover: 'rgb(var(--color-surface-hover) / <alpha-value>)',
+          elevated: 'rgb(var(--color-surface-elevated) / <alpha-value>)',
         },
       },
       fontFamily: {
-        sans: ['Lato', 'Poppins', 'sans-serif'],
+        sans: ['"Inter"', '"Lato"', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', '"Fira Code"', 'monospace'],
+      },
+      borderRadius: {
+        '2xl': '1rem',
+        '3xl': '1.25rem',
+      },
+      boxShadow: {
+        'glow-sm': '0 0 20px rgba(53,89,235,0.06)',
+        'glow': '0 0 40px rgba(53,89,235,0.08)',
+        'glow-lg': '0 0 60px rgba(53,89,235,0.12)',
+        'card': '0 1px 3px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.04)',
       },
     },
   },

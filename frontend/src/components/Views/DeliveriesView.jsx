@@ -317,25 +317,25 @@ export default function DeliveriesView({ initiatives }) {
   )
 
   // KPIs
-  const totalEconomy = filtered.reduce((s, i) => s + (i.metrics?.total_gains || 0), 0)
-  const annualEconomy = totalEconomy * 12
-  const totalCosts = filtered.reduce((s, i) => s + (i.metrics?.total_costs || 0), 0)
   const totalHours = filtered.reduce((s, i) => s + getMonthlyTimeSavedHours(i), 0)
   const leadTimes = filtered.map(getLeadTimeDays).filter((v) => v != null)
   const avgLead = leadTimes.length > 0 ? leadTimes.reduce((s, v) => s + v, 0) / leadTimes.length : null
-  const totalInvestment = filtered.reduce((s, i) => s + (i.metrics?.total_costs || 0), 0)
+  const initialInvestment = filtered.reduce((s, i) => s + (i.metrics?.total_costs || 0), 0)
 
+  const withRoi = filtered.filter((i) => i.metrics?.roi_percent != null)
+  const avgRoi = withRoi.length > 0 ? withRoi.reduce((s, i) => s + i.metrics.roi_percent, 0) / withRoi.length : null
   const accumulatedNetGains = filtered.reduce((s, i) => {
     const monthsLive = i.metrics?.months_live || 0
     // metrics?.total_gains agora reflete o Ganho Líquido Mensal (Savings - OPEX)
     return s + (i.metrics?.total_gains || 0) * monthsLive
   }, 0)
 
-  const accumulatedRoi = totalInvestment > 0
-    ? ((accumulatedNetGains - totalInvestment) / totalInvestment) * 100
+  const accumulatedRoi = initialInvestment > 0
+    ? ((accumulatedNetGains - initialInvestment) / initialInvestment) * 100
     : null
 
-  // Charts data
+  const totalGainsMonthly = filtered.reduce((s, i) => s + (i.metrics?.total_gains || 0), 0)
+  const annualEconomy = totalGainsMonthly * 12
   const byCostCenter = Object.entries(groupBy(filtered, (i) => i.cost_center || 'Sem centro'))
     .map(([label, items]) => ({ label, value: items.length }))
     .sort((a, b) => b.value - a.value)
@@ -404,7 +404,7 @@ export default function DeliveriesView({ initiatives }) {
         <HeroKpi
           label="Economia anual projetada"
           value={fmtCompact(annualEconomy)}
-          sub={`${fmtCompact(totalEconomy)}/mês`}
+          sub={`${fmtCompact(totalGainsMonthly)}/mês`}
           color="#6BFFEB"
           icon="💰"
           tooltip="Projeção anual baseada na soma dos ganhos mensais de todas as entregas concluídas."
@@ -427,11 +427,11 @@ export default function DeliveriesView({ initiatives }) {
         />
         <HeroKpi
           label="Investimento total"
-          value={fmtCompact(totalCosts)}
+          value={fmtCompact(initialInvestment)}
           sub="custo acumulado das entregas"
           color="#FE70BD"
           icon="🏗️"
-          tooltip="Soma dos custos de desenvolvimento, terceiros, tokens e infraestrutura."
+          tooltip="Soma dos custos de desenvolvimento e terceiros (CAPEX)."
         />
         <HeroKpi
           label="ROI Acumulado"

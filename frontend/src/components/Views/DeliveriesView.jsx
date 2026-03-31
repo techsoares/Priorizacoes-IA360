@@ -323,16 +323,16 @@ export default function DeliveriesView({ initiatives }) {
   const totalHours = filtered.reduce((s, i) => s + getMonthlyTimeSavedHours(i), 0)
   const leadTimes = filtered.map(getLeadTimeDays).filter((v) => v != null)
   const avgLead = leadTimes.length > 0 ? leadTimes.reduce((s, v) => s + v, 0) / leadTimes.length : null
-  const withRoi = filtered.filter((i) => i.metrics?.roi_percent != null)
-  const avgRoi = withRoi.length > 0 ? withRoi.reduce((s, i) => s + i.metrics.roi_percent, 0) / withRoi.length : null
+  const totalInvestment = filtered.reduce((s, i) => s + (i.metrics?.total_costs || 0), 0)
 
-  const accumulatedGains = filtered.reduce((s, i) => {
+  const accumulatedNetGains = filtered.reduce((s, i) => {
     const monthsLive = i.metrics?.months_live || 0
+    // metrics?.total_gains agora reflete o Ganho Líquido Mensal (Savings - OPEX)
     return s + (i.metrics?.total_gains || 0) * monthsLive
   }, 0)
 
-  const accumulatedRoi = totalCosts > 0
-    ? ((accumulatedGains - totalCosts) / totalCosts) * 100
+  const accumulatedRoi = totalInvestment > 0
+    ? ((accumulatedNetGains - totalInvestment) / totalInvestment) * 100
     : null
 
   // Charts data

@@ -54,42 +54,51 @@ def calculate_metrics(data: dict) -> CalculatedMetrics:
     gain_productivity = productivity_increase * additional_task_value
     total_gains       = gain_hours + gain_headcount + gain_productivity
 
-    # --- Custos (investimento único) ---
-    development_estimate_hours = _to_float(data.get("development_estimate_seconds")) / 3600
-    tech_hour_cost             = _to_float(data.get("tech_hour_cost"))
-    third_party_hours          = _to_float(data.get("third_party_hours"))
-    third_party_hour_cost      = _to_float(data.get("third_party_hour_cost"))
-    token_cost                 = _to_float(data.get("token_cost"))
-    cloud_infra_cost           = _to_float(data.get("cloud_infra_cost"))
+    # --- Custos mensais operacionais (OPEX) ---
+    maintenance_hours     = _to_float(data.get("maintenance_hours"))
+    token_cost            = _to_float(data.get("token_cost"))
+    cloud_infra_cost      = _to_float(data.get("cloud_infra_cost"))
+    maintenance_cost_monthly = (maintenance_hours * tech_hour_cost) + token_cost + cloud_infra_cost
 
+    # --- Ganho mensal líquido ---
+    net_gains_monthly = total_gains - maintenance_cost_monthly
+
+    # --- Investimento Inicial (CAPEX) ---
+    development_estimate_hours = _to_float(data.get("development_estimate_seconds")) / 3600
     development_cost = development_estimate_hours * tech_hour_cost
+    third_party_hours     = _to_float(data.get("third_party_hours"))
+    third_party_hour_cost = _to_float(data.get("third_party_hour_cost"))
     third_party_cost = third_party_hours * third_party_hour_cost
-    total_costs      = development_cost + third_party_cost + token_cost + cloud_infra_cost
+    initial_investment = development_cost + third_party_cost
 
     # --- ROI da automação (mensal, para priorização) ---
     roi_percent = None
-    if total_costs > 0:
-        roi_percent = round(((total_gains - total_costs) / total_costs) * 100, 2)
+    if initial_investment > 0:
+        # Mede quanto da automação se paga a cada mês líquido operado
+        roi_percent = round((net_gains_monthly / initial_investment) * 100, 2)
 
     # --- ROI acumulado real (cresce desde a entrega) ---
     roi_accumulated = None
     resolution_date = data.get("resolution_date")
     months_live = _months_since(resolution_date)
-    if total_costs > 0 and months_live > 0:
-        accumulated_gains = total_gains * months_live
-        roi_accumulated = round(((accumulated_gains - total_costs) / total_costs) * 100, 2)
+    if initial_investment > 0 and months_live > 0:
+        total_net_gains_so_far = net_gains_monthly * months_live
+        roi_accumulated = round(((total_net_gains_so_far - initial_investment) / initial_investment) * 100, 2)
+    elif initial_investment > 0 and months_live == 0 and resolution_date:
+        # Se entregue hoje, o ROI é -100% (investimento feito, zero ganho acumulado ainda)
+        roi_accumulated = -100.0
 
     # --- Payback ---
     payback_months = None
-    if total_gains > 0:
-        payback_months = round(total_costs / total_gains, 2)
+    if net_gains_monthly > 0:
+        payback_months = round(initial_investment / net_gains_monthly, 2)
 
     return CalculatedMetrics(
-        total_gains=round(total_gains, 2),
-        total_costs=round(total_costs, 2),
+        total_gains=round(net_gains_monthly, 2),
+        total_costs=round(initial_investment, 2),
         roi_percent=roi_percent,
         roi_accumulated=roi_accumulated,
-        months_live=round(months_live, 1) if months_live > 0 else None,
+        months_live=round(months_live, 1) if months_live > 0 else (0.0 if resolution_date else None),
         total_hours_saved=round(total_hours_saved, 1),
         payback_months=payback_months,
     )

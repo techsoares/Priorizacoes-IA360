@@ -10,32 +10,33 @@ function calculateMetrics(data) {
   const totalGains = gainHours + gainHC + gainProd
 
   const developmentHours = (data.development_estimate_seconds || 0) / 3600
-  const costDevelopment = developmentHours * (data.tech_hour_cost || 0)
-  const costThirdParty = (data.third_party_hours || 0) * (data.third_party_hour_cost || 0)
-  const totalCosts = costDevelopment + costThirdParty + (data.token_cost || 0) + (data.cloud_infra_cost || 0)
+  const initialInvestment = developmentHours * (data.tech_hour_cost || 0) + (data.third_party_hours || 0) * (data.third_party_hour_cost || 0)
+  const monthlyMaintenance = (data.maintenance_hours || 0) * (data.tech_hour_cost || 0) + (data.token_cost || 0) + (data.cloud_infra_cost || 0)
+  const netMonthlyGain = totalGains - monthlyMaintenance
 
-  // ROI da automação: ganho de 1 mês vs investimento
-  const roiPercent = totalCosts > 0 ? ((totalGains - totalCosts) / totalCosts) * 100 : null
+  // ROI da automação (mensal): lucro líquido vs investimento
+  const roiPercent = initialInvestment > 0 ? (netMonthlyGain / initialInvestment) * 100 : null
 
-  // ROI acumulado real: meses desde a entrega
+  // ROI acumulado real: lucro líquido acumulado vs investimento
   let roiAccumulated = null
   let monthsLive = null
   if (data.resolution_date) {
     const diffMs = Date.now() - new Date(data.resolution_date).getTime()
     monthsLive = Math.max(0, diffMs / (1000 * 60 * 60 * 24 * 30.44))
-    if (totalCosts > 0 && monthsLive > 0) {
-      roiAccumulated = ((totalGains * monthsLive - totalCosts) / totalCosts) * 100
+    if (initialInvestment > 0) {
+      const accumulatedNetGain = netMonthlyGain * monthsLive
+      roiAccumulated = ((accumulatedNetGain - initialInvestment) / initialInvestment) * 100
     }
   }
 
-  const paybackMonths = totalGains > 0 ? totalCosts / totalGains : null
+  const paybackMonths = netMonthlyGain > 0 ? initialInvestment / netMonthlyGain : null
 
   return {
-    total_gains: Math.round(totalGains * 100) / 100,
-    total_costs: Math.round(totalCosts * 100) / 100,
+    total_gains: Math.round(netMonthlyGain * 100) / 100,
+    total_costs: Math.round(initialInvestment * 100) / 100,
     roi_percent: roiPercent != null ? Math.round(roiPercent * 100) / 100 : null,
     roi_accumulated: roiAccumulated != null ? Math.round(roiAccumulated * 100) / 100 : null,
-    months_live: monthsLive != null ? Math.round(monthsLive * 10) / 10 : null,
+    months_live: monthsLive != null ? Math.round(monthsLive * 10) / 10 : (data.resolution_date ? 0 : null),
     total_hours_saved: Math.round(totalHoursSaved * 10) / 10,
     payback_months: paybackMonths != null ? Math.round(paybackMonths * 100) / 100 : null,
   }

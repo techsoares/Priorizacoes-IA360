@@ -313,12 +313,17 @@ export default function DeliveriesView({ initiatives = [] }) {
     const withRoi = filtered.filter((i) => i.metrics?.roi_percent != null && !isNaN(i.metrics.roi_percent))
     const avgRoi = withRoi.length > 0 ? withRoi.reduce((s, i) => s + i.metrics.roi_percent, 0) / withRoi.length : null
 
-    const accumulatedNetGains = filtered.reduce((s, i) => {
+    // ROI Acumulado: só conta iniciativas com pelo menos 1 mês completo de operação
+    // para evitar -100% em entregas recentes que ainda não geraram ganhos acumulados
+    const matureInitiatives = filtered.filter((i) => (i.metrics?.months_live || 0) >= 1)
+    const matureInvestment = matureInitiatives.reduce((s, i) => s + (i.metrics?.total_costs || 0), 0)
+    const accumulatedNetGains = matureInitiatives.reduce((s, i) => {
       const monthsLive = Number(i.metrics?.months_live || 0)
-      return s + (Number(i.metrics?.total_gains || 0) * (isNaN(monthsLive) ? 0 : monthsLive))
+      return s + (Number(i.metrics?.total_gains || 0) * monthsLive)
     }, 0)
-
-    const accumulatedRoi = initialInvestment > 0 ? ((accumulatedNetGains - initialInvestment) / initialInvestment) * 100 : null
+    const accumulatedRoi = matureInvestment > 0
+      ? ((accumulatedNetGains - matureInvestment) / matureInvestment) * 100
+      : null
 
     // Domain Visual Data
     const byCostCenter = Object.entries(groupBy(filtered, (i) => i.cost_center || 'Sem centro'))
@@ -380,7 +385,7 @@ export default function DeliveriesView({ initiatives = [] }) {
 
         {/* Hero Scoreboard */}
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          <HeroKpi label="ROI ACUMULADO" value={accumulatedRoi != null ? `${accumulatedRoi.toFixed(0)}%` : '—'} sub="Realizado vs Investido" color="#3DB7F4" icon="🚀" highlight tooltip="ROI real gerado desde a entrega de cada iniciativa." />
+          <HeroKpi label="ROI ACUMULADO" value={accumulatedRoi != null ? `${accumulatedRoi.toFixed(0)}%` : '—'} sub={matureInitiatives.length > 0 ? `${matureInitiatives.length} entrega${matureInitiatives.length > 1 ? 's' : ''} ≥ 1 mês` : 'Aguardando maturidade'} color="#3DB7F4" icon="🚀" highlight tooltip="ROI real acumulado desde a entrega. Considera apenas iniciativas com pelo menos 1 mês completo de operação." />
           <HeroKpi label="ECONOMIA ANUAL" value={fmtCompact(annualEconomy)} sub={`${fmtCompact(totalGainsMonthly)}/mês`} color="#6BFFEB" icon="💰" tooltip="Projeção anual baseada nos ganhos mensais atuais." />
           <HeroKpi label="ROI MÉDIO" value={avgRoi != null ? `${avgRoi.toFixed(0)}%` : '—'} sub="Média por Iniciativa" color="#40EB4F" icon="📊" />
           <HeroKpi label="HORAS DEVOLVIDAS" value={formatHours(totalHours)} sub="Mensalmente" color="#3DB7F4" icon="⚡" />

@@ -88,7 +88,13 @@ export default function SortableRow({ initiative, index, columns, onUpdateField,
       const metrics = initiative.metrics || {}
       let value = null
 
-      if (column.key === 'hours_saved') value = metrics.total_hours_saved
+      if (column.key === 'hours_saved') {
+        value = metrics.total_hours_saved ?? (
+          (initiative.time_saved_per_day || 0) *
+          (initiative.execution_days_per_month || 0) *
+          (initiative.affected_people_count || 0)
+        )
+      }
       if (column.key === 'total_gains') value = metrics.total_gains
       if (column.key === 'total_costs') value = metrics.total_costs
       if (column.key === 'roi_percent') value = metrics.roi_percent

@@ -63,7 +63,7 @@ export default function useInitiatives() {
     try {
       setLoading(true)
       const { data } = await api.get('/api/initiatives/')
-      setInitiatives(data)
+      setInitiatives(data.map(i => ({ ...i, metrics: calculateMetrics(i) })))
       setError(null)
     } catch (err) {
       errorTimerRef(err.message || 'Erro ao carregar iniciativas.')
@@ -80,7 +80,7 @@ export default function useInitiatives() {
     try {
       setSyncing(true)
       const { data } = await api.post('/api/initiatives/sync-jira')
-      setInitiatives(data)
+      setInitiatives(data.map(i => ({ ...i, metrics: calculateMetrics(i) })))
       setError(null)
     } catch (err) {
       errorTimerRef(err.message || 'Erro ao sincronizar com Jira.')

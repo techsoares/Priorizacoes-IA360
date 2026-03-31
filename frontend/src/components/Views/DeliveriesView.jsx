@@ -313,11 +313,11 @@ export default function DeliveriesView({ initiatives = [] }) {
     const withRoi = filtered.filter((i) => i.metrics?.roi_percent != null && !isNaN(i.metrics.roi_percent))
     const avgRoi = withRoi.length > 0 ? withRoi.reduce((s, i) => s + i.metrics.roi_percent, 0) / withRoi.length : null
 
-    // ROI Acumulado: só conta iniciativas com pelo menos 1 mês completo de operação
-    // para evitar -100% em entregas recentes que ainda não geraram ganhos acumulados
-    const matureInitiatives = filtered.filter((i) => (i.metrics?.months_live || 0) >= 1)
-    const matureInvestment = matureInitiatives.reduce((s, i) => s + (i.metrics?.total_costs || 0), 0)
-    const accumulatedNetGains = matureInitiatives.reduce((s, i) => {
+    // ROI Acumulado: usa months_live exato (em dias/30.44) desde a resolution_date do Jira
+    // Inclui todas as iniciativas com resolution_date preenchida (months_live > 0)
+    const withResolutionDate = filtered.filter((i) => (i.metrics?.months_live ?? null) !== null && (i.metrics?.months_live || 0) > 0)
+    const matureInvestment = withResolutionDate.reduce((s, i) => s + (i.metrics?.total_costs || 0), 0)
+    const accumulatedNetGains = withResolutionDate.reduce((s, i) => {
       const monthsLive = Number(i.metrics?.months_live || 0)
       return s + (Number(i.metrics?.total_gains || 0) * monthsLive)
     }, 0)
@@ -385,7 +385,13 @@ export default function DeliveriesView({ initiatives = [] }) {
 
         {/* Hero Scoreboard */}
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          <HeroKpi label="ROI ACUMULADO" value={accumulatedRoi != null ? `${accumulatedRoi.toFixed(0)}%` : '—'} sub={matureInitiatives.length > 0 ? `${matureInitiatives.length} entrega${matureInitiatives.length > 1 ? 's' : ''} ≥ 1 mês` : 'Aguardando maturidade'} color="#3DB7F4" icon="🚀" highlight tooltip="ROI real acumulado desde a entrega. Considera apenas iniciativas com pelo menos 1 mês completo de operação." />
+          <HeroKpi
+            label="ROI ACUMULADO"
+            value={accumulatedRoi != null ? `${accumulatedRoi.toFixed(0)}%` : '—'}
+            sub={withResolutionDate.length > 0 ? `${withResolutionDate.length} entrega${withResolutionDate.length > 1 ? 's' : ''} em produção` : 'Sem entregas concluídas'}
+            color="#3DB7F4" icon="🚀" highlight
+            tooltip="ROI real gerado desde a data de conclusão no Jira (resolution_date). Acumula a cada mês de operação."
+          />
           <HeroKpi label="ECONOMIA ANUAL" value={fmtCompact(annualEconomy)} sub={`${fmtCompact(totalGainsMonthly)}/mês`} color="#6BFFEB" icon="💰" tooltip="Projeção anual baseada nos ganhos mensais atuais." />
           <HeroKpi label="ROI MÉDIO" value={avgRoi != null ? `${avgRoi.toFixed(0)}%` : '—'} sub="Média por Iniciativa" color="#40EB4F" icon="📊" />
           <HeroKpi label="HORAS DEVOLVIDAS" value={formatHours(totalHours)} sub="Mensalmente" color="#3DB7F4" icon="⚡" />

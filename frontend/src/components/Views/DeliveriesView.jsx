@@ -313,9 +313,9 @@ export default function DeliveriesView({ initiatives = [] }) {
     const withRoi = filtered.filter((i) => i.metrics?.roi_percent != null && !isNaN(i.metrics.roi_percent))
     const avgRoi = withRoi.length > 0 ? withRoi.reduce((s, i) => s + i.metrics.roi_percent, 0) / withRoi.length : null
 
-    // ROI Acumulado: usa months_live exato (em dias/30.44) desde a resolution_date do Jira
-    // Inclui todas as iniciativas com resolution_date preenchida (months_live > 0)
-    const withResolutionDate = filtered.filter((i) => (i.metrics?.months_live ?? null) !== null && (i.metrics?.months_live || 0) > 0)
+    // ROI Acumulado: usa months_live exato (em dias/30.44) desde a data de conclusão
+    // Inclui todas as entregas com data de conclusão (resolution_date ou status_updated_at)
+    const withResolutionDate = filtered.filter((i) => i.metrics?.months_live != null)
     const matureInvestment = withResolutionDate.reduce((s, i) => s + (i.metrics?.total_costs || 0), 0)
     const accumulatedNetGains = withResolutionDate.reduce((s, i) => {
       const monthsLive = Number(i.metrics?.months_live || 0)

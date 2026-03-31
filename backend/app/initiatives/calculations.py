@@ -80,11 +80,13 @@ def calculate_metrics(data: dict) -> CalculatedMetrics:
     # --- ROI acumulado real (cresce desde a entrega) ---
     roi_accumulated = None
     resolution_date = data.get("resolution_date")
-    months_live = _months_since(resolution_date)
+    # Fallback: usa status_updated_at (data em que moveu para "Concluído") quando resolution_date é nulo
+    completion_date = resolution_date or data.get("status_updated_at")
+    months_live = _months_since(completion_date)
     if initial_investment > 0 and months_live > 0:
         total_net_gains_so_far = net_gains_monthly * months_live
         roi_accumulated = round(((total_net_gains_so_far - initial_investment) / initial_investment) * 100, 2)
-    elif initial_investment > 0 and months_live == 0 and resolution_date:
+    elif initial_investment > 0 and months_live == 0 and completion_date:
         # Se entregue hoje, o ROI é -100% (investimento feito, zero ganho acumulado ainda)
         roi_accumulated = -100.0
 
@@ -98,7 +100,7 @@ def calculate_metrics(data: dict) -> CalculatedMetrics:
         total_costs=round(initial_investment, 2),
         roi_percent=roi_percent,
         roi_accumulated=roi_accumulated,
-        months_live=round(months_live, 1) if months_live > 0 else (0.0 if resolution_date else None),
+        months_live=round(months_live, 1) if months_live > 0 else (0.0 if completion_date else None),
         total_hours_saved=round(total_hours_saved, 1),
         payback_months=payback_months,
     )

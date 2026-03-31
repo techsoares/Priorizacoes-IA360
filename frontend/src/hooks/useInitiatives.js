@@ -17,11 +17,13 @@ function calculateMetrics(data) {
   // ROI da automação (mensal): lucro líquido vs investimento
   const roiPercent = initialInvestment > 0 ? (netMonthlyGain / initialInvestment) * 100 : null
 
-  // ROI acumulado real: lucro líquido acumulado vs investimento
+  // ROI acumulado real: usa resolution_date do Jira; se nulo, usa status_updated_at como fallback
+  // (status_updated_at registra quando o ticket foi movido para o status atual, ex: "Concluído")
   let roiAccumulated = null
   let monthsLive = null
-  if (data.resolution_date) {
-    const diffMs = Date.now() - new Date(data.resolution_date).getTime()
+  const completionDate = data.resolution_date || data.status_updated_at
+  if (completionDate) {
+    const diffMs = Date.now() - new Date(completionDate).getTime()
     monthsLive = Math.max(0, diffMs / (1000 * 60 * 60 * 24 * 30.44))
     if (initialInvestment > 0) {
       const accumulatedNetGain = netMonthlyGain * monthsLive
@@ -36,7 +38,7 @@ function calculateMetrics(data) {
     total_costs: Math.round(initialInvestment * 100) / 100,
     roi_percent: roiPercent != null ? Math.round(roiPercent * 100) / 100 : null,
     roi_accumulated: roiAccumulated != null ? Math.round(roiAccumulated * 100) / 100 : null,
-    months_live: monthsLive != null ? Math.round(monthsLive * 10) / 10 : (data.resolution_date ? 0 : null),
+    months_live: monthsLive != null ? Math.round(monthsLive * 10) / 10 : (completionDate ? 0 : null),
     total_hours_saved: Math.round(totalHoursSaved * 10) / 10,
     payback_months: paybackMonths != null ? Math.round(paybackMonths * 100) / 100 : null,
   }

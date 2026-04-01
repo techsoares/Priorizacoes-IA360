@@ -99,7 +99,7 @@ export default function InitiativeTable({ initiatives, onReorder, onUpdateField,
     if (!over || active.id === over.id) return
     const oldIndex = initiatives.findIndex((i) => i.id === active.id)
     const newIndex = initiatives.findIndex((i) => i.id === over.id)
-    onReorder(arrayMove(initiatives, oldIndex, newIndex))
+    onReorder(arrayMove(initiatives, oldIndex, newIndex), active.id)
   }
 
   const displayedInitiatives = useMemo(() => {

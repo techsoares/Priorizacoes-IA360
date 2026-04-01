@@ -37,17 +37,17 @@ export async function updateInitiative(id, payload) {
   return enrich(data)
 }
 
-export async function reorderInitiatives(orderedIds, updatedBy) {
+export async function reorderInitiatives(orderedIds, updatedBy, dragged) {
   const now = new Date().toISOString()
   for (let i = 0; i < orderedIds.length; i++) {
-    const { error } = await supabase
-      .from('initiatives')
-      .update({
-        priority_order: i + 1,
-        priority_updated_by: updatedBy || null,
-        priority_updated_at: now,
-      })
-      .eq('id', orderedIds[i])
+    const id = orderedIds[i]
+    const update = { priority_order: i + 1 }
+    if (dragged && id === dragged.id) {
+      update.priority_previous_order = dragged.prevOrder ?? null
+      update.priority_updated_by = updatedBy || null
+      update.priority_updated_at = now
+    }
+    const { error } = await supabase.from('initiatives').update(update).eq('id', id)
     if (error) throw new Error(error.message)
   }
   return { message: 'Ordem atualizada com sucesso.', count: orderedIds.length }
@@ -99,7 +99,7 @@ const api = {
   },
   patch: async (url, payload) => {
     if (url.includes('reorder')) {
-      return { data: await reorderInitiatives(payload.ordered_ids, payload.updated_by) }
+      return { data: await reorderInitiatives(payload.ordered_ids, payload.updated_by, payload.dragged) }
     }
     throw new Error(`PATCH ${url} não suportado`)
   },

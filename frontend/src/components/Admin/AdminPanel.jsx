@@ -138,42 +138,48 @@ export default function AdminPanel({ onClose }) {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left text-[10px] uppercase tracking-widest text-gray-600">
-                        <th className="pb-2 pr-3">#</th>
-                        <th className="pb-2 pr-3">Jira</th>
-                        <th className="pb-2 pr-3">Iniciativa</th>
-                        <th className="pb-2 pr-3">Priorizado por</th>
-                        <th className="pb-2 pr-3">Data</th>
+                        <th className="pb-2 pr-4">Movimentação</th>
+                        <th className="pb-2 pr-4">Por</th>
+                        <th className="pb-2 pr-4">Data</th>
                         <th className="pb-2" />
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/[0.04]">
-                      {priorityLogs.map((log) => (
-                        <tr key={log.id}>
-                          <td className="py-2.5 pr-3 font-mono text-[11px] text-gray-600">{log.priority_order}</td>
-                          <td className="py-2.5 pr-3 font-mono text-[11px] text-[#3DB7F4]/80">{log.jira_key}</td>
-                          <td className="max-w-[180px] truncate py-2.5 pr-3 text-[12px] text-gray-300" title={log.summary}>
-                            {log.summary}
-                          </td>
-                          <td className="py-2.5 pr-3 text-[12px] text-gray-400">{log.priority_updated_by}</td>
-                          <td className="py-2.5 pr-3 text-[11px] text-gray-600">
-                            {log.priority_updated_at
-                              ? new Date(log.priority_updated_at).toLocaleDateString('pt-BR')
-                              : '—'}
-                          </td>
-                          <td className="py-2.5">
-                            <button
-                              type="button"
-                              onClick={() => clearPriorityLog(log.id)}
-                              title="Excluir registro"
-                              className="text-gray-700 transition-colors hover:text-[#FE70BD]"
-                            >
-                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                      {priorityLogs.map((log) => {
+                        const from = log.priority_previous_order
+                        const to = log.priority_order
+                        const movement = from != null
+                          ? `Jira ${log.jira_key} movido da posição ${from} para posição ${to}`
+                          : `Jira ${log.jira_key} posicionado em #${to}`
+                        return (
+                          <tr key={log.id}>
+                            <td className="py-2.5 pr-4">
+                              <span className="text-[13px] text-gray-200">{movement}</span>
+                              <span className="ml-2 max-w-[220px] truncate text-[11px] text-gray-600" title={log.summary}>
+                                {log.summary}
+                              </span>
+                            </td>
+                            <td className="py-2.5 pr-4 text-[12px] text-gray-400">{log.priority_updated_by}</td>
+                            <td className="py-2.5 pr-4 text-[11px] text-gray-600">
+                              {log.priority_updated_at
+                                ? new Date(log.priority_updated_at).toLocaleDateString('pt-BR')
+                                : '—'}
+                            </td>
+                            <td className="py-2.5">
+                              <button
+                                type="button"
+                                onClick={() => clearPriorityLog(log.id)}
+                                title="Excluir registro"
+                                className="text-gray-700 transition-colors hover:text-[#FE70BD]"
+                              >
+                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </td>
+                          </tr>
+                        )
+                      })}
                     </tbody>
                   </table>
                   {priorityLogs.length === 0 && (

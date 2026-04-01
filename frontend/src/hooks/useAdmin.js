@@ -14,7 +14,7 @@ export default function useAdmin() {
       supabase.from('admins').select('*').order('created_at'),
       supabase
         .from('initiatives')
-        .select('id, jira_key, summary, priority_order, priority_updated_by, priority_updated_at')
+        .select('id, jira_key, summary, priority_order, priority_previous_order, priority_updated_by, priority_updated_at')
         .not('priority_updated_by', 'is', null)
         .order('priority_updated_at', { ascending: false }),
     ])

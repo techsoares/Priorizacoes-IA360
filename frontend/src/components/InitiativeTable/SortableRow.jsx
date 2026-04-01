@@ -70,8 +70,11 @@ export default function SortableRow({ initiative, index, columns, onUpdateField,
       const auditDate = initiative.priority_updated_at
         ? new Date(initiative.priority_updated_at).toLocaleDateString('pt-BR')
         : null
+      const from = initiative.priority_previous_order
+      const to = initiative.priority_order
+      const movement = from != null ? `Movido da posição ${from} → ${to}` : null
       const auditTooltip = initiative.priority_updated_by && auditDate
-        ? `Priorizado por ${initiative.priority_updated_by} em ${auditDate}`
+        ? `${movement ? movement + '\n' : ''}Por ${initiative.priority_updated_by} em ${auditDate}`
         : null
       return (
         <span className="flex cursor-grab items-center gap-1.5 text-gray-500 active:cursor-grabbing" {...listeners}>

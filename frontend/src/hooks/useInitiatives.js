@@ -93,23 +93,31 @@ export default function useInitiatives() {
     }
   }
 
-  async function reorder(reorderedList) {
+  async function reorder(reorderedList, draggedId) {
     const { data: { session } } = await supabase.auth.getSession()
     const updatedBy = session?.user?.user_metadata?.full_name || session?.user?.email || null
 
     const now = new Date().toISOString()
-    const updated = reorderedList.map((item, index) => ({
-      ...item,
-      priority_order: index + 1,
-      priority_updated_by: updatedBy,
-      priority_updated_at: now,
-    }))
+    const draggedItem = draggedId ? initiatives.find((i) => i.id === draggedId) : null
+    const prevOrder = draggedItem?.priority_order ?? null
+
+    const updated = reorderedList.map((item, index) => {
+      const isDragged = item.id === draggedId
+      return {
+        ...item,
+        priority_order: index + 1,
+        priority_previous_order: isDragged ? prevOrder : item.priority_previous_order,
+        priority_updated_by: isDragged ? updatedBy : item.priority_updated_by,
+        priority_updated_at: isDragged ? now : item.priority_updated_at,
+      }
+    })
     setInitiatives(updated)
 
     try {
       await api.patch('/api/initiatives/reorder', {
         ordered_ids: updated.map((item) => item.id),
         updated_by: updatedBy,
+        dragged: draggedId ? { id: draggedId, prevOrder } : null,
       })
     } catch (err) {
       errorTimerRef('Erro ao salvar nova ordem.')

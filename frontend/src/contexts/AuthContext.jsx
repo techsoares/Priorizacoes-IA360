@@ -7,6 +7,7 @@ const ALLOWED_DOMAIN = 'pgmais.com.br'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -25,6 +26,7 @@ export function AuthProvider({ children }) {
           validateAndSetUser(session.user)
         } else {
           setUser(null)
+          setIsAdmin(false)
         }
       }
     )
@@ -32,7 +34,7 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  function validateAndSetUser(supabaseUser) {
+  async function validateAndSetUser(supabaseUser) {
     const email = supabaseUser.email || ''
     const domain = email.split('@')[1]?.toLowerCase()
 
@@ -40,10 +42,23 @@ export function AuthProvider({ children }) {
       // Email fora do domínio: faz logout imediato
       supabase.auth.signOut()
       setUser(null)
+      setIsAdmin(false)
       return
     }
 
     setUser(supabaseUser)
+
+    // Registra/atualiza perfil do usuário
+    await supabase.from('profiles').upsert({
+      email,
+      full_name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || null,
+      avatar_url: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture || null,
+      last_seen_at: new Date().toISOString(),
+    }, { onConflict: 'email' })
+
+    // Verifica se é administrador
+    const { data } = await supabase.from('admins').select('email').eq('email', email).maybeSingle()
+    setIsAdmin(!!data)
   }
 
   async function signInWithGoogle() {
@@ -62,10 +77,11 @@ export function AuthProvider({ children }) {
   async function signOut() {
     await supabase.auth.signOut()
     setUser(null)
+    setIsAdmin(false)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, isAdmin, loading, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   )

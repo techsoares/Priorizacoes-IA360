@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import api from '../services/api'
+import { supabase } from '../services/supabase'
 
 function calculateMetrics(data) {
   const hoursPerPerson = (data.time_saved_per_day || 0) * (data.execution_days_per_month || 0)
@@ -93,15 +94,22 @@ export default function useInitiatives() {
   }
 
   async function reorder(reorderedList) {
+    const { data: { session } } = await supabase.auth.getSession()
+    const updatedBy = session?.user?.user_metadata?.full_name || session?.user?.email || null
+
+    const now = new Date().toISOString()
     const updated = reorderedList.map((item, index) => ({
       ...item,
       priority_order: index + 1,
+      priority_updated_by: updatedBy,
+      priority_updated_at: now,
     }))
     setInitiatives(updated)
 
     try {
       await api.patch('/api/initiatives/reorder', {
         ordered_ids: updated.map((item) => item.id),
+        updated_by: updatedBy,
       })
     } catch (err) {
       errorTimerRef('Erro ao salvar nova ordem.')

@@ -5,6 +5,7 @@ import { formatHours, getDevelopmentEstimateHours } from '../../utils/initiative
 import EditableCell from './EditableCell'
 import StatusBadge from './StatusBadge'
 import InitiativeTooltip from '../UI/InitiativeTooltip'
+import Tooltip from '../UI/Tooltip'
 
 function IntangibleTooltipCell({ value, intangible }) {
   const [pos, setPos] = useState(null)
@@ -66,12 +67,19 @@ export default function SortableRow({ initiative, index, columns, onUpdateField,
 
   function renderCell(column) {
     if (column.key === 'priority_order') {
+      const auditDate = initiative.priority_updated_at
+        ? new Date(initiative.priority_updated_at).toLocaleDateString('pt-BR')
+        : null
+      const auditTooltip = initiative.priority_updated_by && auditDate
+        ? `Priorizado por ${initiative.priority_updated_by} em ${auditDate}`
+        : null
       return (
         <span className="flex cursor-grab items-center gap-1.5 text-gray-500 active:cursor-grabbing" {...listeners}>
           <svg className="h-3 w-3 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
           </svg>
           <span className="font-mono text-[11px] text-gray-600 dark:text-gray-500">{index + 1}</span>
+          <Tooltip content={auditTooltip} />
         </span>
       )
     }

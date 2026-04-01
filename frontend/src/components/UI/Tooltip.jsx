@@ -11,9 +11,16 @@ export default function Tooltip({ content }) {
     const rect = triggerRef.current.getBoundingClientRect()
     const spaceBelow = window.innerHeight - rect.bottom
     const placement = spaceBelow < 80 ? 'top' : 'bottom'
+    const tooltipHalfWidth = 110 // metade do max-w-[220px]
+    const margin = 8
+    const centerLeft = rect.left + rect.width / 2
+    const clampedLeft = Math.min(
+      window.innerWidth - tooltipHalfWidth - margin,
+      Math.max(tooltipHalfWidth + margin, centerLeft)
+    )
     setCoords({
       top: placement === 'bottom' ? rect.bottom + 6 : rect.top - 6,
-      left: rect.left + rect.width / 2,
+      left: clampedLeft,
       placement,
     })
   }

@@ -11,6 +11,7 @@ import {
   getTimeVarianceColor,
   groupBy,
   isCompleted,
+  getResolutionDate,
 } from '../../utils/initiativeInsights'
 
 // ── Color utility for dark/light mode support ──────────────────────────────
@@ -219,6 +220,44 @@ function EconomyVsCost({ items }) {
 
 // ── Analytics Charts (Simple CSS-based) ───────────────────────────────────────
 function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, totalGainsMonthly }) {
+  // Prepare monthly data for new temporal charts
+  const monthlyData = useMemo(() => {
+    const now = new Date()
+    const currentYear = now.getFullYear()
+
+    // Initialize 12 months
+    const months = Array(12).fill(null).map((_, i) => ({
+      month: i,
+      monthName: new Date(currentYear, i, 1).toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase(),
+      roiAccumulated: 0,
+      opex: 0,
+      deliveryCount: 0,
+    }))
+
+    // Aggregate data by resolution month
+    items.forEach(item => {
+      if (isCompleted(item)) {
+        const resDate = getResolutionDate(item)
+        if (resDate) {
+          const monthIndex = resDate.getMonth()
+          months[monthIndex].opex += item.metrics?.monthly_gains || item.metrics?.gain || 0
+          months[monthIndex].deliveryCount += 1
+        }
+      }
+    })
+
+    // Calculate cumulative ROI
+    let accumulated = 0
+    const totalAnnualOpex = months.reduce((sum, m) => sum + m.opex, 0)
+    months.forEach(m => {
+      const monthlyROI = totalAnnualOpex > 0 ? (m.opex / totalAnnualOpex) * 100 : 0
+      accumulated += monthlyROI
+      m.roiAccumulated = accumulated
+    })
+
+    return months
+  }, [items])
+
   // Chart 1: ROI Estimado vs Real (scatter-like comparison)
   const roiComparison = items
     .filter(i => i.metrics?.roi_percent != null)

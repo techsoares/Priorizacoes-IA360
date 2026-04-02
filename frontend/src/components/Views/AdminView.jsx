@@ -25,8 +25,8 @@ const ADMIN_COLUMNS = [
   { key: 'cloud_infra_cost', label: 'Custo Infra', tooltip: 'Custo de infraestrutura (cloud, n8n, etc) — parte de CAPEX.', editable: true },
   { key: 'third_party_hours', label: 'Horas Terceiros', tooltip: 'Horas alocadas de terceiros (parte de CAPEX).', editable: true },
   { key: 'third_party_hour_cost', label: 'R$/h Terceiros', tooltip: 'Custo por hora de terceiros (parte de CAPEX).', editable: true },
-  { key: 'total_gains', label: 'Ganhos OPEX/mês', tooltip: 'OPEX mensal: Economia operacional mensais gerados pela automação (R$/mês).', computed: true },
-  { key: 'total_costs', label: 'CAPEX (Investimento)', tooltip: 'CAPEX: Custo total de desenvolvimento one-time. Cálculo: (horas_dev × R$/h_dev) + (horas_terceiros × R$/h_terceiros) + custo_infra.', computed: true },
+  { key: 'total_gains', label: 'OPEX Líquido/mês', tooltip: 'OPEX mensal líquido: Economia operacional gerada pela automação, já descontados custos de manutenção, tokens e infraestrutura (R$/mês).', computed: true },
+  { key: 'total_costs', label: 'CAPEX (Investimento)', tooltip: 'CAPEX: Custo total de desenvolvimento one-time. Cálculo: (horas_dev × R$/h_dev) + (horas_terceiros × R$/h_terceiros). Nota: token_cost e cloud_infra_cost descontam do OPEX mensal, não do CAPEX.', computed: true },
   { key: 'intangible_gains', label: 'Ganhos Intangíveis', tooltip: 'Ganhos qualitativos que não entram no cálculo financeiro, como redução de erros, satisfação da equipe, conformidade, etc.', editable: true, text: true },
 ]
 

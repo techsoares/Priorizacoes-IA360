@@ -440,8 +440,19 @@ export default function DeliveriesView({ initiatives = [] }) {
 
     // ROI Acumulado: usa months_live exato (em dias/30.44) desde a data de conclusão
     // Inclui todas as entregas com data de conclusão (resolution_date ou status_updated_at)
+    // Usa CAPEX real quando time_spent_hours > 0, senão usa CAPEX estimado
     const withResolutionDate = filtered.filter((i) => i.metrics?.months_live != null)
-    const matureInvestment = withResolutionDate.reduce((s, i) => s + (i.metrics?.total_costs || 0), 0)
+    const matureInvestment = withResolutionDate.reduce((s, i) => {
+      const hasRealTime = (i.metrics?.time_spent_hours || 0) > 0
+      // Se tem tempo real gasto, usa CAPEX real (dev_real + third_party)
+      if (hasRealTime) {
+        const techHourCost = i.tech_hour_cost || 0
+        const capexReal = (i.metrics?.time_spent_hours || 0) * techHourCost + (i.metrics?.capex_third_party_cost || 0)
+        return s + capexReal
+      }
+      // Senão usa CAPEX estimado
+      return s + (i.metrics?.total_costs || 0)
+    }, 0)
     const accumulatedNetGains = withResolutionDate.reduce((s, i) => {
       const monthsLive = Number(i.metrics?.months_live || 0)
       return s + (Number(i.metrics?.total_gains || 0) * monthsLive)
@@ -539,8 +550,22 @@ export default function DeliveriesView({ initiatives = [] }) {
             icon="💰"
             tooltip="OPEX (Operational Expenditure): Economia operacional MENSAL gerada pela automação. Cálculo: (horas_economizadas_mês × custo_hora_pessoa_afetada) + ganhos_headcount + ganhos_produtividade. Ex: Se a automação economiza 160h/mês a R$ 60/h = R$ 9.600 OPEX mensal."
           />
-          <HeroKpi label="ROI MÉDIO" value={avgRoi != null ? `${avgRoi.toFixed(0)}%` : '—'} sub="Média por Iniciativa" color="#40EB4F" icon="📊" />
-          <HeroKpi label="HORAS DEVOLVIDAS" value={formatHours(totalHours)} sub="Mensalmente" color="#3DB7F4" icon="⚡" />
+          <HeroKpi
+            label="ROI MÉDIO"
+            value={avgRoi != null ? `${avgRoi.toFixed(0)}%` : '—'}
+            sub="Média por Iniciativa"
+            color="#40EB4F"
+            icon="📊"
+            tooltip="Média do ROI estimado de todas as iniciativas entregues. Quanto maior, mais eficiente foi o investimento geral."
+          />
+          <HeroKpi
+            label="HORAS DEVOLVIDAS"
+            value={formatHours(totalHours)}
+            sub="Mensalmente"
+            color="#3DB7F4"
+            icon="⚡"
+            tooltip="Soma total das horas economizadas mensalmente em todas as iniciativas. Cálculo por iniciativa: (horas_salvas_dia × dias_execução × pessoas_afetadas)."
+          />
           <HeroKpi
             label="INVESTIMENTO"
             value={fmtCompact(initialInvestment)}
@@ -549,7 +574,14 @@ export default function DeliveriesView({ initiatives = [] }) {
             icon="🏗️"
             tooltip="CAPEX (Capital Expenditure): Investimento ONE-TIME em desenvolvimento. Cálculo: (horas_estimadas_dev × CUSTO/HORA_DEV) + (horas_terceiros × custo_hora_terceiros) + custos_infra. NÃO é salário de pessoas — é custo da hora técnica de desenvolvimento."
           />
-          <HeroKpi label="LEAD TIME" value={formatDays(avgLead)} sub="Ciclo Médio" color="#F2F24B" icon="🏁" />
+          <HeroKpi
+            label="LEAD TIME"
+            value={formatDays(avgLead)}
+            sub="Ciclo Médio"
+            color="#F2F24B"
+            icon="🏁"
+            tooltip="Tempo médio entre a criação e a conclusão dos tickets no Jira (em dias corridos). Menor lead time = entrega mais rápida."
+          />
         </div>
 
         {/* Analytics Section */}

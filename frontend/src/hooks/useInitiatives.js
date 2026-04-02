@@ -10,16 +10,36 @@ function calculateMetrics(data) {
   const gainProd = (data.productivity_increase || 0) * (data.additional_task_value || 0)
   const totalGains = gainHours + gainHC + gainProd
 
-  const developmentHours = (data.development_estimate_seconds || 0) / 3600
-  const initialInvestment = developmentHours * (data.tech_hour_cost || 0) + (data.third_party_hours || 0) * (data.third_party_hour_cost || 0)
-  const monthlyMaintenance = (data.maintenance_hours || 0) * (data.tech_hour_cost || 0) + (data.token_cost || 0) + (data.cloud_infra_cost || 0)
+  const developmentEstimateHours = (data.development_estimate_seconds || 0) / 3600
+  const timeSpentHours = (data.time_spent_seconds || 0) / 3600
+
+  const techHourCost = data.tech_hour_cost || 0
+  const capexDev = developmentEstimateHours * techHourCost
+  const capexThirdParty = (data.third_party_hours || 0) * (data.third_party_hour_cost || 0)
+  const initialInvestment = capexDev + capexThirdParty
+
+  const monthlyMaintenance = (data.maintenance_hours || 0) * techHourCost + (data.token_cost || 0) + (data.cloud_infra_cost || 0)
   const netMonthlyGain = totalGains - monthlyMaintenance
 
-  // ROI da automação (mensal): lucro líquido vs investimento
+  // ROI Estimado: baseado em horas estimadas
   const roiPercent = initialInvestment > 0 ? (netMonthlyGain / initialInvestment) * 100 : null
 
-  // ROI acumulado real: usa resolution_date do Jira; se nulo, usa status_updated_at como fallback
-  // (status_updated_at registra quando o ticket foi movido para o status atual, ex: "Concluído")
+  // ROI Real: baseado em horas realmente gastas
+  let roiPercentReal = null
+  if (timeSpentHours > 0 && developmentEstimateHours > 0) {
+    const capexReal = (timeSpentHours * techHourCost) + capexThirdParty
+    if (capexReal > 0) {
+      roiPercentReal = (netMonthlyGain / capexReal) * 100
+    }
+  }
+
+  // Variância de tempo
+  let timeVariancePercent = null
+  if (developmentEstimateHours > 0 && timeSpentHours > 0) {
+    timeVariancePercent = ((timeSpentHours - developmentEstimateHours) / developmentEstimateHours) * 100
+  }
+
+  // ROI acumulado real
   let roiAccumulated = null
   let monthsLive = null
   const completionDate = data.resolution_date || data.status_updated_at
@@ -38,10 +58,20 @@ function calculateMetrics(data) {
     total_gains: Math.round(netMonthlyGain * 100) / 100,
     total_costs: Math.round(initialInvestment * 100) / 100,
     roi_percent: roiPercent != null ? Math.round(roiPercent * 100) / 100 : null,
+    roi_percent_real: roiPercentReal != null ? Math.round(roiPercentReal * 100) / 100 : null,
     roi_accumulated: roiAccumulated != null ? Math.round(roiAccumulated * 100) / 100 : null,
     months_live: monthsLive != null ? Math.round(monthsLive * 10) / 10 : (completionDate ? 0 : null),
     total_hours_saved: Math.round(totalHoursSaved * 10) / 10,
     payback_months: paybackMonths != null ? Math.round(paybackMonths * 100) / 100 : null,
+
+    // Novos campos: Tempo de Desenvolvimento
+    development_estimate_hours: Math.round(developmentEstimateHours * 100) / 100,
+    time_spent_hours: Math.round(timeSpentHours * 100) / 100,
+    time_variance_percent: timeVariancePercent != null ? Math.round(timeVariancePercent * 10) / 10 : null,
+
+    // CAPEX Breakdown
+    capex_development_cost: Math.round(capexDev * 100) / 100,
+    capex_third_party_cost: Math.round(capexThirdParty * 100) / 100,
   }
 }
 

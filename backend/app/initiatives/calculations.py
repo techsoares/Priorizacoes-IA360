@@ -107,6 +107,7 @@ def calculate_metrics(data: dict) -> CalculatedMetrics:
     time_spent_hours = time_spent_seconds / 3600
 
     # Variância: (real - estimado) / estimado × 100
+    # Só calcular se há tempo estimado para dividir
     time_variance_percent = None
     if development_estimate_hours > 0 and time_spent_hours > 0:
         time_variance_percent = round(

@@ -416,44 +416,14 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
         </div>
       </div>
 
-      {/* Chart 5: ROI Accumulated (Line) */}
+      {/* Chart 5: OPEX Mensal + Iniciativas Entregues (Grouped Bars) */}
       <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
-        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">ROI Acumulado (Últimos 12 Meses)</h4>
-
-        <div className="relative h-40 flex items-end gap-1">
-          {monthlyData.map((month) => {
-            const maxROI = Math.max(...monthlyData.map(m => m.roiAccumulated), 1)
-            const heightPercent = (month.roiAccumulated / maxROI) * 100
-            return (
-              <div
-                key={month.month}
-                className="flex-1 flex flex-col items-center group"
-                title={`${month.monthName}: ${month.roiAccumulated.toFixed(1)}%`}
-              >
-                <div
-                  className="w-full rounded-t transition-all hover:opacity-80"
-                  style={{
-                    height: `${heightPercent}%`,
-                    minHeight: '4px',
-                    background: getChartColor('green', isDarkMode),
-                    boxShadow: `0 0 8px ${getChartColor('green', isDarkMode)}44`,
-                  }}
-                />
-                <span className="text-[8px] text-gray-500 mt-1 text-center">{month.monthName}</span>
-              </div>
-            )
-          })}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300">OPEX Mensal + Iniciativas Entregues</h4>
+            <Tooltip content="Economia operacional mensal (OPEX) e quantidade de iniciativas entregues agrupadas por mês do ano corrente." />
+          </div>
         </div>
-
-        <div className="flex items-center gap-2 mt-4 text-[9px] text-gray-500">
-          <span className="inline-block w-3 h-3 rounded" style={{ background: getChartColor('green', isDarkMode) }} />
-          <span>ROI Acumulado (%)</span>
-        </div>
-      </div>
-
-      {/* Chart 6: OPEX Mensal + Iniciativas Entregues (Grouped Bars) */}
-      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
-        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">OPEX Mensal + Iniciativas Entregues</h4>
 
         <div className="space-y-3">
           {monthlyData.map((month) => {

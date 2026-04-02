@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import FilterBar from '../Dashboard/FilterBar'
 import EditableCell from '../InitiativeTable/EditableCell'
 import EditableTextCell from '../InitiativeTable/EditableTextCell'
@@ -31,18 +31,25 @@ const ADMIN_COLUMNS = [
 ]
 
 const PILL_CONFIG = [
-  { label: 'Iniciativas', color: '#3559EB', getValue: (items) => items.length },
-  { label: 'Sem custo-base', color: '#FE70BD', getValue: (items) => items.filter((i) => !i.tech_hour_cost || !i.cost_per_hour).length },
-  { label: 'Tempo dev Jira', color: '#3DB7F4', getValue: (items) => formatHours(items.reduce((s, i) => s + getDevelopmentEstimateHours(i), 0)) },
-  { label: 'Custo projetado', color: '#F2F24B', getValue: (items) => formatCurrency(items.reduce((s, i) => s + (i.metrics?.total_costs || 0), 0)) },
+  { label: 'Iniciativas', color: '#3559EB', getValue: (items) => items.length, filterFn: null },
+  { label: 'Sem custo-base', color: '#FE70BD', getValue: (items) => items.filter((i) => !i.tech_hour_cost || !i.cost_per_hour).length, filterFn: (i) => !i.tech_hour_cost || !i.cost_per_hour },
+  { label: 'Tempo dev Jira', color: '#3DB7F4', getValue: (items) => formatHours(items.reduce((s, i) => s + getDevelopmentEstimateHours(i), 0)), filterFn: null },
+  { label: 'Custo projetado', color: '#F2F24B', getValue: (items) => formatCurrency(items.reduce((s, i) => s + (i.metrics?.total_costs || 0), 0)), filterFn: null },
 ]
 
-function MetricPill({ label, value, color }) {
+function MetricPill({ label, value, color, isActive, onClick, clickable }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-white/[0.05] bg-white/[0.02] px-2.5 py-1.5">
+    <div
+      onClick={clickable ? onClick : undefined}
+      className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 transition-all
+        ${clickable ? 'cursor-pointer hover:bg-white/[0.05]' : ''}
+        ${isActive ? 'border-white/20 bg-white/[0.06]' : 'border-white/[0.05] bg-white/[0.02]'}
+      `}
+    >
       <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: color }} />
       <span className="text-[10px] text-gray-500">{label}</span>
       <span className="text-[11px] font-semibold text-white/80">{value}</span>
+      {isActive && <span className="text-[8px] text-gray-400 ml-1">✕</span>}
     </div>
   )
 }
@@ -61,6 +68,8 @@ export default function AdminView({
   onUpdateField,
   isAdmin = false,
 }) {
+  const [activePillFilter, setActivePillFilter] = useState(null)
+
   const adminInitiatives = useMemo(
     () =>
       initiatives.filter((initiative) => {
@@ -75,6 +84,12 @@ export default function AdminView({
       }),
     [initiatives, filters.activityType, filters.assignee, filters.statuses, filters.statusOperator]
   )
+
+  const displayedInitiatives = useMemo(() => {
+    if (!activePillFilter) return adminInitiatives
+    const pill = PILL_CONFIG.find(p => p.label === activePillFilter)
+    return pill?.filterFn ? adminInitiatives.filter(pill.filterFn) : adminInitiatives
+  }, [adminInitiatives, activePillFilter])
 
   function renderCell(initiative, column) {
     if (column.key === 'jira_key') {
@@ -230,7 +245,15 @@ export default function AdminView({
 
       <div className="mb-5 flex flex-wrap gap-1.5">
         {PILL_CONFIG.map((pill) => (
-          <MetricPill key={pill.label} label={pill.label} value={pill.getValue(adminInitiatives)} color={pill.color} />
+          <MetricPill
+            key={pill.label}
+            label={pill.label}
+            value={pill.getValue(adminInitiatives)}
+            color={pill.color}
+            isActive={activePillFilter === pill.label}
+            clickable={pill.filterFn !== null}
+            onClick={() => setActivePillFilter(activePillFilter === pill.label ? null : pill.label)}
+          />
         ))}
       </div>
 
@@ -252,7 +275,7 @@ export default function AdminView({
             </tr>
           </thead>
           <tbody>
-            {adminInitiatives.map((initiative) => (
+            {displayedInitiatives.map((initiative) => (
               <tr
                 key={initiative.id}
                 className="border-b border-white/[0.03] transition-colors hover:bg-white/[0.02]"

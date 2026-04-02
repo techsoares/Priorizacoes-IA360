@@ -685,8 +685,8 @@ export default function DeliveriesView({ initiatives = [] }) {
     const leadTimes = filtered.map(getLeadTimeDays).filter((v) => v != null && !isNaN(v))
     const avgLead = leadTimes.length > 0 ? leadTimes.reduce((s, v) => s + v, 0) / leadTimes.length : null
 
-    const withRoi = filtered.filter((i) => i.metrics?.roi_percent != null && !isNaN(i.metrics.roi_percent))
-    const avgRoi = withRoi.length > 0 ? withRoi.reduce((s, i) => s + i.metrics.roi_percent, 0) / withRoi.length : null
+    const withRoi = filtered.filter((i) => (i.metrics?.roi_percent_real ?? i.metrics?.roi_percent) != null && !isNaN(i.metrics?.roi_percent_real ?? i.metrics?.roi_percent))
+    const avgRoi = withRoi.length > 0 ? withRoi.reduce((s, i) => s + (i.metrics?.roi_percent_real ?? i.metrics?.roi_percent), 0) / withRoi.length : null
 
     // ROI Acumulado: usa months_live exato (em dias/30.44) desde a data de conclusão
     // Inclui todas as entregas com data de conclusão (resolution_date ou status_updated_at)
@@ -799,7 +799,7 @@ export default function DeliveriesView({ initiatives = [] }) {
             value={avgRoi != null ? `${avgRoi.toFixed(0)}%` : '—'}
             sub="Por iniciativa"
             color="#40EB4F"
-            tooltip="Média do ROI estimado."
+            tooltip="Média do ROI real das iniciativas concluídas."
           />
           <KpiPill
             label="Horas/mês"

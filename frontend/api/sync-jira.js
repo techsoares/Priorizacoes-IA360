@@ -143,6 +143,9 @@ export default async function handler(req, res) {
       'time_spent_seconds',
     ]
 
+    // Rastreiar keys que estão no Jira agora
+    const jiraKeysNow = new Set(jiraIssues.map(issue => issue.jira_key))
+
     for (const issue of jiraIssues) {
       const syncData = { jira_key: issue.jira_key }
       for (const field of jiraFields) syncData[field] = issue[field]
@@ -155,6 +158,17 @@ export default async function handler(req, res) {
       } else {
         await supabase.from('initiatives').insert({ ...syncData, priority_order: nextOrder++ })
       }
+    }
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // REMOVER issues que não estão mais no Jira (foram movidos de projeto)
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    const keysToDelete = Object.keys(existingKeys).filter(key => !jiraKeysNow.has(key))
+    if (keysToDelete.length > 0) {
+      await supabase
+        .from('initiatives')
+        .delete()
+        .in('jira_key', keysToDelete)
     }
 
     const { data: all } = await supabase

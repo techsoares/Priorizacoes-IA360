@@ -223,7 +223,76 @@ function EconomyVsCost({ items }) {
 // ── Detail Table ──────────────────────────────────────────────────────────────
 function DetailTable({ items }) {
   const [expanded, setExpanded] = useState(false)
-  const visible = expanded ? items : items.slice(0, 10)
+  const [sortBy, setSortBy] = useState(null)
+  const [sortDirection, setSortDirection] = useState('desc')
+
+  function handleSort(column) {
+    if (sortBy === column) {
+      // Toggle direction if same column
+      setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc')
+    } else {
+      // New column, default to descending
+      setSortBy(column)
+      setSortDirection('desc')
+    }
+  }
+
+  const sorted = [...items].sort((a, b) => {
+    if (!sortBy) return 0
+
+    let aVal, bVal
+
+    switch (sortBy) {
+      case 'lead_time':
+        aVal = getLeadTimeDays(a) || 0
+        bVal = getLeadTimeDays(b) || 0
+        break
+      case 'variance':
+        aVal = getTimeVariancePercent(a) ?? -999
+        bVal = getTimeVariancePercent(b) ?? -999
+        break
+      case 'gains':
+        aVal = a.metrics?.total_gains || 0
+        bVal = b.metrics?.total_gains || 0
+        break
+      case 'roi_real':
+        aVal = a.metrics?.roi_percent_real ?? -999
+        bVal = b.metrics?.roi_percent_real ?? -999
+        break
+      case 'payback':
+        aVal = a.metrics?.payback_months ?? 999
+        bVal = b.metrics?.payback_months ?? 999
+        break
+      default:
+        return 0
+    }
+
+    const comparison = aVal > bVal ? 1 : aVal < bVal ? -1 : 0
+    return sortDirection === 'desc' ? -comparison : comparison
+  })
+
+  const visible = expanded ? sorted : sorted.slice(0, 10)
+
+  function SortHeader({ label, column, align = 'left' }) {
+    const isActive = sortBy === column
+    const arrow = isActive ? (sortDirection === 'desc' ? '↓' : '↑') : '⋮'
+
+    return (
+      <th
+        onClick={() => handleSort(column)}
+        className={`px-6 py-4 cursor-pointer select-none transition-colors ${align === 'right' ? 'text-right' : ''} ${
+          isActive
+            ? 'bg-white/[0.04] text-white'
+            : 'hover:bg-white/[0.02] text-gray-500 hover:text-gray-400'
+        }`}
+      >
+        <div className={`flex items-center gap-2 font-bold uppercase tracking-[0.2em] text-[9px] ${align === 'right' ? 'justify-end' : ''}`}>
+          {label}
+          <span className="text-[10px] opacity-60">{arrow}</span>
+        </div>
+      </th>
+    )
+  }
 
   return (
     <div className="rounded-[28px] border border-white/10 bg-surface-card/60 backdrop-blur-sm overflow-hidden">
@@ -245,15 +314,15 @@ function DetailTable({ items }) {
       <div className="overflow-x-auto">
         <table className="min-w-full table-auto">
           <thead>
-            <tr className="bg-white/[0.02] text-left text-[9px] uppercase tracking-[0.2em] text-gray-500">
-              <th className="px-6 py-4">Key</th>
-              <th className="px-6 py-4">Iniciativa</th>
-              <th className="px-6 py-4">Lead Time</th>
-              <th className="px-6 py-4">Tempo (Est. vs Real)</th>
-              <th className="px-6 py-4">Variância</th>
-              <th className="px-6 py-4 text-right">Economia/mês</th>
-              <th className="px-6 py-4 text-right">ROI (Est. vs Real)</th>
-              <th className="px-6 py-4 text-right">Payback</th>
+            <tr className="bg-white/[0.02] text-left">
+              <th className="px-6 py-4 text-[9px] font-bold uppercase tracking-[0.2em] text-gray-500">Key</th>
+              <th className="px-6 py-4 text-[9px] font-bold uppercase tracking-[0.2em] text-gray-500">Iniciativa</th>
+              <SortHeader label="Lead Time" column="lead_time" />
+              <th className="px-6 py-4 text-[9px] font-bold uppercase tracking-[0.2em] text-gray-500">Tempo (Est. vs Real)</th>
+              <SortHeader label="Variância" column="variance" />
+              <SortHeader label="Economia/mês" column="gains" align="right" />
+              <SortHeader label="ROI (Est. vs Real)" column="roi_real" align="right" />
+              <SortHeader label="Payback" column="payback" align="right" />
             </tr>
           </thead>
           <tbody className="divide-y divide-white/[0.04]">

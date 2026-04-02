@@ -61,9 +61,9 @@ function KpiPill({ label, value, sub, color, tooltip, highlight }) {
             </span>
           )}
         </div>
-        <div className="text-[15px] font-bold tracking-tight text-white/90">{value}</div>
+        <div className="text-[15px] font-bold tracking-tight dark:text-white/90 text-gray-900">{value}</div>
         {sub && (
-          <span className="text-[10px] font-medium text-gray-500 mt-1">{sub}</span>
+          <span className="text-[10px] font-medium dark:text-gray-500 text-gray-700 mt-1">{sub}</span>
         )}
       </div>
     </div>

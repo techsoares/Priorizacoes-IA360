@@ -181,9 +181,9 @@ function EconomyVsCost({ items }) {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400">Eficiência Financeira</h3>
-          <p className="text-[10px] text-gray-600 mt-1 uppercase">Ganhos Mensais vs Investimento Inicial (Top 6)</p>
+          <p className="text-[10px] text-gray-600 mt-1 uppercase">Ganhos OPEX Mensais vs Investimento CAPEX (Top 6)</p>
         </div>
-        <Tooltip content="Comparativo direto entre o valor gerado e o custo de implantação." />
+        <Tooltip content="OPEX (Ganhos): Economia mensal operacional. CAPEX (Investimento): Custo initial one-time. Quanto menor o período payback, melhor o ROI." />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -196,14 +196,14 @@ function EconomyVsCost({ items }) {
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-wider text-gray-500">
-                  <span>Economia Mensal</span>
+                  <span>Economia Mensal (OPEX)</span>
                   <span className="text-[#6BFFEB]">{fmtCompact(item.gains)}</span>
                 </div>
                 <AnimatedBar pct={(item.gains / max) * 100} color="#6BFFEB" />
               </div>
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-wider text-gray-500">
-                  <span>Investimento</span>
+                  <span>Investimento (CAPEX)</span>
                   <span className="text-[#FE70BD]">{fmtCompact(item.costs)}</span>
                 </div>
                 <AnimatedBar pct={(item.costs / max) * 100} color="#FE70BD" />
@@ -226,7 +226,7 @@ function DetailTable({ items }) {
       <div className="flex items-center justify-between px-6 py-5 border-b border-white/6">
         <div>
           <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">Log de Entregas</h3>
-          <p className="text-[10px] text-gray-600 mt-0.5">{items.length} INICIATIVAS CONCLUÍDAS</p>
+          <p className="text-[10px] text-gray-600 mt-0.5">{items.length} INICIATIVAS CONCLUÍDAS - Ganhos OPEX (economia/mês) vs Custo CAPEX (investimento one-time)</p>
         </div>
         {items.length > 10 && (
           <button
@@ -296,11 +296,19 @@ function DetailTable({ items }) {
 // ── Main Page Component ───────────────────────────────────────────────────────
 export default function DeliveriesView({ initiatives = [] }) {
   const [activityType, setActivityType] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
 
   try {
     const completed = Array.isArray(initiatives) ? initiatives.filter(isCompleted) : []
     const activityTypes = [...new Set(completed.map((i) => i.activity_type).filter(Boolean))].sort()
-    const filtered = completed.filter((i) => (activityType ? i.activity_type === activityType : true))
+    const filtered = completed.filter((i) => {
+      const matchesActivityType = activityType ? i.activity_type === activityType : true
+      const matchesSearch = searchTerm ? (
+        i.summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        i.jira_key?.toLowerCase().includes(searchTerm.toLowerCase())
+      ) : true
+      return matchesActivityType && matchesSearch
+    })
 
     // Secure Matrix Calculations
     const totalGainsMonthly = filtered.reduce((s, i) => s + (i.metrics?.total_gains || 0), 0)
@@ -365,9 +373,23 @@ export default function DeliveriesView({ initiatives = [] }) {
           </div>
 
           <div className="flex items-center gap-3">
+             <div className="relative">
+               <input
+                 type="text"
+                 placeholder="Buscar por nome ou chave Jira..."
+                 value={searchTerm}
+                 onChange={(e) => setSearchTerm(e.target.value)}
+                 className="h-10 w-56 rounded-xl border border-white/10 bg-surface-card px-4 text-[10px] font-black text-gray-300 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-primary/40 shadow-lg"
+               />
+             </div>
              {activityType && (
                <button onClick={() => setActivityType('')} className="flex h-9 items-center gap-2 rounded-xl bg-white/5 px-4 text-[10px] font-black text-gray-400 hover:text-white transition-all tracking-widest">
-                 LIMPAR
+                 LIMPAR SEGMENTO
+               </button>
+             )}
+             {searchTerm && (
+               <button onClick={() => setSearchTerm('')} className="flex h-9 items-center gap-2 rounded-xl bg-white/5 px-4 text-[10px] font-black text-gray-400 hover:text-white transition-all tracking-widest">
+                 LIMPAR BUSCA
                </button>
              )}
              <div className="relative">
@@ -392,10 +414,10 @@ export default function DeliveriesView({ initiatives = [] }) {
             color="#3DB7F4" icon="🚀" highlight
             tooltip="ROI real gerado desde a data de conclusão no Jira (resolution_date). Acumula a cada mês de operação."
           />
-          <HeroKpi label="ECONOMIA ANUAL" value={fmtCompact(annualEconomy)} sub={`${fmtCompact(totalGainsMonthly)}/mês`} color="#6BFFEB" icon="💰" tooltip="Projeção anual baseada nos ganhos mensais atuais." />
+          <HeroKpi label="ECONOMIA ANUAL" value={fmtCompact(annualEconomy)} sub={`${fmtCompact(totalGainsMonthly)}/mês (OPEX mensalmente economizado)`} color="#6BFFEB" icon="💰" tooltip="OPEX: Operational Expenditure. Projeção anual de custos operacionais economizados com a automação. Se a automação economiza R$ 5.000/mês em trabalho manual, isso é OPEX economizado." />
           <HeroKpi label="ROI MÉDIO" value={avgRoi != null ? `${avgRoi.toFixed(0)}%` : '—'} sub="Média por Iniciativa" color="#40EB4F" icon="📊" />
           <HeroKpi label="HORAS DEVOLVIDAS" value={formatHours(totalHours)} sub="Mensalmente" color="#3DB7F4" icon="⚡" />
-          <HeroKpi label="INVESTIMENTO" value={fmtCompact(initialInvestment)} sub="Capex Total" color="#FE70BD" icon="🏗️" />
+          <HeroKpi label="INVESTIMENTO" value={fmtCompact(initialInvestment)} sub="CAPEX Total" color="#FE70BD" icon="🏗️" tooltip="CAPEX: Capital Expenditure. Custo inicial do investimento em desenvolvimento, infraestrutura e tecnologia. É um gasto one-time para implementar a automação." />
           <HeroKpi label="LEAD TIME" value={formatDays(avgLead)} sub="Ciclo Médio" color="#F2F24B" icon="🏁" />
         </div>
 

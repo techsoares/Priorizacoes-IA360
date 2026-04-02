@@ -60,9 +60,14 @@ export default function AdminView({
       initiatives.filter((initiative) => {
         if (filters.activityType && initiative.activity_type !== filters.activityType) return false
         if (filters.assignee && initiative.assignee !== filters.assignee) return false
+        if (filters.statuses.length > 0) {
+          const matchesStatus = filters.statuses.includes(initiative.jira_status)
+          if (filters.statusOperator === 'equals' && !matchesStatus) return false
+          if (filters.statusOperator === 'not_equals' && matchesStatus) return false
+        }
         return true
       }),
-    [initiatives, filters.activityType, filters.assignee]
+    [initiatives, filters.activityType, filters.assignee, filters.statuses, filters.statusOperator]
   )
 
   function renderCell(initiative, column) {
@@ -152,7 +157,7 @@ export default function AdminView({
             Manual
           </a>
         </div>
-        <FilterBar initiatives={initiatives} filters={filters} onFilterChange={onFilterChange} showStatus={false} />
+        <FilterBar initiatives={initiatives} filters={filters} onFilterChange={onFilterChange} showStatus={true} />
       </div>
 
       <div className="mb-5 flex flex-wrap gap-1.5">

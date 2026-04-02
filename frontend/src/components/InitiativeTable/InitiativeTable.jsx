@@ -21,7 +21,7 @@ const COLUMNS = [
   { key: 'jira_key', label: 'Jira', minWidth: 88, tooltip: 'Chave da issue no Jira.' },
   { key: 'summary', label: 'Iniciativa', minWidth: 280, tooltip: 'Resumo da demanda. Passe o mouse para ver detalhes.' },
   { key: 'jira_status', label: 'Status', minWidth: 130, badge: true, tooltip: 'Status atual no Jira.' },
-  { key: 'hours_saved', label: 'Horas Econ.', minWidth: 105, computed: true, sortable: true, tooltip: 'Tempo economizado por mês (horas_salvas_dia × dias_mês × pessoas_afetadas).' },
+  { key: 'hours_saved', label: 'Horas/mês', minWidth: 105, computed: true, sortable: true, tooltip: 'Tempo economizado por mês (horas_salvas_dia × dias_mês × pessoas_afetadas).' },
   { key: 'development_estimate_seconds', label: 'Tempo Dev (Est.)', minWidth: 110, sortable: true, tooltip: 'Tempo estimado de desenvolvimento (horas) — vem do Jira. Usado para calcular CAPEX em planejamento.' },
   { key: 'total_gains', label: 'OPEX Ganhos/mês', minWidth: 140, computed: true, sortable: true, tooltip: 'OPEX (Operational Expenditure): Economia operacional MENSAL. Cálculo: (horas_economizadas_mês × custo_hora_pessoa_afetada) + ganhos_headcount + ganhos_produtividade. Exemplo: 160h/mês × R$ 60/h = R$ 9.600/mês OPEX.' },
   { key: 'total_costs', label: 'CAPEX Investimento', minWidth: 140, computed: true, sortable: true, tooltip: 'CAPEX (Capital Expenditure): Custo total one-time de desenvolvimento. Cálculo: (horas_dev × R$/h_dev) + (horas_terceiros × R$/h_terceiros). NÃO é salário de pessoas — é custo técnico.' },

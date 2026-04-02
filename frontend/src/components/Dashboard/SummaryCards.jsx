@@ -10,7 +10,7 @@ const CARD_CONFIG = [
   },
   {
     key: 'totalRoi',
-    label: 'ROI total',
+    label: 'ROI Agregado',
     tooltip: 'Soma do ROI de cada iniciativa com custo > 0. Fórmula por iniciativa: ROI = (ganhos_mensais − custos_totais) ÷ custos_totais × 100',
     color: '#40EB4F',
     format: (v) => (v != null ? `${v.toFixed(1)}%` : '—'),
@@ -39,7 +39,7 @@ const CARD_CONFIG = [
   {
     key: 'totalCosts',
     label: 'CAPEX Total',
-    tooltip: 'CAPEX (Capital Expenditure): Soma dos investimentos one-time de desenvolvimento. Cálculo por iniciativa: CAPEX = (horas_estimadas_dev × CUSTO/HORA_DEV) + (horas_terceiros × R$/h_terceiros) + custos_infra. NÃO é salário de pessoas — é custo técnico de desenvolvimento.',
+    tooltip: 'CAPEX (Capital Expenditure): Soma dos investimentos one-time de desenvolvimento. Cálculo por iniciativa: CAPEX = (horas_estimadas_dev × CUSTO/HORA_DEV) + (horas_terceiros × R$/h_terceiros). Nota: token_cost e cloud_infra_cost descontam do OPEX mensal, não do CAPEX. NÃO é salário de pessoas — é custo técnico de desenvolvimento.',
     color: '#FE70BD',
     format: (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
   },

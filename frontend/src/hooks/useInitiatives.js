@@ -77,6 +77,7 @@ function calculateMetrics(data) {
 
 const DEFAULT_FILTERS = {
   activityType: '',
+  itemType: 'Tarefa',
   statusOperator: 'not_equals',
   statuses: ['Concluído', 'Cancelado'],
   assignee: '',
@@ -181,6 +182,10 @@ export default function useInitiatives() {
   const filteredInitiatives = useMemo(() => {
     return initiatives.filter((initiative) => {
       if (filters.activityType && initiative.activity_type !== filters.activityType) {
+        return false
+      }
+
+      if (filters.itemType && initiative.item_type !== filters.itemType) {
         return false
       }
 

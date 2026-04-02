@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 const DEFAULT_FILTERS = {
   activityType: '',
+  itemType: 'Tarefa',
   statusOperator: 'not_equals',
   statuses: ['Concluído', 'Cancelado'],
   assignee: '',
@@ -16,17 +17,20 @@ export default function FilterBar({
 }) {
   const options = useMemo(() => {
     const activityTypes = new Set()
+    const itemTypes = new Set()
     const statuses = new Set()
     const assignees = new Set()
 
     initiatives.forEach((initiative) => {
       if (initiative.activity_type) activityTypes.add(initiative.activity_type)
+      if (initiative.item_type) itemTypes.add(initiative.item_type)
       if (initiative.jira_status) statuses.add(initiative.jira_status)
       if (initiative.assignee) assignees.add(initiative.assignee)
     })
 
     return {
       activityTypes: [...activityTypes].sort(),
+      itemTypes: [...itemTypes].sort(),
       statuses: [...statuses].sort(),
       assignees: [...assignees].sort(),
     }
@@ -34,6 +38,7 @@ export default function FilterBar({
 
   const activeCount = [
     filters.activityType,
+    filters.itemType && filters.itemType !== 'Tarefa' ? 'itemType' : '',
     filters.assignee,
     filters.statuses?.length ? 'status' : '',
   ].filter(Boolean).length
@@ -68,6 +73,13 @@ export default function FilterBar({
         value={filters.activityType}
         options={options.activityTypes}
         onChange={(value) => handleChange('activityType', value)}
+      />
+
+      <SingleSelectFilter
+        label="Tipo Jira"
+        value={filters.itemType}
+        options={options.itemTypes}
+        onChange={(value) => handleChange('itemType', value)}
       />
 
       {showStatus && (

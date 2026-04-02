@@ -68,7 +68,7 @@ export default function Tooltip({ content }) {
               zIndex: 99999,
               pointerEvents: 'none',
             }}
-            className="block w-max max-w-[220px] rounded-xl border border-white/10 bg-gray-900 px-3 py-2 text-[11px] font-normal normal-case leading-relaxed tracking-normal text-gray-300 shadow-2xl"
+            className="tooltip-content block w-max max-w-[220px] rounded-xl border px-3 py-2 text-[11px] font-normal normal-case leading-relaxed tracking-normal shadow-2xl bg-gray-900 text-gray-300 border-white/10"
           >
             {content}
           </span>,

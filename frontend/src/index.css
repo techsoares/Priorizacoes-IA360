@@ -178,4 +178,12 @@
   [data-theme='light'] .border-\[\#3559EB\]\/40 { border-color: rgba(53,89,235,0.25) !important; }
 
   [data-theme='light'] .bg-surface-card { background-color: #ffffff !important; }
+
+  /* ── Tooltip Light Mode Override ── */
+  [data-theme='light'] .tooltip-content {
+    background-color: #f1f5f9 !important;
+    color: rgb(15 23 42) !important;
+    border-color: rgba(53,89,235,0.15) !important;
+    box-shadow: 0 10px 40px rgba(53,89,235,0.15) !important;
+  }
 }

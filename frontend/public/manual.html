@@ -696,6 +696,9 @@
     <a href="#database">      <span class="icon">🗄️</span> Banco de Dados</a>
     <a href="#calculations">  <span class="icon">🧮</span> Cálculos & Fórmulas</a>
 
+    <div class="nav-section">Treinamento</div>
+    <a href="#treinamento">     <span class="icon">👥</span> Guia Prático (Heads)</a>
+
     <div class="nav-section">Operações</div>
     <a href="#security">      <span class="icon">🔒</span> Segurança</a>
     <a href="#auth-flow">     <span class="icon">🔑</span> Fluxo de Autenticação</a>
@@ -1689,11 +1692,272 @@
       </div>
     </section>
 
+    <!-- ─────────────────────────────────────
+         TREINAMENTO PRÁTICO PARA HEADS
+    ───────────────────────────────────────── -->
+    <section id="treinamento">
+      <div class="section-header">
+        <div class="icon-box">👥</div>
+        <h2>Treinamento Prático<small>Guia passo a passo para heads operarem a plataforma</small></h2>
+      </div>
+
+      <div class="card" style="background: linear-gradient(135deg, rgba(53,89,235,0.1), rgba(61,183,244,0.05)); border-left: 4px solid #3DB7F4;">
+        <p><strong>Objetivo:</strong> Este guia treina gestores e heads a utilizarem o Dashboard IA360° para priorizar e acompanhar iniciativas de automação de forma eficiente, baseado em dados reais de ROI, investimento e impacto operacional.</p>
+      </div>
+
+      <!-- MÓDULO 1 -->
+      <div style="margin-top: 30px;">
+        <h3 style="color: #3DB7F4; font-size: 18px; margin-bottom: 15px;">📍 Módulo 1: Acessando a Plataforma</h3>
+
+        <div class="card">
+          <h4>1.1 — Login e Primeira Visita</h4>
+          <ol style="margin-left: 20px;">
+            <li>Abra <code>https://ia360.pgmais.com.br</code> no navegador (Chrome recomendado)</li>
+            <li>Clique em <strong>"Entrar com Google"</strong></li>
+            <li>Selecione sua conta <strong>@pgmais.com.br</strong></li>
+            <li>Você será redirecionado para o <strong>Dashboard</strong> com todas as iniciativas ativas</li>
+          </ol>
+          <p style="margin-top: 15px; padding: 12px; background: #f5f7ff; border-left: 3px solid #F2F24B; font-size: 13px;"><strong>💡 Dica:</strong> Se receber erro de acesso, confirme com <strong>andressa.soares@pgmais.com.br</strong> que sua conta foi adicionada ao whitelist.</p>
+        </div>
+
+        <div class="card">
+          <h4>1.2 — Navegação da Interface</h4>
+          <p>A plataforma possui <strong>5 abas principais</strong>:</p>
+          <ul>
+            <li><strong>Dashboard</strong> — Vista geral com KPIs (ROI, CAPEX, OPEX) e tabela ordenável</li>
+            <li><strong>Timeline</strong> — Visão tipo Gantt mostrando cronograma das entregas</li>
+            <li><strong>Entregas</strong> — Portfólio de iniciativas completadas com análises financeiras</li>
+            <li><strong>Custos & Dados</strong> — Edição de parâmetros financeiros (acesso admin)</li>
+            <li><strong>Engrenagem ⚙️</strong> — Painel administrativo (apenas para admins)</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- MÓDULO 2 -->
+      <div style="margin-top: 30px;">
+        <h3 style="color: #6BFFEB; font-size: 18px; margin-bottom: 15px;">🎯 Módulo 2: Entendendo as Métricas Financeiras</h3>
+
+        <div class="card">
+          <h4>2.1 — As Principais Métricas</h4>
+          <div style="margin-top: 15px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <tr style="background: #f5f7ff;">
+                <td style="padding: 10px; border: 1px solid #e2e8f7; font-weight: bold; color: #3DB7F4; width: 20%;">Métrica</td>
+                <td style="padding: 10px; border: 1px solid #e2e8f7; font-weight: bold; color: #3DB7F4;">O que significa</td>
+                <td style="padding: 10px; border: 1px solid #e2e8f7; font-weight: bold; color: #3DB7F4; width: 30%;">Por que importa</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #e2e8f7; background: rgba(61,183,244,0.05);"><strong>CAPEX</strong></td>
+                <td style="padding: 10px; border: 1px solid #e2e8f7;">Custo ONE-TIME de desenvolvimento. Fórmula: <code>(horas_dev × R$/h_dev) + (horas_terceiros × R$/h_terceiros)</code></td>
+                <td style="padding: 10px; border: 1px solid #e2e8f7;">Quanto vou investir para implementar essa automação?</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #e2e8f7; background: rgba(107,255,235,0.05);"><strong>OPEX</strong></td>
+                <td style="padding: 10px; border: 1px solid #e2e8f7;">Ganho MENSAL operacional. Fórmula: <code>(horas_economizadas × R$/h_pessoa) + ganhos_headcount</code></td>
+                <td style="padding: 10px; border: 1px solid #e2e8f7;">Quanto vou economizar POR MÊS após implementação?</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #e2e8f7; background: rgba(254,112,189,0.05);"><strong>Payback</strong></td>
+                <td style="padding: 10px; border: 1px solid #e2e8f7;">Tempo para recuperar o investimento. Fórmula: <code>CAPEX ÷ OPEX_mensal</code></td>
+                <td style="padding: 10px; border: 1px solid #e2e8f7;">Em quantos meses vou recuperar o investimento?</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #e2e8f7; background: rgba(64,235,79,0.05);"><strong>ROI</strong></td>
+                <td style="padding: 10px; border: 1px solid #e2e8f7;">Retorno sobre investimento (%). Fórmula: <code>(OPEX - custos_manutencao) ÷ CAPEX × 100</code></td>
+                <td style="padding: 10px; border: 1px solid #e2e8f7;">Quanto de retorno financeiro gerarei para cada real investido?</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>2.2 — Exemplo Prático: Uma Automação Real</h4>
+          <p style="margin-bottom: 10px;"><strong>Cenário:</strong> Implementar um bot de RPA para processar 500 notas ficais/dia</p>
+          <ul style="margin-left: 20px; margin-bottom: 10px;">
+            <li><strong>CAPEX:</strong> 160 horas de desenvolvimento × R$ 250/h = <strong>R$ 40.000</strong></li>
+            <li><strong>OPEX Mensal:</strong> 500 notas/dia × 20 seg economizados = 167h/mês × R$ 60/h (custo operador) = <strong>R$ 10.020/mês</strong></li>
+            <li><strong>Payback:</strong> R$ 40.000 ÷ R$ 10.020 = <strong>3,99 meses</strong> (recupera investimento em ~4 meses)</li>
+            <li><strong>ROI Mensal:</strong> (R$ 10.020 - custos_manutencao) ÷ R$ 40.000 × 100 ≈ <strong>25% ao mês</strong></li>
+          </ul>
+          <p style="padding: 12px; background: #f5f7ff; border-left: 3px solid #40EB4F;"><strong>✓ Conclusão:</strong> Um bot que se paga em 4 meses e gera 25% de ROI mensal é <strong>altamente priorizado</strong>.</p>
+        </div>
+      </div>
+
+      <!-- MÓDULO 3 -->
+      <div style="margin-top: 30px;">
+        <h3 style="color: #FE70BD; font-size: 18px; margin-bottom: 15px;">📊 Módulo 3: Operações no Dashboard</h3>
+
+        <div class="card">
+          <h4>3.1 — Visualizando e Filtrando Iniciativas</h4>
+          <ol style="margin-left: 20px;">
+            <li><strong>Acesse o Dashboard</strong> (primeira aba)</li>
+            <li><strong>Use os filtros</strong> (canto superior direito):
+              <ul>
+                <li><strong>Tipo de atividade:</strong> Seleciona o segmento (RPA, IA, Web Automation, etc.)</li>
+                <li><strong>Tipo Jira:</strong> Filtra por tipo de ticket (Tarefa, Story, Epic)</li>
+                <li><strong>Status:</strong> Mostra tickets por status. <code>=</code> (apenas este) ou <code>≠</code> (todos MENOS este)</li>
+                <li><strong>Responsável:</strong> Filtra por owner da iniciativa</li>
+              </ul>
+            </li>
+            <li><strong>A tabela recarrega automaticamente</strong> com os filtros aplicados</li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <h4>3.2 — Ordenando e Priorizando</h4>
+          <p><strong>Clicar no cabeçalho de uma coluna ordena os dados:</strong></p>
+          <ul style="margin-left: 20px;">
+            <li><strong>Primeira clicada:</strong> Ordena decrescente (maior → menor)</li>
+            <li><strong>Segunda clicada:</strong> Ordena crescente (menor → maior)</li>
+            <li><strong>Coluna ativa fica destaque</strong> com uma seta (↓ ou ↑)</li>
+          </ul>
+          <p style="margin-top: 10px;"><strong>Exemplo de uso:</strong> "Preciso ver quais iniciatitivas têm maior Payback?" → Clique na coluna <code>Payback</code> para ordernar.</p>
+        </div>
+
+        <div class="card">
+          <h4>3.3 — Reordenando Prioridades (Drag & Drop)</h4>
+          <ol style="margin-left: 20px;">
+            <li>Na coluna <strong>#</strong> (número), clique e segure em qualquer iniciativa</li>
+            <li><strong>Arraste para cima ou para baixo</strong> para reposicionar</li>
+            <li><strong>Solte</strong> na posição desejada</li>
+            <li>A ordem é salva automaticamente no banco de dados</li>
+            <li><strong>Um tooltip</strong> aparecerá mostrando "Movida de posição X para Y"</li>
+          </ol>
+          <p style="margin-top: 10px; padding: 12px; background: #f5f7ff; border-left: 3px solid #40EB4F;"><strong>💡 Dica de Priorização:</strong> Ordenar por <strong>ROI (maior para menor)</strong> é uma estratégia simples e eficaz — prioriza iniciativas de alto retorno financeiro.</p>
+        </div>
+      </div>
+
+      <!-- MÓDULO 4 -->
+      <div style="margin-top: 30px;">
+        <h3 style="color: #40EB4F; font-size: 18px; margin-bottom: 15px;">📈 Módulo 4: Acompanhando Entregas Concluídas</h3>
+
+        <div class="card">
+          <h4>4.1 — Visão de Entregas</h4>
+          <ol style="margin-left: 20px;">
+            <li>Acesse a aba <strong>Entregas</strong></li>
+            <li>Você verá <strong>6 KPI cards compactos</strong> no topo:
+              <ul>
+                <li><strong>ROI Acumulado %:</strong> Retorno total acumulado de todos os projetos já entregues</li>
+                <li><strong>Economia Anual:</strong> Projeção anual (OPEX mensal × 12)</li>
+                <li><strong>ROI Médio %:</strong> Média de ROI de todas as iniciativas</li>
+                <li><strong>Horas/mês:</strong> Total de horas economizadas mensalmente</li>
+                <li><strong>CAPEX Total:</strong> Soma de todos os investimentos já realizados</li>
+                <li><strong>Lead Time:</strong> Tempo médio entre criação e conclusão (em dias)</li>
+              </ul>
+            </li>
+            <li><strong>Abaixo dos KPIs</strong> está a <strong>"Log de Entregas"</strong> — tabela detalhada com todas as iniciativas concluídas</li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <h4>4.2 — Interpretando a Tabela de Entregas</h4>
+          <p style="margin-bottom: 10px;"><strong>Cada linha é uma iniciativa entregue. Colunas principais:</strong></p>
+          <ul style="margin-left: 20px; margin-bottom: 10px;">
+            <li><strong>Key:</strong> ID do ticket no Jira (clicável → abre o ticket)</li>
+            <li><strong>Iniciativa:</strong> Nome da automação + tipo de atividade (RPA, IA, etc.)</li>
+            <li><strong>Lead Time:</strong> Dias entre criação e conclusão</li>
+            <li><strong>Tempo (Est. vs Real):</strong> Azul = estimado do Jira | Âmbar = tempo realmente gasto</li>
+            <li><strong>Variância %:</strong> Eficiência de estimativa. Positivo = atrasou, Negativo = adiantou</li>
+            <li><strong>Economia/mês:</strong> OPEX mensal (ganhos líquidos após manutenção)</li>
+            <li><strong>ROI (Est. vs Real):</strong> ROI estimado vs ROI baseado em tempo real gasto</li>
+            <li><strong>Payback:</strong> Meses para recuperar investimento</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h4>4.3 — Análises Importantes</h4>
+          <p><strong>Perguntas que você pode responder com os dados:</strong></p>
+          <ul style="margin-left: 20px;">
+            <li>"<strong>Qual iniciativa me dá maior economia?</strong>" → Clique na coluna Economia/mês (ordena maior para menor)</li>
+            <li>"<strong>Qual teve melhor estimativa?</strong>" → Ordene por Variância (valores negativos = adiantadas)</li>
+            <li>"<strong>Qual vai se pagar mais rápido?</strong>" → Ordene por Payback (menor é melhor)</li>
+            <li>"<strong>Qual ROI real superou a estimativa?</strong>" → Compare Est. vs Real da coluna ROI</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- MÓDULO 5 -->
+      <div style="margin-top: 30px;">
+        <h3 style="color: #F2F24B; font-size: 18px; margin-bottom: 15px;">⚙️ Módulo 5: Gerenciando Dados (Admin)</h3>
+
+        <div class="card">
+          <h4>5.1 — Acessar o Painel de Custos</h4>
+          <p><strong style="color: #FE70BD;">⚠️ Apenas Admins tem acesso</strong></p>
+          <ol style="margin-left: 20px;">
+            <li>Clique no ícone de <strong>engrenagem ⚙️</strong> no canto superior direito</li>
+            <li>Selecione <strong>"Custos & Dados"</strong> (primeira aba)</li>
+            <li>Você verá a tabela de todas as iniciativas com parâmetros editáveis</li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <h4>5.2 — Campos Editáveis (Preenchimento Obrigatório)</h4>
+          <p style="margin-bottom: 10px;"><strong>Estes campos devem ser preenchidos para um cálculo preciso:</strong></p>
+          <ul style="margin-left: 20px; margin-bottom: 10px;">
+            <li><strong>Pessoas afetadas:</strong> Quantas pessoas beneficiam com a automação?</li>
+            <li><strong>R$/h Dev:</strong> Custo/hora do desenvolvedor (<code>ex: R$ 250</code>) — <strong style="color: #FE70BD;">NÃO é salário</strong></li>
+            <li><strong>R$/h Pessoas:</strong> Custo/hora da pessoa afetada (<code>ex: R$ 60</code>)</li>
+            <li><strong>Custo Token:</strong> Se usar IA (Claude, GPT), quanto custa em tokens/mês (<code>ex: R$ 500</code>)</li>
+            <li><strong>Custo Infra:</strong> Cloud, n8n, ferramentas (<code>ex: R$ 1.000</code>)</li>
+            <li><strong>Horas Terceiros:</strong> Se contratar consultoria, quantas horas? (<code>ex: 20</code>)</li>
+            <li><strong>R$/h Terceiros:</strong> Custo/hora do terceiro (<code>ex: R$ 500</code>)</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h4>5.3 — Como Editar um Campo</h4>
+          <ol style="margin-left: 20px;">
+            <li><strong>Clique 2x</strong> em qualquer célula editável (campo fica com fundo azul)</li>
+            <li><strong>Digite o novo valor</strong></li>
+            <li><strong>Pressione ENTER</strong> ou clique fora para salvar</li>
+            <li><strong>As métricas (CAPEX, OPEX, ROI) recalculam automaticamente</strong> em tempo real</li>
+          </ol>
+          <p style="margin-top: 10px; padding: 12px; background: #f5f7ff; border-left: 3px solid #FE70BD;"><strong>⚡ Recálculo em Tempo Real:</strong> Assim que você altera um parâmetro financeiro, o sistema recalcula CAPEX, OPEX, ROI e Payback — sem precisar salvar manualmente.</p>
+        </div>
+      </div>
+
+      <!-- MÓDULO 6: DÚVIDAS -->
+      <div style="margin-top: 30px;">
+        <h3 style="color: #3559EB; font-size: 18px; margin-bottom: 15px;">❓ Módulo 6: Dúvidas Frequentes</h3>
+
+        <div class="card">
+          <h4>P: Meu CAPEX calculado está muito alto. Por quê?</h4>
+          <p><strong>R:</strong> CAPEX = (horas_dev × R$/h_dev) + (horas_terceiros × R$/h_terceiros). Se o valor está alto, verifique se o "R$/h Dev" foi preenchido corretamente. Lembre-se: é <strong>custo técnico</strong>, não salário direto.</p>
+        </div>
+
+        <div class="card">
+          <h4>P: ROI Real está diferente do ROI Estimado. Qual devo usar para priorizar?</h4>
+          <p><strong>R:</strong> Para iniciativas <strong>já entregues</strong>, use <strong>ROI Real</strong> (baseado em tempo realmente gasto). Para <strong>planejamento de novas iniciativas</strong>, use <strong>ROI Estimado</strong> (baseado em estimativas do Jira). O Real é mais preciso pois reflete a realidade.</p>
+        </div>
+
+        <div class="card">
+          <h4>P: Posso reordenar as iniciativas sem ser admin?</h4>
+          <p><strong>R:</strong> <strong>Sim!</strong> Qualquer usuário autenticado pode reordenar via drag & drop. Apenas <strong>Admins</strong> podem editar os parâmetros financeiros no painel "Custos & Dados".</p>
+        </div>
+
+        <div class="card">
+          <h4>P: Como filtrar apenas iniciativas em progresso (não concluídas)?</h4>
+          <p><strong>R:</strong> No Dashboard, use o filtro <strong>Status</strong> com operador <strong>=</strong>, e selecione "Em Progresso" ou "Em Análise". Ou use <code>≠ Concluído, Cancelado</code> para ver tudo exceto finalizadas.</p>
+        </div>
+
+        <div class="card">
+          <h4>P: Por que alguns valores mostram "—"?</h4>
+          <p><strong>R:</strong> Valores vazios ("—") significam que o campo não foi preenchido ou a métrica não pode ser calculada. Exemplo: Payback mostra "—" se não há ganhos previstos (OPEX = 0).</p>
+        </div>
+
+        <div class="card">
+          <h4>P: Em dúvida ou erro na plataforma?</h4>
+          <p style="padding: 12px; background: rgba(254,112,189,0.1); border-left: 3px solid #FE70BD;"><strong>📧 Contato:</strong> <code>andressa.soares@pgmais.com.br</code> | Dashboard desenvolvido por <strong>Andressa Soares</strong></p>
+        </div>
+      </div>
+
+    </section>
+
   </div><!-- /content -->
 
   <footer>
     <strong>Dashboard IA360°</strong> — Manual Técnico &amp; Prático &nbsp;·&nbsp; PGMais &nbsp;·&nbsp; 2026
-    <br /><span style="font-size:11px; opacity:0.5">Gerado automaticamente com base no código-fonte do projeto</span>
+    <br /><span style="font-size:11px; opacity:0.5;">Dúvidas? Contate <strong>andressa.soares@pgmais.com.br</strong> &nbsp;·&nbsp; Desenvolvido por Andressa Soares</span>
   </footer>
 
 </main>

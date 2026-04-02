@@ -23,30 +23,39 @@ function fmtCompact(value) {
   return fmt(value)
 }
 
-// ── Compact KPI Pill ──────────────────────────────────────────────────────
+// ── KPI Pill (matches Dashboard SummaryCards style) ──────────────────────────────────────────────────────
 function KpiPill({ label, value, sub, color, tooltip, highlight }) {
   return (
     <div
-      className="group flex flex-col rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 transition-all duration-200 hover:border-white/15 hover:bg-white/[0.05]"
-      style={{ borderLeftWidth: '3px', borderLeftColor: color }}
+      className="group relative overflow-hidden rounded-xl border border-white/[0.06] p-3 transition-all bg-white/[0.02] hover:bg-white/[0.04]"
     >
-      <div className="flex items-center gap-1.5 mb-1">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-          {label}
-        </span>
-        {tooltip && <Tooltip content={tooltip} />}
-        {highlight && (
-          <span className="rounded-full bg-primary/20 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary-light ring-1 ring-primary/30 ml-auto">
-            Novo
-          </span>
+      {/* Tinted background */}
+      <div
+        className="absolute inset-0 opacity-[0.03] transition-opacity"
+        style={{ backgroundColor: color }}
+      />
+      {/* Glow accent */}
+      <div
+        className="pointer-events-none absolute -right-3 -top-3 h-10 w-10 rounded-full opacity-20 blur-xl transition-opacity group-hover:opacity-40"
+        style={{ background: color }}
+      />
+
+      <div className="relative">
+        <div className="mb-1.5 flex items-center gap-1">
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: color }} />
+          <span className="text-[10px] font-medium uppercase tracking-wider text-gray-400">{label}</span>
+          {tooltip && <Tooltip content={tooltip} />}
+          {highlight && (
+            <span className="rounded-full bg-primary/20 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary-light ring-1 ring-primary/30 ml-auto">
+              Novo
+            </span>
+          )}
+        </div>
+        <div className="text-[15px] font-bold tracking-tight text-white/90">{value}</div>
+        {sub && (
+          <span className="text-[10px] font-medium text-gray-500 mt-1">{sub}</span>
         )}
       </div>
-      <div className="text-lg font-black tracking-tight text-white">
-        {value}
-      </div>
-      {sub && (
-        <span className="text-[10px] font-medium text-gray-500 mt-1">{sub}</span>
-      )}
     </div>
   )
 }
@@ -193,6 +202,114 @@ function EconomyVsCost({ items }) {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Analytics Charts (Simple CSS-based) ───────────────────────────────────────
+function AnalyticsCharts({ items, byCostCenter, byArea }) {
+  // Chart 1: ROI Estimado vs Real (scatter-like comparison)
+  const roiComparison = items
+    .filter(i => i.metrics?.roi_percent != null)
+    .slice(0, 5)
+    .map(i => ({
+      key: i.jira_key,
+      est: i.metrics?.roi_percent || 0,
+      real: i.metrics?.roi_percent_real || i.metrics?.roi_percent || 0,
+    }))
+
+  // Chart 2: Economy growth mock (by completion month)
+  const maxArea = Math.max(...byArea.map(a => a.value), 1)
+  const maxCost = Math.max(...byCostCenter.map(c => c.value), 1)
+
+  return (
+    <div className="mt-8 grid gap-6 xl:grid-cols-2">
+      {/* Chart 1: ROI Comparison */}
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-4">ROI Estimado vs Real (Top 5)</h4>
+        <div className="space-y-3">
+          {roiComparison.map(item => (
+            <div key={item.key} className="flex items-center gap-3">
+              <span className="text-[10px] font-mono text-gray-500 w-12 shrink-0">{item.key}</span>
+              <div className="flex gap-1 flex-1">
+                <div className="flex items-center gap-1">
+                  <div className="h-5 rounded bg-blue-500/40" style={{ width: Math.max(item.est * 2, 4) + 'px', maxWidth: '40px' }} />
+                  <span className="text-[9px] text-blue-400">{item.est.toFixed(0)}%</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="h-5 rounded bg-green-500/40" style={{ width: Math.max(item.real * 2, 4) + 'px', maxWidth: '40px' }} />
+                  <span className="text-[9px] text-green-400">{item.real.toFixed(0)}%</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="text-[9px] text-gray-600 mt-3">
+          <span className="inline-block w-3 h-3 rounded bg-blue-500/40 mr-1" /> Estimado &nbsp;
+          <span className="inline-block w-3 h-3 rounded bg-green-500/40 mr-1" /> Real
+        </p>
+      </div>
+
+      {/* Chart 2: Horas por Segmento */}
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-4">Horas Economizadas por Segmento</h4>
+        <div className="space-y-2">
+          {byArea.slice(0, 4).map(area => (
+            <div key={area.label} className="flex items-center gap-2">
+              <span className="text-[10px] text-gray-500 truncate w-24">{area.label}</span>
+              <div className="flex-1 h-4 rounded bg-white/[0.02] overflow-hidden">
+                <div
+                  className="h-full rounded bg-cyan-500/60"
+                  style={{ width: `${(area.value / maxArea) * 100}%` }}
+                />
+              </div>
+              <span className="text-[9px] text-gray-400 w-16 text-right">{formatHours(area.value)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Chart 3: CAPEX x OPEX Ratio */}
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-4">Investimento vs Economia (CAPEX vs OPEX/mês)</h4>
+        <div className="flex items-end gap-4 h-32">
+          <div className="flex flex-col items-center flex-1">
+            <div
+              className="w-full rounded-t bg-pink-500/60"
+              style={{ height: (initialInvestment / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%' }}
+            />
+            <span className="text-[9px] text-gray-500 mt-2">CAPEX</span>
+            <span className="text-[10px] font-bold text-pink-400">{fmtCompact(initialInvestment)}</span>
+          </div>
+          <div className="flex flex-col items-center flex-1">
+            <div
+              className="w-full rounded-t bg-green-500/60"
+              style={{ height: (totalGainsMonthly * 12 / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%' }}
+            />
+            <span className="text-[9px] text-gray-500 mt-2">OPEX/ano</span>
+            <span className="text-[10px] font-bold text-green-400">{fmtCompact(totalGainsMonthly * 12)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Chart 4: Top Cost Centers */}
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-4">Iniciativas por Centro de Custo</h4>
+        <div className="space-y-2">
+          {byCostCenter.slice(0, 4).map(center => (
+            <div key={center.label} className="flex items-center gap-2">
+              <span className="text-[10px] text-gray-500 truncate w-24">{center.label}</span>
+              <div className="flex-1 h-4 rounded bg-white/[0.02] overflow-hidden">
+                <div
+                  className="h-full rounded bg-purple-500/60"
+                  style={{ width: `${(center.value / maxCost) * 100}%` }}
+                />
+              </div>
+              <span className="text-[9px] text-gray-400 w-8 text-right">{center.value}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -511,8 +628,8 @@ export default function DeliveriesView({ initiatives = [] }) {
           </div>
         </div>
 
-        {/* KPI Pills — compact single line */}
-        <div className="flex flex-wrap gap-2 overflow-x-auto pb-1">
+        {/* KPI Pills — Dashboard style */}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8 mb-6">
           <KpiPill
             label="ROI Acumulado"
             value={accumulatedRoi != null ? `${accumulatedRoi.toFixed(0)}%` : '—'}
@@ -557,8 +674,11 @@ export default function DeliveriesView({ initiatives = [] }) {
           />
         </div>
 
-        {/* Main Detail Table — moved to center */}
+        {/* Main Detail Table */}
         <DetailTable items={filtered} />
+
+        {/* Analytics Charts */}
+        <AnalyticsCharts items={filtered} byCostCenter={byCostCenter} byArea={byArea} />
       </div>
     )
   } catch (err) {

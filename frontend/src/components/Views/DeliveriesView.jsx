@@ -23,52 +23,30 @@ function fmtCompact(value) {
   return fmt(value)
 }
 
-// ── Premium Hero KPI Card ──────────────────────────────────────────────────────
-function HeroKpi({ label, value, sub, color, tooltip, icon, highlight }) {
+// ── Compact KPI Pill ──────────────────────────────────────────────────────
+function KpiPill({ label, value, sub, color, tooltip, highlight }) {
   return (
     <div
-      className="group relative overflow-hidden rounded-[24px] border border-white/[0.08] bg-white/[0.03] p-5 transition-all duration-300 hover:border-white/20 hover:bg-white/[0.06] hover:shadow-2xl"
-      style={{
-        boxShadow: `inset 0 0 20px ${color}05`,
-      }}
+      className="group flex flex-col rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 transition-all duration-200 hover:border-white/15 hover:bg-white/[0.05]"
+      style={{ borderLeftWidth: '3px', borderLeftColor: color }}
     >
-      {/* Decorative Blob */}
-      <div
-        className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full blur-[40px] opacity-10 transition-opacity group-hover:opacity-20"
-        style={{ background: color }}
-      />
-
-      <div className="relative">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">
-              {label}
-            </span>
-            {tooltip && <Tooltip content={tooltip} />}
-            {highlight && (
-              <span className="rounded-full bg-primary/20 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary-light ring-1 ring-primary/30">
-                Novo
-              </span>
-            )}
-          </div>
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/[0.04] text-lg shadow-inner ring-1 ring-white/10 group-hover:scale-110 transition-transform duration-300">
-            {icon}
+      <div className="flex items-center gap-1.5 mb-1">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+          {label}
+        </span>
+        {tooltip && <Tooltip content={tooltip} />}
+        {highlight && (
+          <span className="rounded-full bg-primary/20 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary-light ring-1 ring-primary/30 ml-auto">
+            Novo
           </span>
-        </div>
-
-        <div className="flex items-baseline gap-1">
-          <div className="text-2xl font-black tracking-tight text-white dark:text-white sm:text-3xl">
-            {value}
-          </div>
-        </div>
-
-        {sub && (
-          <div className="mt-3 flex items-center gap-1.5">
-             <div className="h-1 w-1 rounded-full" style={{ background: color }} />
-             <span className="text-[11px] font-medium text-gray-500">{sub}</span>
-          </div>
         )}
       </div>
+      <div className="text-lg font-black tracking-tight text-white">
+        {value}
+      </div>
+      {sub && (
+        <span className="text-[10px] font-medium text-gray-500 mt-1">{sub}</span>
+      )}
     </div>
   )
 }
@@ -533,49 +511,49 @@ export default function DeliveriesView({ initiatives = [] }) {
           </div>
         </div>
 
-        {/* KPI Scoreboard — simplified */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          <HeroKpi
-            label="ROI ACUMULADO"
+        {/* KPI Pills — compact single line */}
+        <div className="flex flex-wrap gap-2 overflow-x-auto pb-1">
+          <KpiPill
+            label="ROI Acumulado"
             value={accumulatedRoi != null ? `${accumulatedRoi.toFixed(0)}%` : '—'}
-            sub={withResolutionDate.length > 0 ? `${withResolutionDate.length} entrega${withResolutionDate.length > 1 ? 's' : ''} em produção` : 'Sem entregas concluídas'}
+            sub={withResolutionDate.length > 0 ? `${withResolutionDate.length} em produção` : 'Sem entregas'}
             color="#3DB7F4" highlight
-            tooltip="ROI real gerado desde a data de conclusão no Jira (resolution_date). Acumula a cada mês de operação."
+            tooltip="ROI real acumulado desde conclusão. Acumula a cada mês."
           />
-          <HeroKpi
-            label="ECONOMIA ANUAL"
+          <KpiPill
+            label="Economia Anual"
             value={fmtCompact(annualEconomy)}
-            sub={`${fmtCompact(totalGainsMonthly)}/mês (OPEX)`}
+            sub={`${fmtCompact(totalGainsMonthly)}/mês`}
             color="#6BFFEB"
-            tooltip="OPEX (Operational Expenditure): Economia operacional MENSAL gerada pela automação. Cálculo: (horas_economizadas_mês × custo_hora_pessoa_afetada) + ganhos_headcount + ganhos_produtividade. Ex: Se a automação economiza 160h/mês a R$ 60/h = R$ 9.600 OPEX mensal."
+            tooltip="Projeção anual (OPEX mensal × 12)."
           />
-          <HeroKpi
-            label="ROI MÉDIO"
+          <KpiPill
+            label="ROI Médio"
             value={avgRoi != null ? `${avgRoi.toFixed(0)}%` : '—'}
-            sub="Média por Iniciativa"
+            sub="Por iniciativa"
             color="#40EB4F"
-            tooltip="Média do ROI estimado de todas as iniciativas entregues. Quanto maior, mais eficiente foi o investimento geral."
+            tooltip="Média do ROI estimado."
           />
-          <HeroKpi
-            label="HORAS DEVOLVIDAS"
+          <KpiPill
+            label="Horas/mês"
             value={formatHours(totalHours)}
-            sub="Mensalmente"
+            sub="Economizadas"
             color="#3DB7F4"
-            tooltip="Soma total das horas economizadas mensalmente em todas as iniciativas. Cálculo por iniciativa: (horas_salvas_dia × dias_execução × pessoas_afetadas)."
+            tooltip="Soma total das horas economizadas."
           />
-          <HeroKpi
-            label="INVESTIMENTO"
+          <KpiPill
+            label="CAPEX Total"
             value={fmtCompact(initialInvestment)}
-            sub="CAPEX Total"
+            sub="Investimento"
             color="#FE70BD"
-            tooltip="CAPEX (Capital Expenditure): Investimento ONE-TIME em desenvolvimento. Cálculo: (horas_estimadas_dev × CUSTO/HORA_DEV) + (horas_terceiros × custo_hora_terceiros). Nota: token_cost e cloud_infra_cost descontam do OPEX mensal, não do CAPEX. NÃO é salário de pessoas — é custo da hora técnica de desenvolvimento."
+            tooltip="Investimento ONE-TIME em desenvolvimento."
           />
-          <HeroKpi
-            label="LEAD TIME"
+          <KpiPill
+            label="Lead Time"
             value={formatDays(avgLead)}
-            sub="Ciclo Médio"
+            sub="Ciclo médio"
             color="#F2F24B"
-            tooltip="Tempo médio entre a criação e a conclusão dos tickets no Jira (em dias corridos). Menor lead time = entrega mais rápida."
+            tooltip="Tempo médio entre criação e conclusão."
           />
         </div>
 

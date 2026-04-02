@@ -44,6 +44,24 @@ export function getTimeSpentHours(initiative) {
   return Number(initiative?.time_spent_seconds || 0) / 3600
 }
 
+export function getTimeVariancePercent(initiative) {
+  return initiative?.metrics?.time_variance_percent || null
+}
+
+export function getTimeVarianceStatus(variance) {
+  if (variance === null || variance === undefined) return null
+  if (Math.abs(variance) <= 10) return 'Estimativa Precisa'
+  if (variance > 0) return 'Atrasado'
+  return 'Adiantado'
+}
+
+export function getTimeVarianceColor(variance) {
+  if (variance === null || variance === undefined) return '#999'
+  if (Math.abs(variance) <= 10) return '#6BFFEB' // Cyan - preciso
+  if (variance > 0) return '#FE70BD' // Pink - atrasado
+  return '#40EB4F' // Green - adiantado
+}
+
 export function formatHours(value) {
   return `${Number(value || 0).toLocaleString('pt-BR', {
     minimumFractionDigits: 0,

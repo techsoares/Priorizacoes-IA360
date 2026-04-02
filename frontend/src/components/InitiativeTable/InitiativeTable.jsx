@@ -22,9 +22,9 @@ const COLUMNS = [
   { key: 'summary', label: 'Iniciativa', minWidth: 280, tooltip: 'Resumo da demanda. Passe o mouse para ver detalhes.' },
   { key: 'jira_status', label: 'Status', minWidth: 130, badge: true, tooltip: 'Status atual no Jira.' },
   { key: 'hours_saved', label: 'Horas Econ.', minWidth: 105, computed: true, sortable: true, tooltip: 'Tempo economizado por mês (horas_salvas_dia × dias_mês × pessoas_afetadas).' },
-  { key: 'development_estimate_seconds', label: 'Tempo Dev', minWidth: 105, sortable: true, tooltip: 'Tempo estimado de desenvolvimento (horas).' },
-  { key: 'total_gains', label: 'Ganhos/mês', minWidth: 120, computed: true, sortable: true, tooltip: 'Ganhos financeiros mensais estimados.' },
-  { key: 'total_costs', label: 'Custos', minWidth: 120, computed: true, sortable: true, tooltip: 'Custos totais do investimento.' },
+  { key: 'development_estimate_seconds', label: 'Tempo Dev (Est.)', minWidth: 110, sortable: true, tooltip: 'Tempo estimado de desenvolvimento (horas) — vem do Jira. Usado para calcular CAPEX em planejamento.' },
+  { key: 'total_gains', label: 'OPEX Ganhos/mês', minWidth: 140, computed: true, sortable: true, tooltip: 'OPEX (Operational Expenditure): Economia operacional MENSAL. Cálculo: (horas_economizadas_mês × custo_hora_pessoa_afetada) + ganhos_headcount + ganhos_produtividade. Exemplo: 160h/mês × R$ 60/h = R$ 9.600/mês OPEX.' },
+  { key: 'total_costs', label: 'CAPEX Investimento', minWidth: 140, computed: true, sortable: true, tooltip: 'CAPEX (Capital Expenditure): Custo total one-time de desenvolvimento. Cálculo: (horas_dev × R$/h_dev) + (horas_terceiros × R$/h_terceiros). NÃO é salário de pessoas — é custo técnico.' },
   { key: 'roi_percent', label: 'ROI Automação', minWidth: 125, computed: true, sortable: true, tooltip: 'ROI da automação: (ganho_mensal − custos) ÷ custos × 100. Mede se 1 mês de ganho já cobre o investimento.' },
   { key: 'payback_months', label: 'Payback', minWidth: 100, computed: true, sortable: true, tooltip: 'Meses para recuperar o investimento: custos ÷ ganhos_mensais.' },
 ]

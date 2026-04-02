@@ -52,13 +52,27 @@ class ReorderRequest(BaseModel):
 class CalculatedMetrics(BaseModel):
     """Métricas calculadas automaticamente."""
 
-    total_gains: float = Field(0, description="Ganhos totais mensais (R$)")
-    total_costs: float = Field(0, description="Custos totais do investimento (R$)")
+    # --- Ganhos e Custos ---
+    total_gains: float = Field(0, description="Ganhos OPEX totais mensais (R$)")
+    total_costs: float = Field(0, description="Custos CAPEX totais do investimento (R$) — custo hora dev × horas")
+
+    # --- ROI ---
     roi_percent: float | None = Field(None, description="ROI da automação (%) — ganho mensal vs investimento")
     roi_accumulated: float | None = Field(None, description="ROI acumulado real (%) — cresce desde a entrega")
+
+    # --- Timeline ---
     months_live: float | None = Field(None, description="Meses desde a entrega (resolution_date)")
     total_hours_saved: float = Field(0, description="Total de horas economizadas por mês (considerando pessoas afetadas)")
     payback_months: float | None = Field(None, description="Payback (meses) — None se ganhos = 0")
+
+    # --- Tempo de Desenvolvimento ---
+    development_estimate_hours: float = Field(0, description="Tempo estimado de desenvolvimento (horas) — do Jira")
+    time_spent_hours: float = Field(0, description="Tempo real gasto em desenvolvimento (horas) — do Jira")
+    time_variance_percent: float | None = Field(None, description="Variância de tempo (%) — (real - estimado) / estimado × 100. Positivo=atrasado, Negativo=adiantado")
+
+    # --- CAPEX Breakdown ---
+    capex_development_cost: float = Field(0, description="CAPEX puro de desenvolvimento (R$) — horas_estimadas × custo_hora_dev")
+    capex_third_party_cost: float = Field(0, description="CAPEX de terceiros (R$) — horas_terceiros × custo_hora_terceiros")
 
 
 class InitiativeResponse(BaseModel):

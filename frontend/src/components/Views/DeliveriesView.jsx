@@ -5,6 +5,10 @@ import {
   formatHours,
   getLeadTimeDays,
   getMonthlyTimeSavedHours,
+  getTimeSpentHours,
+  getTimeVariancePercent,
+  getTimeVarianceStatus,
+  getTimeVarianceColor,
   groupBy,
   isCompleted,
 } from '../../utils/initiativeInsights'
@@ -245,6 +249,8 @@ function DetailTable({ items }) {
               <th className="px-6 py-4">Key</th>
               <th className="px-6 py-4">Iniciativa</th>
               <th className="px-6 py-4">Lead Time</th>
+              <th className="px-6 py-4">Tempo (Est. vs Real)</th>
+              <th className="px-6 py-4">Variância</th>
               <th className="px-6 py-4 text-right">Economia/mês</th>
               <th className="px-6 py-4 text-right">ROI</th>
               <th className="px-6 py-4 text-right">Payback</th>
@@ -254,6 +260,12 @@ function DetailTable({ items }) {
             {visible.map((item) => {
               const roi = item.metrics?.roi_percent
               const payback = item.metrics?.payback_months
+              const variance = getTimeVariancePercent(item)
+              const varianceStatus = getTimeVarianceStatus(variance)
+              const varianceColor = getTimeVarianceColor(variance)
+              const estimatedHours = item.metrics?.development_estimate_hours || 0
+              const spentHours = item.metrics?.time_spent_hours || 0
+              const hasReal = spentHours > 0
               return (
                 <tr key={item.jira_key || item.id} className="group transition-colors hover:bg-white/[0.02]">
                   <td className="px-6 py-4">
@@ -269,6 +281,30 @@ function DetailTable({ items }) {
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-[11px] font-bold text-gray-400">{formatDays(getLeadTimeDays(item))}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 text-[11px]">
+                      <span className="text-blue-400 font-semibold">{formatHours(estimatedHours)}</span>
+                      {hasReal && (
+                        <>
+                          <span className="text-gray-600">→</span>
+                          <span className="text-amber-400 font-semibold">{formatHours(spentHours)}</span>
+                        </>
+                      )}
+                      {!hasReal && <span className="text-[10px] text-gray-600 italic">sem real</span>}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {variance !== null ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] font-black" style={{ color: varianceColor }}>
+                          {variance > 0 ? '+' : ''}{variance.toFixed(1)}%
+                        </span>
+                        <span className="text-[9px] font-medium text-gray-600">{varianceStatus}</span>
+                      </div>
+                    ) : (
+                      <span className="text-[11px] text-gray-700">—</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <span className="text-[11px] font-black text-[#6BFFEB]">{fmtCompact(item.metrics?.total_gains || 0)}</span>
@@ -414,10 +450,24 @@ export default function DeliveriesView({ initiatives = [] }) {
             color="#3DB7F4" icon="🚀" highlight
             tooltip="ROI real gerado desde a data de conclusão no Jira (resolution_date). Acumula a cada mês de operação."
           />
-          <HeroKpi label="ECONOMIA ANUAL" value={fmtCompact(annualEconomy)} sub={`${fmtCompact(totalGainsMonthly)}/mês (OPEX mensalmente economizado)`} color="#6BFFEB" icon="💰" tooltip="OPEX: Operational Expenditure. Projeção anual de custos operacionais economizados com a automação. Se a automação economiza R$ 5.000/mês em trabalho manual, isso é OPEX economizado." />
+          <HeroKpi
+            label="ECONOMIA ANUAL"
+            value={fmtCompact(annualEconomy)}
+            sub={`${fmtCompact(totalGainsMonthly)}/mês (OPEX)`}
+            color="#6BFFEB"
+            icon="💰"
+            tooltip="OPEX (Operational Expenditure): Economia operacional MENSAL gerada pela automação. Cálculo: (horas_economizadas_mês × custo_hora_pessoa_afetada) + ganhos_headcount + ganhos_produtividade. Ex: Se a automação economiza 160h/mês a R$ 60/h = R$ 9.600 OPEX mensal."
+          />
           <HeroKpi label="ROI MÉDIO" value={avgRoi != null ? `${avgRoi.toFixed(0)}%` : '—'} sub="Média por Iniciativa" color="#40EB4F" icon="📊" />
           <HeroKpi label="HORAS DEVOLVIDAS" value={formatHours(totalHours)} sub="Mensalmente" color="#3DB7F4" icon="⚡" />
-          <HeroKpi label="INVESTIMENTO" value={fmtCompact(initialInvestment)} sub="CAPEX Total" color="#FE70BD" icon="🏗️" tooltip="CAPEX: Capital Expenditure. Custo inicial do investimento em desenvolvimento, infraestrutura e tecnologia. É um gasto one-time para implementar a automação." />
+          <HeroKpi
+            label="INVESTIMENTO"
+            value={fmtCompact(initialInvestment)}
+            sub="CAPEX Total"
+            color="#FE70BD"
+            icon="🏗️"
+            tooltip="CAPEX (Capital Expenditure): Investimento ONE-TIME em desenvolvimento. Cálculo: (horas_estimadas_dev × CUSTO/HORA_DEV) + (horas_terceiros × custo_hora_terceiros) + custos_infra. NÃO é salário de pessoas — é custo da hora técnica de desenvolvimento."
+          />
           <HeroKpi label="LEAD TIME" value={formatDays(avgLead)} sub="Ciclo Médio" color="#F2F24B" icon="🏁" />
         </div>
 

@@ -6,6 +6,10 @@ import Tooltip from '../UI/Tooltip'
 import {
   formatHours,
   getDevelopmentEstimateHours,
+  getTimeSpentHours,
+  getTimeVariancePercent,
+  getTimeVarianceStatus,
+  getTimeVarianceColor,
 } from '../../utils/initiativeInsights'
 
 const ADMIN_COLUMNS = [
@@ -13,15 +17,16 @@ const ADMIN_COLUMNS = [
   { key: 'summary', label: 'Iniciativa', tooltip: 'Resumo da iniciativa sincronizado do Jira.' },
   { key: 'assignee', label: 'Responsável', tooltip: 'Responsável atual do ticket no Jira.' },
   { key: 'affected_people_count', label: 'Pessoas afetadas', tooltip: 'Quantidade de pessoas impactadas pela automação. Usado em: horas_totais = horas_por_pessoa × pessoas_afetadas.', editable: true },
-  { key: 'development_estimate', label: 'Tempo Dev Jira', tooltip: 'Tempo estimado de desenvolvimento vindo do Jira (em horas). Usado em: custo_dev = horas_dev × R$/h Dev.' },
-  { key: 'tech_hour_cost', label: 'R$/h Dev', tooltip: 'Custo por hora do desenvolvedor. Fórmula: custo_dev = (tempo_dev_segundos ÷ 3600) × R$/h Dev.', editable: true },
-  { key: 'cost_per_hour', label: 'R$/h Pessoas', tooltip: 'Custo médio por hora das pessoas afetadas. Fórmula: ganho_horas = (horas_salvas_dia × dias_execução_mês × pessoas_afetadas) × R$/h Pessoas.', editable: true },
-  { key: 'token_cost', label: 'Custo Token', tooltip: 'Custo fixo estimado de tokens de IA. Somado diretamente ao custo total: custo_total = custo_dev + custo_terceiros + token_cost + cloud_infra_cost.', editable: true },
-  { key: 'cloud_infra_cost', label: 'Custo Infra', tooltip: 'Custo de infraestrutura (cloud, n8n, etc). Somado diretamente ao custo total: custo_total = custo_dev + custo_terceiros + token_cost + cloud_infra_cost.', editable: true },
-  { key: 'third_party_hours', label: 'Horas Terceiros', tooltip: 'Horas alocadas de terceiros. Fórmula: custo_terceiros = horas_terceiros × R$/h Terceiros.', editable: true },
-  { key: 'third_party_hour_cost', label: 'R$/h Terceiros', tooltip: 'Custo por hora de terceiros. Fórmula: custo_terceiros = horas_terceiros × R$/h Terceiros.', editable: true },
-  { key: 'total_gains', label: 'Ganhos', tooltip: 'Ganho mensal total calculado. Fórmula: ganhos = ganho_horas + ganho_headcount + ganho_produtividade. Onde ganho_horas = (horas_salvas_dia × dias_mês × pessoas) × R$/h Pessoas.', computed: true },
-  { key: 'total_costs', label: 'Custos', tooltip: 'Custo total do investimento. Fórmula: custos = (horas_dev × R$/h Dev) + (horas_terceiros × R$/h Terceiros) + token_cost + cloud_infra_cost.', computed: true },
+  { key: 'development_time_comparison', label: 'Tempo Dev (Est. vs Real)', tooltip: 'Tempo estimado vs Tempo real gasto. Permite validar precisão de estimativas e calcular CAPEX com base em estimativa (planejamento) ou real (entregas).', computed: true },
+  { key: 'time_variance', label: 'Variância (%)', tooltip: 'Eficiência de estimativa: (real - estimado) / estimado × 100. Positivo=Atrasado, Negativo=Adiantado.', computed: true },
+  { key: 'tech_hour_cost', label: 'R$/h Dev', tooltip: 'CUSTO POR HORA DO DESENVOLVEDOR (não é salário de pessoas). Usado para calcular CAPEX: horas_desenvolvimento × R$/h Dev.', editable: true },
+  { key: 'cost_per_hour', label: 'R$/h Pessoas', tooltip: 'Custo médio por hora das pessoas afetadas (não dev). Fórmula: ganho_horas = (horas_salvas_dia × dias_execução_mês × pessoas_afetadas) × R$/h Pessoas.', editable: true },
+  { key: 'token_cost', label: 'Custo Token', tooltip: 'Custo fixo estimado de tokens de IA (parte de CAPEX).', editable: true },
+  { key: 'cloud_infra_cost', label: 'Custo Infra', tooltip: 'Custo de infraestrutura (cloud, n8n, etc) — parte de CAPEX.', editable: true },
+  { key: 'third_party_hours', label: 'Horas Terceiros', tooltip: 'Horas alocadas de terceiros (parte de CAPEX).', editable: true },
+  { key: 'third_party_hour_cost', label: 'R$/h Terceiros', tooltip: 'Custo por hora de terceiros (parte de CAPEX).', editable: true },
+  { key: 'total_gains', label: 'Ganhos OPEX/mês', tooltip: 'OPEX mensal: Economia operacional mensais gerados pela automação (R$/mês).', computed: true },
+  { key: 'total_costs', label: 'CAPEX (Investimento)', tooltip: 'CAPEX: Custo total de desenvolvimento one-time. Cálculo: (horas_dev × R$/h_dev) + (horas_terceiros × R$/h_terceiros) + custo_infra.', computed: true },
   { key: 'intangible_gains', label: 'Ganhos Intangíveis', tooltip: 'Ganhos qualitativos que não entram no cálculo financeiro, como redução de erros, satisfação da equipe, conformidade, etc.', editable: true, text: true },
 ]
 
@@ -92,6 +97,46 @@ export default function AdminView({
       return <span className="text-[13px] text-gray-300">{formatHours(getDevelopmentEstimateHours(initiative))}</span>
     }
 
+    if (column.key === 'development_time_comparison') {
+      const estimated = getDevelopmentEstimateHours(initiative)
+      const spent = getTimeSpentHours(initiative)
+      const hasReal = spent > 0
+      return (
+        <div className="text-[13px] text-gray-300 flex items-center gap-2">
+          <span className="text-[11px] font-semibold text-blue-400">{formatHours(estimated)}</span>
+          {hasReal && (
+            <>
+              <span className="text-[10px] text-gray-600">→</span>
+              <span className="text-[11px] font-semibold text-amber-400">{formatHours(spent)}</span>
+            </>
+          )}
+          {!hasReal && <span className="text-[10px] text-gray-600 italic">sem registro real</span>}
+        </div>
+      )
+    }
+
+    if (column.key === 'time_variance') {
+      const variance = getTimeVariancePercent(initiative)
+      const status = getTimeVarianceStatus(variance)
+      const color = getTimeVarianceColor(variance)
+
+      if (variance === null) {
+        return <span className="text-[11px] text-gray-700">—</span>
+      }
+
+      return (
+        <div className="flex items-center gap-2">
+          <span
+            className="text-[11px] font-bold"
+            style={{ color }}
+          >
+            {variance > 0 ? '+' : ''}{variance.toFixed(1)}%
+          </span>
+          <span className="text-[10px] font-medium text-gray-600">{status}</span>
+        </div>
+      )
+    }
+
     if (column.editable && column.text) {
       return (
         <EditableTextCell
@@ -129,6 +174,10 @@ export default function AdminView({
 
       if (column.key === 'payback_months') {
         return <span className="text-[13px] text-gray-300">{value.toFixed(1)} meses</span>
+      }
+
+      if (column.key === 'total_costs' || column.key === 'total_gains') {
+        return <span className="text-[13px] text-gray-300 font-semibold">{formatCurrency(value)}</span>
       }
 
       return <span className="text-[13px] text-gray-300">{formatCurrency(value)}</span>

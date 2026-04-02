@@ -20,6 +20,12 @@ function extractFirstOption(raw) {
 
 function extractNumber(raw) {
   if (raw == null || raw === '') return 0
+  // Se for objeto, tenta extrair 'progress' (para aggregateprogress) ou 'value'
+  if (typeof raw === 'object') {
+    if ('progress' in raw) return parseFloat(raw.progress) || 0
+    if ('value' in raw) return parseFloat(raw.value) || 0
+    return 0
+  }
   return parseFloat(raw) || 0
 }
 
@@ -93,7 +99,7 @@ async function fetchJiraIssues() {
       affected_people_count: extractNumber(f.customfield_10937),
       execution_days_per_month: extractNumber(f.customfield_10938),
       development_estimate_seconds: extractNumber(f.timeoriginalestimate),
-      time_spent_seconds: extractNumber(f.aggregateprogress?.progress),
+      time_spent_seconds: extractNumber(f.aggregateprogress),
     }
   })
 }

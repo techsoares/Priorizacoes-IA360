@@ -274,7 +274,7 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
         const resDate = getResolutionDate(item)
         if (resDate) {
           const monthIndex = resDate.getMonth()
-          months[monthIndex].opex += item.metrics?.monthly_gains || item.metrics?.gain || 0
+          months[monthIndex].opex += item.metrics?.total_gains || item.metrics?.monthly_gains || item.metrics?.gain || 0
           months[monthIndex].deliveryCount += 1
         }
       }

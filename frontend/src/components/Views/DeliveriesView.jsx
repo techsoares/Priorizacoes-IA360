@@ -281,22 +281,36 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
       {/* Chart 1: ROI Comparison */}
       <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
         <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">ROI Estimado vs Real (Top 5)</h4>
-        <div className="space-y-3">
-          {roiComparison.map(item => (
-            <div key={item.key} className="flex items-center gap-3">
-              <span className="text-[10px] font-mono text-gray-400 w-12 shrink-0">{item.key}</span>
-              <div className="flex gap-1 flex-1">
-                <div className="flex items-center gap-1">
-                  <div className="h-5 rounded" style={{ width: Math.max(item.est * 2, 4) + 'px', maxWidth: '40px', background: getChartColor('cyan', isDarkMode) }} />
-                  <span className="text-[9px] font-semibold" style={{ color: getChartColor('cyan', isDarkMode) }}>{item.est.toFixed(0)}%</span>
+        <div className="flex items-end gap-3 h-32 mt-4">
+          {roiComparison.map(item => {
+            const maxVal = Math.max(...roiComparison.flatMap(i => [i.est, i.real]), 1)
+            return (
+              <div key={item.key} className="flex-1 flex flex-col items-center gap-1">
+                {/* Two bars side by side */}
+                <div className="flex items-end gap-0.5 w-full h-24">
+                  <div
+                    className="flex-1 rounded-t transition-all hover:opacity-80"
+                    style={{
+                      height: `${(item.est / maxVal) * 100}%`,
+                      background: getChartColor('cyan', isDarkMode),
+                      minHeight: 4
+                    }}
+                    title={`${item.key} Estimado: ${item.est.toFixed(0)}%`}
+                  />
+                  <div
+                    className="flex-1 rounded-t transition-all hover:opacity-80"
+                    style={{
+                      height: `${(item.real / maxVal) * 100}%`,
+                      background: getChartColor('green', isDarkMode),
+                      minHeight: 4
+                    }}
+                    title={`${item.key} Real: ${item.real.toFixed(0)}%`}
+                  />
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="h-5 rounded" style={{ width: Math.max(item.real * 2, 4) + 'px', maxWidth: '40px', background: getChartColor('green', isDarkMode) }} />
-                  <span className="text-[9px] font-semibold" style={{ color: getChartColor('green', isDarkMode) }}>{item.real.toFixed(0)}%</span>
-                </div>
+                <span className="text-[8px] font-mono text-gray-400 text-center">{item.key}</span>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
         <p className="text-[9px] text-gray-500 mt-3">
           <span className="inline-block w-3 h-3 rounded mr-1" style={{ background: getChartColor('cyan', isDarkMode) }} /> Estimado &nbsp;

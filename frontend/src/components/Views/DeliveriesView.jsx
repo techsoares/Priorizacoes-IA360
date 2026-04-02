@@ -271,7 +271,8 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
     // Aggregate data by resolution month
     items.forEach(item => {
       if (isCompleted(item)) {
-        const resDate = getResolutionDate(item)
+        // Try resolution_date first, then status_updated_at for completion date
+        const resDate = getResolutionDate(item) || (item.status_updated_at ? new Date(item.status_updated_at) : null)
         if (resDate) {
           const monthIndex = resDate.getMonth()
           months[monthIndex].opex += item.metrics?.total_gains || item.metrics?.monthly_gains || item.metrics?.gain || 0

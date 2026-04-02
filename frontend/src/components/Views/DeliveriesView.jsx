@@ -252,13 +252,14 @@ function DetailTable({ items }) {
               <th className="px-6 py-4">Tempo (Est. vs Real)</th>
               <th className="px-6 py-4">Variância</th>
               <th className="px-6 py-4 text-right">Economia/mês</th>
-              <th className="px-6 py-4 text-right">ROI</th>
+              <th className="px-6 py-4 text-right">ROI (Est. vs Real)</th>
               <th className="px-6 py-4 text-right">Payback</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/[0.04]">
             {visible.map((item) => {
-              const roi = item.metrics?.roi_percent
+              const roiEstimated = item.metrics?.roi_percent
+              const roiReal = item.metrics?.roi_percent_real
               const payback = item.metrics?.payback_months
               const variance = getTimeVariancePercent(item)
               const varianceStatus = getTimeVarianceStatus(variance)
@@ -310,11 +311,22 @@ function DetailTable({ items }) {
                     <span className="text-[11px] font-black text-[#6BFFEB]">{fmtCompact(item.metrics?.total_gains || 0)}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                     {roi != null ? (
-                       <span className={`text-[11px] font-black ${roi >= 0 ? 'text-[#40EB4F]' : 'text-[#FE70BD]'}`}>
-                         {roi.toFixed(0)}%
-                       </span>
-                     ) : <span className="text-gray-700">—</span>}
+                    <div className="flex flex-col items-end gap-0.5">
+                      {roiEstimated != null ? (
+                        <span className={`text-[10px] font-black ${roiEstimated >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                          Est: {roiEstimated.toFixed(0)}%
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-gray-700">Est: —</span>
+                      )}
+                      {roiReal != null ? (
+                        <span className={`text-[11px] font-black ${roiReal >= 0 ? 'text-[#40EB4F]' : 'text-[#FE70BD]'}`}>
+                          Real: {roiReal.toFixed(0)}%
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-gray-700">Real: —</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <span className="text-[11px] font-bold text-gray-500">{payback != null ? `${payback.toFixed(1)}m` : '—'}</span>

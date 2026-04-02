@@ -117,9 +117,18 @@ def calculate_metrics(data: dict) -> CalculatedMetrics:
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # 4. ROI MENSAL (Para Priorização)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # ROI Estimado: usa horas estimadas
     roi_percent = None
     if total_capex > 0:
         roi_percent = round((net_gains_monthly / total_capex) * 100, 2)
+
+    # ROI Real: usa horas realmente gastas (apenas se houver registro real)
+    roi_percent_real = None
+    if time_spent_hours > 0 and development_estimate_hours > 0:
+        # CAPEX Real = (tempo_real × custo_hora_dev) + (horas_terceiros × custo_hora_terceiros)
+        capex_real = (time_spent_hours * tech_hour_cost) + capex_third_party
+        if capex_real > 0:
+            roi_percent_real = round((net_gains_monthly / capex_real) * 100, 2)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # 5. ROI ACUMULADO (Progresso Real desde Entrega)
@@ -149,6 +158,7 @@ def calculate_metrics(data: dict) -> CalculatedMetrics:
 
         # ROI
         roi_percent=roi_percent,
+        roi_percent_real=roi_percent_real,
         roi_accumulated=roi_accumulated,
 
         # Timeline

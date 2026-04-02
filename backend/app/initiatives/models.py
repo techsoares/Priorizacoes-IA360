@@ -57,7 +57,8 @@ class CalculatedMetrics(BaseModel):
     total_costs: float = Field(0, description="Custos CAPEX totais do investimento (R$) — custo hora dev × horas")
 
     # --- ROI ---
-    roi_percent: float | None = Field(None, description="ROI da automação (%) — ganho mensal vs investimento")
+    roi_percent: float | None = Field(None, description="ROI Estimado (%) — baseado em tempo estimado. Ganho mensal vs CAPEX estimado")
+    roi_percent_real: float | None = Field(None, description="ROI Real (%) — baseado em tempo real gasto. Ganho mensal vs CAPEX real. Só preenchido para entregas com tempo_gasto > 0")
     roi_accumulated: float | None = Field(None, description="ROI acumulado real (%) — cresce desde a entrega")
 
     # --- Timeline ---

@@ -227,44 +227,44 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
     <div className="mt-8 grid gap-6 xl:grid-cols-2">
       {/* Chart 1: ROI Comparison */}
       <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
-        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-4">ROI Estimado vs Real (Top 5)</h4>
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">ROI Estimado vs Real (Top 5)</h4>
         <div className="space-y-3">
           {roiComparison.map(item => (
             <div key={item.key} className="flex items-center gap-3">
-              <span className="text-[10px] font-mono text-gray-500 w-12 shrink-0">{item.key}</span>
+              <span className="text-[10px] font-mono text-gray-400 w-12 shrink-0">{item.key}</span>
               <div className="flex gap-1 flex-1">
                 <div className="flex items-center gap-1">
-                  <div className="h-5 rounded bg-blue-500/40" style={{ width: Math.max(item.est * 2, 4) + 'px', maxWidth: '40px' }} />
-                  <span className="text-[9px] text-blue-400">{item.est.toFixed(0)}%</span>
+                  <div className="h-5 rounded" style={{ width: Math.max(item.est * 2, 4) + 'px', maxWidth: '40px', background: '#3559EB' }} />
+                  <span className="text-[9px] font-semibold" style={{ color: '#3559EB' }}>{item.est.toFixed(0)}%</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="h-5 rounded bg-green-500/40" style={{ width: Math.max(item.real * 2, 4) + 'px', maxWidth: '40px' }} />
-                  <span className="text-[9px] text-green-400">{item.real.toFixed(0)}%</span>
+                  <div className="h-5 rounded" style={{ width: Math.max(item.real * 2, 4) + 'px', maxWidth: '40px', background: '#40EB4F' }} />
+                  <span className="text-[9px] font-semibold" style={{ color: '#40EB4F' }}>{item.real.toFixed(0)}%</span>
                 </div>
               </div>
             </div>
           ))}
         </div>
-        <p className="text-[9px] text-gray-600 mt-3">
-          <span className="inline-block w-3 h-3 rounded bg-blue-500/40 mr-1" /> Estimado &nbsp;
-          <span className="inline-block w-3 h-3 rounded bg-green-500/40 mr-1" /> Real
+        <p className="text-[9px] text-gray-500 mt-3">
+          <span className="inline-block w-3 h-3 rounded mr-1" style={{ background: '#3559EB' }} /> Estimado &nbsp;
+          <span className="inline-block w-3 h-3 rounded mr-1" style={{ background: '#40EB4F' }} /> Real
         </p>
       </div>
 
       {/* Chart 2: Horas por Segmento */}
       <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
-        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-4">Horas Economizadas por Segmento</h4>
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">Horas Economizadas por Segmento</h4>
         <div className="space-y-2">
           {byArea.slice(0, 4).map(area => (
             <div key={area.label} className="flex items-center gap-2">
-              <span className="text-[10px] text-gray-500 truncate w-24">{area.label}</span>
+              <span className="text-[10px] text-gray-400 truncate w-24">{area.label}</span>
               <div className="flex-1 h-4 rounded bg-white/[0.02] overflow-hidden">
                 <div
-                  className="h-full rounded bg-cyan-500/60"
-                  style={{ width: `${(area.value / maxArea) * 100}%` }}
+                  className="h-full rounded"
+                  style={{ width: `${(area.value / maxArea) * 100}%`, background: '#3DB7F4' }}
                 />
               </div>
-              <span className="text-[9px] text-gray-400 w-16 text-right">{formatHours(area.value)}</span>
+              <span className="text-[9px] font-semibold text-white w-16 text-right">{formatHours(area.value)}</span>
             </div>
           ))}
         </div>
@@ -272,41 +272,41 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
 
       {/* Chart 3: CAPEX x OPEX Ratio */}
       <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
-        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-4">Investimento vs Economia (CAPEX vs OPEX/mês)</h4>
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">Investimento vs Economia (CAPEX vs OPEX/ano)</h4>
         <div className="flex items-end gap-4 h-32">
           <div className="flex flex-col items-center flex-1">
             <div
-              className="w-full rounded-t bg-pink-500/60"
-              style={{ height: (initialInvestment / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%' }}
+              className="w-full rounded-t"
+              style={{ height: (initialInvestment / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%', background: '#FE70BD' }}
             />
-            <span className="text-[9px] text-gray-500 mt-2">CAPEX</span>
-            <span className="text-[10px] font-bold text-pink-400">{fmtCompact(initialInvestment)}</span>
+            <span className="text-[9px] text-gray-400 mt-2">CAPEX</span>
+            <span className="text-[10px] font-bold text-white">{fmtCompact(initialInvestment)}</span>
           </div>
           <div className="flex flex-col items-center flex-1">
             <div
-              className="w-full rounded-t bg-green-500/60"
-              style={{ height: (totalGainsMonthly * 12 / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%' }}
+              className="w-full rounded-t"
+              style={{ height: (totalGainsMonthly * 12 / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%', background: '#40EB4F' }}
             />
-            <span className="text-[9px] text-gray-500 mt-2">OPEX/ano</span>
-            <span className="text-[10px] font-bold text-green-400">{fmtCompact(totalGainsMonthly * 12)}</span>
+            <span className="text-[9px] text-gray-400 mt-2">OPEX/ano</span>
+            <span className="text-[10px] font-bold text-white">{fmtCompact(totalGainsMonthly * 12)}</span>
           </div>
         </div>
       </div>
 
       {/* Chart 4: Top Cost Centers */}
       <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
-        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-4">Iniciativas por Centro de Custo</h4>
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">Iniciativas por Centro de Custo</h4>
         <div className="space-y-2">
           {byCostCenter.slice(0, 4).map(center => (
             <div key={center.label} className="flex items-center gap-2">
-              <span className="text-[10px] text-gray-500 truncate w-24">{center.label}</span>
+              <span className="text-[10px] text-gray-400 truncate w-24">{center.label}</span>
               <div className="flex-1 h-4 rounded bg-white/[0.02] overflow-hidden">
                 <div
-                  className="h-full rounded bg-purple-500/60"
-                  style={{ width: `${(center.value / maxCost) * 100}%` }}
+                  className="h-full rounded"
+                  style={{ width: `${(center.value / maxCost) * 100}%`, background: '#F2F24B' }}
                 />
               </div>
-              <span className="text-[9px] text-gray-400 w-8 text-right">{center.value}</span>
+              <span className="text-[9px] font-semibold text-white w-8 text-right">{center.value}</span>
             </div>
           ))}
         </div>
@@ -586,13 +586,8 @@ export default function DeliveriesView({ initiatives = [] }) {
         {/* Header Section */}
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div>
-            <div className="flex items-center gap-3">
-               <h2 className="text-2xl font-black text-white tracking-tight uppercase">Portfólio de Entregas</h2>
-               <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-black text-primary-light ring-1 ring-primary/20 tabular-nums">
-                 {filtered.length} CONCLUÍDOS
-               </span>
-            </div>
-            <p className="mt-1 text-sm font-medium text-gray-500 uppercase tracking-[0.2em]">Data Insights & Performance</p>
+            <h2 className="text-sm font-semibold text-white">Entregas</h2>
+            <p className="text-[11px] text-gray-500">Portfólio de iniciativas concluídas, ROI acumulado e análises financeiras.</p>
           </div>
 
           <div className="flex items-center gap-3">

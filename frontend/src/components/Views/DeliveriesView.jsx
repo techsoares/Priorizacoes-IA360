@@ -13,6 +13,16 @@ import {
   isCompleted,
 } from '../../utils/initiativeInsights'
 
+// ── Color utility for dark/light mode support ──────────────────────────────
+function getChartColor(colorKey, isDarkMode = true) {
+  const colors = {
+    green: isDarkMode ? '#40EB4F' : '#1B8E2C',      // Growth/positive
+    cyan: isDarkMode ? '#3DB7F4' : '#0066CC',       // Primary accent
+    pink: isDarkMode ? '#FE70BD' : '#C81E7E',       // Secondary accent
+  }
+  return colors[colorKey] || '#999'
+}
+
 function fmt(value) {
   return Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }

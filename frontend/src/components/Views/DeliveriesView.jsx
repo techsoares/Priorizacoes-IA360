@@ -208,7 +208,7 @@ function EconomyVsCost({ items }) {
 }
 
 // ── Analytics Charts (Simple CSS-based) ───────────────────────────────────────
-function AnalyticsCharts({ items, byCostCenter, byArea }) {
+function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, totalGainsMonthly }) {
   // Chart 1: ROI Estimado vs Real (scatter-like comparison)
   const roiComparison = items
     .filter(i => i.metrics?.roi_percent != null)
@@ -678,7 +678,13 @@ export default function DeliveriesView({ initiatives = [] }) {
         <DetailTable items={filtered} />
 
         {/* Analytics Charts */}
-        <AnalyticsCharts items={filtered} byCostCenter={byCostCenter} byArea={byArea} />
+        <AnalyticsCharts
+          items={filtered}
+          byCostCenter={byCostCenter}
+          byArea={byArea}
+          initialInvestment={initialInvestment}
+          totalGainsMonthly={totalGainsMonthly}
+        />
       </div>
     )
   } catch (err) {

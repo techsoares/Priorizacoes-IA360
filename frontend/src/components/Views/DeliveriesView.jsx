@@ -533,13 +533,13 @@ export default function DeliveriesView({ initiatives = [] }) {
           </div>
         </div>
 
-        {/* Hero Scoreboard */}
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        {/* KPI Scoreboard — simplified */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <HeroKpi
             label="ROI ACUMULADO"
             value={accumulatedRoi != null ? `${accumulatedRoi.toFixed(0)}%` : '—'}
             sub={withResolutionDate.length > 0 ? `${withResolutionDate.length} entrega${withResolutionDate.length > 1 ? 's' : ''} em produção` : 'Sem entregas concluídas'}
-            color="#3DB7F4" icon="🚀" highlight
+            color="#3DB7F4" highlight
             tooltip="ROI real gerado desde a data de conclusão no Jira (resolution_date). Acumula a cada mês de operação."
           />
           <HeroKpi
@@ -547,7 +547,6 @@ export default function DeliveriesView({ initiatives = [] }) {
             value={fmtCompact(annualEconomy)}
             sub={`${fmtCompact(totalGainsMonthly)}/mês (OPEX)`}
             color="#6BFFEB"
-            icon="💰"
             tooltip="OPEX (Operational Expenditure): Economia operacional MENSAL gerada pela automação. Cálculo: (horas_economizadas_mês × custo_hora_pessoa_afetada) + ganhos_headcount + ganhos_produtividade. Ex: Se a automação economiza 160h/mês a R$ 60/h = R$ 9.600 OPEX mensal."
           />
           <HeroKpi
@@ -555,7 +554,6 @@ export default function DeliveriesView({ initiatives = [] }) {
             value={avgRoi != null ? `${avgRoi.toFixed(0)}%` : '—'}
             sub="Média por Iniciativa"
             color="#40EB4F"
-            icon="📊"
             tooltip="Média do ROI estimado de todas as iniciativas entregues. Quanto maior, mais eficiente foi o investimento geral."
           />
           <HeroKpi
@@ -563,7 +561,6 @@ export default function DeliveriesView({ initiatives = [] }) {
             value={formatHours(totalHours)}
             sub="Mensalmente"
             color="#3DB7F4"
-            icon="⚡"
             tooltip="Soma total das horas economizadas mensalmente em todas as iniciativas. Cálculo por iniciativa: (horas_salvas_dia × dias_execução × pessoas_afetadas)."
           />
           <HeroKpi
@@ -571,28 +568,18 @@ export default function DeliveriesView({ initiatives = [] }) {
             value={fmtCompact(initialInvestment)}
             sub="CAPEX Total"
             color="#FE70BD"
-            icon="🏗️"
-            tooltip="CAPEX (Capital Expenditure): Investimento ONE-TIME em desenvolvimento. Cálculo: (horas_estimadas_dev × CUSTO/HORA_DEV) + (horas_terceiros × custo_hora_terceiros) + custos_infra. NÃO é salário de pessoas — é custo da hora técnica de desenvolvimento."
+            tooltip="CAPEX (Capital Expenditure): Investimento ONE-TIME em desenvolvimento. Cálculo: (horas_estimadas_dev × CUSTO/HORA_DEV) + (horas_terceiros × custo_hora_terceiros). Nota: token_cost e cloud_infra_cost descontam do OPEX mensal, não do CAPEX. NÃO é salário de pessoas — é custo da hora técnica de desenvolvimento."
           />
           <HeroKpi
             label="LEAD TIME"
             value={formatDays(avgLead)}
             sub="Ciclo Médio"
             color="#F2F24B"
-            icon="🏁"
             tooltip="Tempo médio entre a criação e a conclusão dos tickets no Jira (em dias corridos). Menor lead time = entrega mais rápida."
           />
         </div>
 
-        {/* Analytics Section */}
-        <div className="grid gap-6 xl:grid-cols-3">
-          <RoiSpotlight items={roiItems} />
-          <RankedList title="Horas por Segmento" items={byArea} formatter={formatHours} color="#3DB7F4" icon="📍" />
-          <RankedList title="Centro de Custos" items={byCostCenter} formatter={(v) => `${v} Ativos`} color="#FE70BD" icon="🏢" />
-        </div>
-
-        <EconomyVsCost items={economyVsCost} />
-
+        {/* Main Detail Table — moved to center */}
         <DetailTable items={filtered} />
       </div>
     )

@@ -20,6 +20,7 @@ function getChartColor(colorKey, isDarkMode = true) {
     green: isDarkMode ? '#40EB4F' : '#1B8E2C',      // Growth/positive
     cyan: isDarkMode ? '#3DB7F4' : '#0066CC',       // Primary accent
     pink: isDarkMode ? '#FE70BD' : '#C81E7E',       // Secondary accent
+    yellow: isDarkMode ? '#F2F24B' : '#D4A520',     // Tertiary accent
   }
   return colors[colorKey] || '#999'
 }
@@ -283,20 +284,20 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
               <span className="text-[10px] font-mono text-gray-400 w-12 shrink-0">{item.key}</span>
               <div className="flex gap-1 flex-1">
                 <div className="flex items-center gap-1">
-                  <div className="h-5 rounded" style={{ width: Math.max(item.est * 2, 4) + 'px', maxWidth: '40px', background: '#3559EB' }} />
-                  <span className="text-[9px] font-semibold" style={{ color: '#3559EB' }}>{item.est.toFixed(0)}%</span>
+                  <div className="h-5 rounded" style={{ width: Math.max(item.est * 2, 4) + 'px', maxWidth: '40px', background: getChartColor('cyan') }} />
+                  <span className="text-[9px] font-semibold" style={{ color: getChartColor('cyan') }}>{item.est.toFixed(0)}%</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="h-5 rounded" style={{ width: Math.max(item.real * 2, 4) + 'px', maxWidth: '40px', background: '#40EB4F' }} />
-                  <span className="text-[9px] font-semibold" style={{ color: '#40EB4F' }}>{item.real.toFixed(0)}%</span>
+                  <div className="h-5 rounded" style={{ width: Math.max(item.real * 2, 4) + 'px', maxWidth: '40px', background: getChartColor('green') }} />
+                  <span className="text-[9px] font-semibold" style={{ color: getChartColor('green') }}>{item.real.toFixed(0)}%</span>
                 </div>
               </div>
             </div>
           ))}
         </div>
         <p className="text-[9px] text-gray-500 mt-3">
-          <span className="inline-block w-3 h-3 rounded mr-1" style={{ background: '#3559EB' }} /> Estimado &nbsp;
-          <span className="inline-block w-3 h-3 rounded mr-1" style={{ background: '#40EB4F' }} /> Real
+          <span className="inline-block w-3 h-3 rounded mr-1" style={{ background: getChartColor('cyan') }} /> Estimado &nbsp;
+          <span className="inline-block w-3 h-3 rounded mr-1" style={{ background: getChartColor('green') }} /> Real
         </p>
       </div>
 
@@ -310,7 +311,7 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
               <div className="flex-1 h-4 rounded bg-white/[0.02] overflow-hidden">
                 <div
                   className="h-full rounded"
-                  style={{ width: `${(area.value / maxArea) * 100}%`, background: '#3DB7F4' }}
+                  style={{ width: `${(area.value / maxArea) * 100}%`, background: getChartColor('cyan') }}
                 />
               </div>
               <span className="text-[9px] font-semibold text-white w-16 text-right">{formatHours(area.value)}</span>
@@ -326,7 +327,7 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
           <div className="flex flex-col items-center flex-1">
             <div
               className="w-full rounded-t"
-              style={{ height: (initialInvestment / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%', background: '#FE70BD' }}
+              style={{ height: (initialInvestment / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%', background: getChartColor('pink') }}
             />
             <span className="text-[9px] text-gray-400 mt-2">CAPEX</span>
             <span className="text-[10px] font-bold text-white">{fmtCompact(initialInvestment)}</span>
@@ -334,7 +335,7 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
           <div className="flex flex-col items-center flex-1">
             <div
               className="w-full rounded-t"
-              style={{ height: (totalGainsMonthly * 12 / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%', background: '#40EB4F' }}
+              style={{ height: (totalGainsMonthly * 12 / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%', background: getChartColor('green') }}
             />
             <span className="text-[9px] text-gray-400 mt-2">OPEX/ano</span>
             <span className="text-[10px] font-bold text-white">{fmtCompact(totalGainsMonthly * 12)}</span>
@@ -352,7 +353,7 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
               <div className="flex-1 h-4 rounded bg-white/[0.02] overflow-hidden">
                 <div
                   className="h-full rounded"
-                  style={{ width: `${(center.value / maxCost) * 100}%`, background: '#F2F24B' }}
+                  style={{ width: `${(center.value / maxCost) * 100}%`, background: getChartColor('yellow') }}
                 />
               </div>
               <span className="text-[9px] font-semibold text-white w-8 text-right">{center.value}</span>

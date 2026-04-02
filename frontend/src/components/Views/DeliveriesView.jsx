@@ -395,6 +395,73 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
           <span>ROI Acumulado (%)</span>
         </div>
       </div>
+
+      {/* Chart 6: OPEX Mensal + Iniciativas Entregues (Grouped Bars) */}
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">OPEX Mensal + Iniciativas Entregues</h4>
+
+        <div className="space-y-3">
+          {monthlyData.map((month) => {
+            const maxOpex = Math.max(...monthlyData.map(m => m.opex), 1)
+            const maxDeliveries = Math.max(...monthlyData.map(m => m.deliveryCount), 1)
+
+            const opexPercent = (month.opex / maxOpex) * 100
+            const deliveryPercent = (month.deliveryCount / maxDeliveries) * 100
+
+            return (
+              <div key={month.month} className="group">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="text-[9px] font-semibold text-gray-400 w-12">{month.monthName}</span>
+                  <div className="flex-1 flex gap-0.5 items-center">
+                    {/* OPEX bar */}
+                    <div className="flex items-center gap-1">
+                      <div
+                        className="h-4 rounded transition-all hover:opacity-80"
+                        style={{
+                          width: `${opexPercent * 1.5}px`,
+                          maxWidth: '60px',
+                          background: getChartColor('cyan'),
+                          boxShadow: `0 0 6px ${getChartColor('cyan')}33`,
+                        }}
+                      />
+                      <span className="text-[8px] font-semibold" style={{ color: getChartColor('cyan'), minWidth: '30px' }}>
+                        {fmtCompact(month.opex)}
+                      </span>
+                    </div>
+
+                    {/* Delivery count bar */}
+                    <div className="flex items-center gap-1">
+                      <div
+                        className="h-4 rounded transition-all hover:opacity-80"
+                        style={{
+                          width: `${deliveryPercent * 1.5}px`,
+                          maxWidth: '60px',
+                          background: getChartColor('pink'),
+                          boxShadow: `0 0 6px ${getChartColor('pink')}33`,
+                        }}
+                      />
+                      <span className="text-[8px] font-semibold" style={{ color: getChartColor('pink'), minWidth: '20px' }}>
+                        {month.deliveryCount}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="flex items-center gap-4 mt-4 text-[9px] text-gray-500">
+          <div className="flex items-center gap-1">
+            <span className="inline-block w-3 h-3 rounded" style={{ background: getChartColor('cyan') }} />
+            <span>OPEX (R$)</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="inline-block w-3 h-3 rounded" style={{ background: getChartColor('pink') }} />
+            <span>Entregas</span>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

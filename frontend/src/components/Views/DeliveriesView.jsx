@@ -219,6 +219,39 @@ function EconomyVsCost({ items }) {
   )
 }
 
+// ── DonutChart component (pure SVG) ─────────────────────────────────────────
+function DonutChart({ slices, size = 100 }) {
+  const total = slices.reduce((s, sl) => s + sl.value, 0)
+  if (total === 0) return <div style={{ width: size, height: size }} className="flex items-center justify-center text-[9px] text-gray-500">Sem dados</div>
+
+  const r = 35, cx = 50, cy = 50
+  const circumference = 2 * Math.PI * r
+  let offset = 0
+
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100">
+      {slices.map((sl, i) => {
+        const pct = sl.value / total
+        const dash = pct * circumference
+        const gap = circumference - dash
+        const el = (
+          <circle key={i} cx={cx} cy={cy} r={r}
+            fill="none"
+            stroke={sl.color}
+            strokeWidth="14"
+            strokeDasharray={`${dash} ${gap}`}
+            strokeDashoffset={-offset}
+            transform="rotate(-90 50 50)"
+          />
+        )
+        offset += dash
+        return el
+      })}
+      <circle cx={cx} cy={cy} r="24" fill="rgba(255,255,255,0.02)" />
+    </svg>
+  )
+}
+
 // ── Analytics Charts (Simple CSS-based) ───────────────────────────────────────
 function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, totalGainsMonthly }) {
   // Prepare monthly data for new temporal charts
@@ -337,25 +370,28 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
         </div>
       </div>
 
-      {/* Chart 3: CAPEX x OPEX Ratio */}
+      {/* Chart 3: CAPEX x OPEX Ratio — Donut */}
       <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
-        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">Investimento vs Economia (CAPEX vs OPEX/ano)</h4>
-        <div className="flex items-end gap-4 h-32">
-          <div className="flex flex-col items-center flex-1">
-            <div
-              className="w-full rounded-t"
-              style={{ height: (initialInvestment / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%', background: getChartColor('pink', isDarkMode) }}
-            />
-            <span className="text-[9px] text-gray-400 mt-2">CAPEX</span>
-            <span className="text-[10px] font-bold text-white">{fmtCompact(initialInvestment)}</span>
-          </div>
-          <div className="flex flex-col items-center flex-1">
-            <div
-              className="w-full rounded-t"
-              style={{ height: (totalGainsMonthly * 12 / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%', background: getChartColor('green', isDarkMode) }}
-            />
-            <span className="text-[9px] text-gray-400 mt-2">OPEX/ano</span>
-            <span className="text-[10px] font-bold text-white">{fmtCompact(totalGainsMonthly * 12)}</span>
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">Investimento vs Economia</h4>
+        <div className="flex items-center gap-6 mt-4">
+          {/* SVG Donut */}
+          <DonutChart
+            slices={[
+              { value: initialInvestment, color: getChartColor('pink', isDarkMode), label: 'CAPEX' },
+              { value: totalGainsMonthly * 12, color: getChartColor('green', isDarkMode), label: 'OPEX/ano' },
+            ]}
+            size={100}
+          />
+          {/* Legend */}
+          <div className="space-y-2 text-[10px]">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full" style={{ background: getChartColor('pink', isDarkMode) }} />
+              <span className="text-gray-400">CAPEX: <strong className="text-white">{fmtCompact(initialInvestment)}</strong></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full" style={{ background: getChartColor('green', isDarkMode) }} />
+              <span className="text-gray-400">OPEX/ano: <strong className="text-white">{fmtCompact(totalGainsMonthly * 12)}</strong></span>
+            </div>
           </div>
         </div>
       </div>

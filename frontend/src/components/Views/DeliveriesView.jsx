@@ -198,16 +198,16 @@ function EconomyVsCost({ items }) {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-wider text-gray-500">
                   <span>Economia Mensal (OPEX)</span>
-                  <span className="text-[#6BFFEB]">{fmtCompact(item.gains)}</span>
+                  <span style={{ color: getChartColor('cyan', document.documentElement.getAttribute('data-theme') === 'dark') }}>{fmtCompact(item.gains)}</span>
                 </div>
-                <AnimatedBar pct={(item.gains / max) * 100} color="#6BFFEB" />
+                <AnimatedBar pct={(item.gains / max) * 100} color={getChartColor('cyan', document.documentElement.getAttribute('data-theme') === 'dark')} />
               </div>
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-wider text-gray-500">
                   <span>Investimento (CAPEX)</span>
-                  <span className="text-[#FE70BD]">{fmtCompact(item.costs)}</span>
+                  <span style={{ color: getChartColor('pink', document.documentElement.getAttribute('data-theme') === 'dark') }}>{fmtCompact(item.costs)}</span>
                 </div>
-                <AnimatedBar pct={(item.costs / max) * 100} color="#FE70BD" />
+                <AnimatedBar pct={(item.costs / max) * 100} color={getChartColor('pink', document.documentElement.getAttribute('data-theme') === 'dark')} />
               </div>
             </div>
           </div>

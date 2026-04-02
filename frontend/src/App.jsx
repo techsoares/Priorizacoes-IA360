@@ -298,6 +298,7 @@ function WorkspacePage() {
             filters={filters}
             onFilterChange={setFilters}
             onUpdateField={updateField}
+            isAdmin={isAdmin}
           />
         ) : null}
       </main>

@@ -59,6 +59,7 @@ export default function AdminView({
   filters,
   onFilterChange,
   onUpdateField,
+  isAdmin = false,
 }) {
   const adminInitiatives = useMemo(
     () =>
@@ -138,6 +139,9 @@ export default function AdminView({
     }
 
     if (column.editable && column.text) {
+      if (!isAdmin) {
+        return <span className="text-[11px] text-gray-700 italic cursor-not-allowed" title="Apenas administradores podem editar">—</span>
+      }
       return (
         <EditableTextCell
           value={initiative[column.key]}
@@ -148,6 +152,9 @@ export default function AdminView({
     }
 
     if (column.editable) {
+      if (!isAdmin) {
+        return <span className="text-[11px] text-gray-700 italic cursor-not-allowed" title="Apenas administradores podem editar">—</span>
+      }
       return (
         <EditableCell
           value={initiative[column.key]}
@@ -188,6 +195,18 @@ export default function AdminView({
 
   return (
     <>
+      {!isAdmin && (
+        <div className="mb-4 flex items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+          <svg className="h-5 w-5 flex-shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div className="text-[11px] text-amber-200">
+            <p className="font-semibold">Modo visualização</p>
+            <p>Você não é administrador. Os campos de custo estão bloqueados para edição. Solicite acesso ao administrador do sistema para editá-los.</p>
+          </div>
+        </div>
+      )}
+
       <div className="mb-5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div>

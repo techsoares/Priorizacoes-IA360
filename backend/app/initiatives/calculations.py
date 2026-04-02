@@ -134,15 +134,25 @@ def calculate_metrics(data: dict) -> CalculatedMetrics:
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # 5. ROI ACUMULADO (Progresso Real desde Entrega)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Se há tempo real gasto, usa CAPEX real; caso contrário, usa CAPEX estimado
     roi_accumulated = None
     resolution_date = data.get("resolution_date")
     completion_date = resolution_date or data.get("status_updated_at")
     months_live = _months_since(completion_date)
 
-    if total_capex > 0 and months_live > 0:
+    # Determina qual CAPEX usar para o cálculo acumulado
+    capex_for_accumulated = None
+    if time_spent_hours > 0:
+        # Use CAPEX real (baseado em tempo gasto)
+        capex_for_accumulated = (time_spent_hours * tech_hour_cost) + capex_third_party
+    else:
+        # Use CAPEX estimado (baseado em tempo estimado)
+        capex_for_accumulated = total_capex
+
+    if capex_for_accumulated > 0 and months_live > 0:
         total_net_gains_so_far = net_gains_monthly * months_live
-        roi_accumulated = round(((total_net_gains_so_far - total_capex) / total_capex) * 100, 2)
-    elif total_capex > 0 and months_live == 0 and completion_date:
+        roi_accumulated = round(((total_net_gains_so_far - capex_for_accumulated) / capex_for_accumulated) * 100, 2)
+    elif capex_for_accumulated > 0 and months_live == 0 and completion_date:
         roi_accumulated = -100.0
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -150,7 +160,9 @@ def calculate_metrics(data: dict) -> CalculatedMetrics:
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     payback_months = None
     if net_gains_monthly > 0:
-        payback_months = round(total_capex / net_gains_monthly, 2)
+        # Payback usa CAPEX real se disponível, senão usa estimado
+        capex_for_payback = capex_for_accumulated if capex_for_accumulated else total_capex
+        payback_months = round(capex_for_payback / net_gains_monthly, 2)
 
     return CalculatedMetrics(
         # Ganhos e Custos

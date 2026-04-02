@@ -39,20 +39,36 @@ function calculateMetrics(data) {
     timeVariancePercent = ((timeSpentHours - developmentEstimateHours) / developmentEstimateHours) * 100
   }
 
-  // ROI acumulado real
+  // ROI acumulado real (usa CAPEX real se disponível)
   let roiAccumulated = null
   let monthsLive = null
   const completionDate = data.resolution_date || data.status_updated_at
   if (completionDate) {
     const diffMs = Date.now() - new Date(completionDate).getTime()
     monthsLive = Math.max(0, diffMs / (1000 * 60 * 60 * 24 * 30.44))
-    if (initialInvestment > 0) {
+
+    // Determina qual CAPEX usar para o cálculo acumulado
+    let capexForAccumulated = initialInvestment
+    if (timeSpentHours > 0) {
+      // Use CAPEX real (baseado em tempo gasto)
+      capexForAccumulated = (timeSpentHours * techHourCost) + capexThirdParty
+    }
+
+    if (capexForAccumulated > 0) {
       const accumulatedNetGain = netMonthlyGain * monthsLive
-      roiAccumulated = ((accumulatedNetGain - initialInvestment) / initialInvestment) * 100
+      roiAccumulated = ((accumulatedNetGain - capexForAccumulated) / capexForAccumulated) * 100
     }
   }
 
-  const paybackMonths = netMonthlyGain > 0 ? initialInvestment / netMonthlyGain : null
+  // Payback usa CAPEX real se disponível
+  let paybackMonths = null
+  if (netMonthlyGain > 0) {
+    let capexForPayback = initialInvestment
+    if (timeSpentHours > 0) {
+      capexForPayback = (timeSpentHours * techHourCost) + capexThirdParty
+    }
+    paybackMonths = capexForPayback / netMonthlyGain
+  }
 
   return {
     total_gains: Math.round(netMonthlyGain * 100) / 100,

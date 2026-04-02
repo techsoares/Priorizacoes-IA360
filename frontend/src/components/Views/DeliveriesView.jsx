@@ -259,6 +259,9 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
     return months
   }, [items])
 
+  // Detect current theme mode
+  const isDarkMode = document.documentElement.getAttribute('data-theme') !== 'light'
+
   // Chart 1: ROI Estimado vs Real (scatter-like comparison)
   const roiComparison = items
     .filter(i => i.metrics?.roi_percent != null)
@@ -284,20 +287,20 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
               <span className="text-[10px] font-mono text-gray-400 w-12 shrink-0">{item.key}</span>
               <div className="flex gap-1 flex-1">
                 <div className="flex items-center gap-1">
-                  <div className="h-5 rounded" style={{ width: Math.max(item.est * 2, 4) + 'px', maxWidth: '40px', background: getChartColor('cyan') }} />
-                  <span className="text-[9px] font-semibold" style={{ color: getChartColor('cyan') }}>{item.est.toFixed(0)}%</span>
+                  <div className="h-5 rounded" style={{ width: Math.max(item.est * 2, 4) + 'px', maxWidth: '40px', background: getChartColor('cyan', isDarkMode) }} />
+                  <span className="text-[9px] font-semibold" style={{ color: getChartColor('cyan', isDarkMode) }}>{item.est.toFixed(0)}%</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="h-5 rounded" style={{ width: Math.max(item.real * 2, 4) + 'px', maxWidth: '40px', background: getChartColor('green') }} />
-                  <span className="text-[9px] font-semibold" style={{ color: getChartColor('green') }}>{item.real.toFixed(0)}%</span>
+                  <div className="h-5 rounded" style={{ width: Math.max(item.real * 2, 4) + 'px', maxWidth: '40px', background: getChartColor('green', isDarkMode) }} />
+                  <span className="text-[9px] font-semibold" style={{ color: getChartColor('green', isDarkMode) }}>{item.real.toFixed(0)}%</span>
                 </div>
               </div>
             </div>
           ))}
         </div>
         <p className="text-[9px] text-gray-500 mt-3">
-          <span className="inline-block w-3 h-3 rounded mr-1" style={{ background: getChartColor('cyan') }} /> Estimado &nbsp;
-          <span className="inline-block w-3 h-3 rounded mr-1" style={{ background: getChartColor('green') }} /> Real
+          <span className="inline-block w-3 h-3 rounded mr-1" style={{ background: getChartColor('cyan', isDarkMode) }} /> Estimado &nbsp;
+          <span className="inline-block w-3 h-3 rounded mr-1" style={{ background: getChartColor('green', isDarkMode) }} /> Real
         </p>
       </div>
 
@@ -311,7 +314,7 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
               <div className="flex-1 h-4 rounded bg-white/[0.02] overflow-hidden">
                 <div
                   className="h-full rounded"
-                  style={{ width: `${(area.value / maxArea) * 100}%`, background: getChartColor('cyan') }}
+                  style={{ width: `${(area.value / maxArea) * 100}%`, background: getChartColor('cyan', isDarkMode) }}
                 />
               </div>
               <span className="text-[9px] font-semibold text-white w-16 text-right">{formatHours(area.value)}</span>
@@ -327,7 +330,7 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
           <div className="flex flex-col items-center flex-1">
             <div
               className="w-full rounded-t"
-              style={{ height: (initialInvestment / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%', background: getChartColor('pink') }}
+              style={{ height: (initialInvestment / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%', background: getChartColor('pink', isDarkMode) }}
             />
             <span className="text-[9px] text-gray-400 mt-2">CAPEX</span>
             <span className="text-[10px] font-bold text-white">{fmtCompact(initialInvestment)}</span>
@@ -335,7 +338,7 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
           <div className="flex flex-col items-center flex-1">
             <div
               className="w-full rounded-t"
-              style={{ height: (totalGainsMonthly * 12 / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%', background: getChartColor('green') }}
+              style={{ height: (totalGainsMonthly * 12 / Math.max(initialInvestment, totalGainsMonthly * 12)) * 100 + '%', background: getChartColor('green', isDarkMode) }}
             />
             <span className="text-[9px] text-gray-400 mt-2">OPEX/ano</span>
             <span className="text-[10px] font-bold text-white">{fmtCompact(totalGainsMonthly * 12)}</span>
@@ -353,7 +356,7 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
               <div className="flex-1 h-4 rounded bg-white/[0.02] overflow-hidden">
                 <div
                   className="h-full rounded"
-                  style={{ width: `${(center.value / maxCost) * 100}%`, background: getChartColor('yellow') }}
+                  style={{ width: `${(center.value / maxCost) * 100}%`, background: getChartColor('yellow', isDarkMode) }}
                 />
               </div>
               <span className="text-[9px] font-semibold text-white w-8 text-right">{center.value}</span>
@@ -381,8 +384,8 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
                   style={{
                     height: `${heightPercent}%`,
                     minHeight: '4px',
-                    background: getChartColor('green'),
-                    boxShadow: `0 0 8px ${getChartColor('green')}44`,
+                    background: getChartColor('green', isDarkMode),
+                    boxShadow: `0 0 8px ${getChartColor('green', isDarkMode)}44`,
                   }}
                 />
                 <span className="text-[8px] text-gray-500 mt-1 text-center">{month.monthName}</span>
@@ -392,7 +395,7 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
         </div>
 
         <div className="flex items-center gap-2 mt-4 text-[9px] text-gray-500">
-          <span className="inline-block w-3 h-3 rounded" style={{ background: getChartColor('green') }} />
+          <span className="inline-block w-3 h-3 rounded" style={{ background: getChartColor('green', isDarkMode) }} />
           <span>ROI Acumulado (%)</span>
         </div>
       </div>
@@ -421,11 +424,11 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
                         style={{
                           width: `${opexPercent * 1.5}px`,
                           maxWidth: '60px',
-                          background: getChartColor('cyan'),
-                          boxShadow: `0 0 6px ${getChartColor('cyan')}33`,
+                          background: getChartColor('cyan', isDarkMode),
+                          boxShadow: `0 0 6px ${getChartColor('cyan', isDarkMode)}33`,
                         }}
                       />
-                      <span className="text-[8px] font-semibold" style={{ color: getChartColor('cyan'), minWidth: '30px' }}>
+                      <span className="text-[8px] font-semibold" style={{ color: getChartColor('cyan', isDarkMode), minWidth: '30px' }}>
                         {fmtCompact(month.opex)}
                       </span>
                     </div>
@@ -437,11 +440,11 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
                         style={{
                           width: `${deliveryPercent * 1.5}px`,
                           maxWidth: '60px',
-                          background: getChartColor('pink'),
-                          boxShadow: `0 0 6px ${getChartColor('pink')}33`,
+                          background: getChartColor('pink', isDarkMode),
+                          boxShadow: `0 0 6px ${getChartColor('pink', isDarkMode)}33`,
                         }}
                       />
-                      <span className="text-[8px] font-semibold" style={{ color: getChartColor('pink'), minWidth: '20px' }}>
+                      <span className="text-[8px] font-semibold" style={{ color: getChartColor('pink', isDarkMode), minWidth: '20px' }}>
                         {month.deliveryCount}
                       </span>
                     </div>
@@ -454,11 +457,11 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
 
         <div className="flex items-center gap-4 mt-4 text-[9px] text-gray-500">
           <div className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded" style={{ background: getChartColor('cyan') }} />
+            <span className="inline-block w-3 h-3 rounded" style={{ background: getChartColor('cyan', isDarkMode) }} />
             <span>OPEX (R$)</span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded" style={{ background: getChartColor('pink') }} />
+            <span className="inline-block w-3 h-3 rounded" style={{ background: getChartColor('pink', isDarkMode) }} />
             <span>Entregas</span>
           </div>
         </div>

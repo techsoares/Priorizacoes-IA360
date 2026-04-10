@@ -79,6 +79,43 @@ export async function syncJira() {
   return data.map(enrich)
 }
 
+// ── Sprint Queue ──────────────────────────────────────────────────────────────
+
+export async function listSprintQueue() {
+  const { data, error } = await supabase
+    .from('sprint_queue')
+    .select('*')
+    .order('activity_type', { ascending: true })
+    .order('position', { ascending: true })
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function addToSprintQueue(initiativeId, activityType, position, createdBy) {
+  const { error } = await supabase.from('sprint_queue').insert({
+    initiative_id: initiativeId,
+    activity_type: activityType,
+    position,
+    created_by: createdBy || null,
+  })
+  if (error) throw new Error(error.message)
+}
+
+export async function removeFromSprintQueue(initiativeId) {
+  const { error } = await supabase.from('sprint_queue').delete().eq('initiative_id', initiativeId)
+  if (error) throw new Error(error.message)
+}
+
+export async function reorderSprintQueue(items) {
+  for (const item of items) {
+    const { error } = await supabase
+      .from('sprint_queue')
+      .update({ position: item.position })
+      .eq('id', item.id)
+    if (error) throw new Error(error.message)
+  }
+}
+
 // Mantém compatibilidade com código que usa `api` como default (axios-style)
 const api = {
   get: async (url) => {

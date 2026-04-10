@@ -1,4 +1,17 @@
 import { useMemo, useState } from 'react'
+import {
+  ComposedChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend,
+  ReferenceLine,
+  ResponsiveContainer,
+} from 'recharts'
+import FilterBar from '../Dashboard/FilterBar'
 import Tooltip from '../UI/Tooltip'
 import {
   formatDays,
@@ -253,27 +266,208 @@ function DonutChart({ slices, size = 100 }) {
 }
 
 // ── Analytics Charts (Simple CSS-based) ───────────────────────────────────────
+// ── OPEX Column Chart with trend + average lines ──────────────────────────────
+function calcTrend(points) {
+  const n = points.length
+  if (n < 2) return null
+  const sumX = points.reduce((s, p) => s + p.x, 0)
+  const sumY = points.reduce((s, p) => s + p.y, 0)
+  const sumXY = points.reduce((s, p) => s + p.x * p.y, 0)
+  const sumX2 = points.reduce((s, p) => s + p.x * p.x, 0)
+  const denom = n * sumX2 - sumX * sumX
+  if (denom === 0) return null
+  const slope = (n * sumXY - sumX * sumY) / denom
+  const intercept = (sumY - slope * sumX) / n
+  return { slope, intercept }
+}
+
+function buildTrendSeries(data, getValue, currentMonthIndex) {
+  const valid = data
+    .map((d, i) => ({ x: i, y: getValue(d) }))
+    .filter(p => p.y > 0 && p.x !== currentMonthIndex)
+  const reg = calcTrend(valid)
+  if (!reg) return data.map(() => null)
+  // Extrapola para todos os 12 meses
+  return data.map((_, i) => Math.max(0, reg.slope * i + reg.intercept))
+}
+
+function AvgLabel({ viewBox, value, color, align }) {
+  if (!viewBox) return null
+  const { x, y, width } = viewBox
+  const xPos = align === 'right' ? x + width - 4 : x + 4
+  const anchor = align === 'right' ? 'end' : 'start'
+  return (
+    <g>
+      <rect
+        x={xPos - (align === 'right' ? 4 : 0)}
+        y={y - 16}
+        width={value.length * 6.2 + 8}
+        height={14}
+        rx={3}
+        fill="rgba(10,14,26,0.75)"
+        transform={align === 'right' ? `translate(-${value.length * 6.2 + 8}, 0)` : undefined}
+      />
+      <text
+        x={xPos}
+        y={y - 6}
+        fill={color}
+        fontSize={10}
+        fontWeight={600}
+        textAnchor={anchor}
+      >
+        {value}
+      </text>
+    </g>
+  )
+}
+
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="rounded-lg border border-white/[0.08] bg-surface-elevated px-3 py-2 text-[11px] shadow-xl">
+      <p className="mb-1.5 font-semibold text-gray-300">{label}</p>
+      {payload.map((entry) => (
+        <div key={entry.name} className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full" style={{ background: entry.color }} />
+          <span className="text-gray-400">{entry.name}:</span>
+          <span className="font-medium text-white">
+            {entry.name === 'OPEX' ? fmtCompact(entry.value) : entry.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function OpexColumnChart({ data, isDarkMode, selectedYear }) {
+  const currentMonthIndex = new Date().getFullYear() === selectedYear ? new Date().getMonth() : -1
+
+  const trendOpex = buildTrendSeries(data, d => d.opex, currentMonthIndex)
+  const trendEntregas = buildTrendSeries(data, d => d.deliveryCount, currentMonthIndex)
+
+  // Médias apenas sobre meses com dados, excluindo mês atual
+  const validOpex = data.filter((d, i) => d.opex > 0 && i !== currentMonthIndex)
+  const validEntregas = data.filter((d, i) => d.deliveryCount > 0 && i !== currentMonthIndex)
+  const avgOpex = validOpex.length ? validOpex.reduce((s, d) => s + d.opex, 0) / validOpex.length : 0
+  const avgEntregas = validEntregas.length ? validEntregas.reduce((s, d) => s + d.deliveryCount, 0) / validEntregas.length : 0
+
+  const chartData = data.map((d, i) => ({
+    name: d.monthName,
+    OPEX: d.opex,
+    Entregas: d.deliveryCount,
+    'Tendência OPEX': trendOpex[i] != null ? Math.round(trendOpex[i]) : null,
+    'Tendência Entregas': trendEntregas[i] != null ? Math.round(trendEntregas[i] * 10) / 10 : null,
+  }))
+
+  const cyan = isDarkMode ? '#3DB7F4' : '#0066CC'
+  const pink = isDarkMode ? '#FE70BD' : '#C81E7E'
+  const yellow = isDarkMode ? '#F2F24B' : '#D4A520'
+  const green = isDarkMode ? '#40EB4F' : '#1B8E2C'
+  const orange = isDarkMode ? '#FB923C' : '#EA580C'
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <ComposedChart data={chartData} margin={{ top: 16, right: 16, left: 0, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+        <XAxis
+          dataKey="name"
+          tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 600 }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <YAxis
+          yAxisId="opex"
+          orientation="left"
+          tickFormatter={(v) => fmtCompact(v)}
+          tick={{ fill: '#6b7280', fontSize: 10 }}
+          axisLine={false}
+          tickLine={false}
+          width={52}
+        />
+        <YAxis
+          yAxisId="count"
+          orientation="right"
+          tick={{ fill: '#6b7280', fontSize: 10 }}
+          axisLine={false}
+          tickLine={false}
+          width={28}
+          allowDecimals={false}
+        />
+        <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+        <Legend
+          wrapperStyle={{ fontSize: '10px', color: '#9ca3af', paddingTop: '12px' }}
+          iconType="circle"
+          iconSize={8}
+        />
+
+        {/* Média OPEX */}
+        <ReferenceLine
+          yAxisId="opex"
+          y={avgOpex}
+          stroke={cyan}
+          strokeDasharray="4 4"
+          strokeWidth={1.5}
+          strokeOpacity={0.4}
+          label={<AvgLabel value={`Ø OPEX ${fmtCompact(avgOpex)}`} color={cyan} align="left" />}
+        />
+
+        {/* Média Entregas */}
+        <ReferenceLine
+          yAxisId="count"
+          y={avgEntregas}
+          stroke={pink}
+          strokeDasharray="4 4"
+          strokeWidth={1.5}
+          strokeOpacity={0.4}
+          label={<AvgLabel value={`Ø Ent. ${avgEntregas.toFixed(1)}`} color={pink} align="right" />}
+        />
+
+        {/* Colunas OPEX */}
+        <Bar yAxisId="opex" dataKey="OPEX" fill={cyan} radius={[4, 4, 0, 0]} maxBarSize={40} fillOpacity={0.85} />
+
+        {/* Colunas Entregas */}
+        <Bar yAxisId="count" dataKey="Entregas" fill={pink} radius={[4, 4, 0, 0]} maxBarSize={20} fillOpacity={0.75} />
+
+      </ComposedChart>
+    </ResponsiveContainer>
+  )
+}
+
 function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, totalGainsMonthly }) {
+  const currentYear = new Date().getFullYear()
+
+  // Collect available years from items
+  const availableYears = useMemo(() => {
+    const years = new Set()
+    items.forEach(item => {
+      if (isCompleted(item)) {
+        const resDate = getResolutionDate(item) || (item.status_updated_at ? new Date(item.status_updated_at) : null)
+        if (resDate) years.add(resDate.getFullYear())
+      }
+    })
+    if (years.size === 0) years.add(currentYear)
+    return [...years].sort((a, b) => b - a)
+  }, [items])
+
+  const [selectedYear, setSelectedYear] = useState(() => currentYear)
+
   // Prepare monthly data for new temporal charts
   const monthlyData = useMemo(() => {
-    const now = new Date()
-    const currentYear = now.getFullYear()
-
     // Initialize 12 months
     const months = Array(12).fill(null).map((_, i) => ({
       month: i,
-      monthName: new Date(currentYear, i, 1).toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase(),
+      monthName: new Date(selectedYear, i, 1).toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase(),
       roiAccumulated: 0,
       opex: 0,
       deliveryCount: 0,
     }))
 
-    // Aggregate data by resolution month
+    // Aggregate data by resolution month filtered by selectedYear
     items.forEach(item => {
       if (isCompleted(item)) {
         // Try resolution_date first, then status_updated_at for completion date
         const resDate = getResolutionDate(item) || (item.status_updated_at ? new Date(item.status_updated_at) : null)
-        if (resDate) {
+        if (resDate && resDate.getFullYear() === selectedYear) {
           const monthIndex = resDate.getMonth()
           months[monthIndex].opex += item.metrics?.total_gains || item.metrics?.monthly_gains || item.metrics?.gain || 0
           months[monthIndex].deliveryCount += 1
@@ -291,7 +485,7 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
     })
 
     return months
-  }, [items])
+  }, [items, selectedYear])
 
   // Detect current theme mode
   const isDarkMode = document.documentElement.getAttribute('data-theme') !== 'light'
@@ -421,71 +615,27 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300">OPEX Mensal + Iniciativas Entregues</h4>
-            <Tooltip content="Economia operacional mensal (OPEX) e quantidade de iniciativas entregues agrupadas por mês do ano corrente." />
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {monthlyData.map((month) => {
-            const maxOpex = Math.max(...monthlyData.map(m => m.opex), 1)
-            const maxDeliveries = Math.max(...monthlyData.map(m => m.deliveryCount), 1)
-
-            const opexPercent = (month.opex / maxOpex) * 100
-            const deliveryPercent = (month.deliveryCount / maxDeliveries) * 100
-
-            return (
-              <div key={month.month} className="group">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="text-[9px] font-semibold text-gray-400 w-12">{month.monthName}</span>
-                  <div className="flex-1 flex gap-0.5 items-center">
-                    {/* OPEX bar */}
-                    <div className="flex items-center gap-1">
-                      <div
-                        className="h-4 rounded transition-all hover:opacity-80"
-                        style={{
-                          width: `${opexPercent * 1.5}px`,
-                          maxWidth: '60px',
-                          background: getChartColor('cyan', isDarkMode),
-                          boxShadow: `0 0 6px ${getChartColor('cyan', isDarkMode)}33`,
-                        }}
-                      />
-                      <span className="text-[8px] font-semibold" style={{ color: getChartColor('cyan', isDarkMode), minWidth: '30px' }}>
-                        {fmtCompact(month.opex)}
-                      </span>
-                    </div>
-
-                    {/* Delivery count bar */}
-                    <div className="flex items-center gap-1">
-                      <div
-                        className="h-4 rounded transition-all hover:opacity-80"
-                        style={{
-                          width: `${deliveryPercent * 1.5}px`,
-                          maxWidth: '60px',
-                          background: getChartColor('pink', isDarkMode),
-                          boxShadow: `0 0 6px ${getChartColor('pink', isDarkMode)}33`,
-                        }}
-                      />
-                      <span className="text-[8px] font-semibold" style={{ color: getChartColor('pink', isDarkMode), minWidth: '20px' }}>
-                        {month.deliveryCount}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        <div className="flex items-center gap-4 mt-4 text-[9px] text-gray-500">
-          <div className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded" style={{ background: getChartColor('cyan', isDarkMode) }} />
-            <span>OPEX (R$)</span>
+            <Tooltip content="Economia operacional mensal (OPEX) e quantidade de iniciativas entregues agrupadas por mês do ano selecionado." />
           </div>
           <div className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded" style={{ background: getChartColor('pink', isDarkMode) }} />
-            <span>Entregas</span>
+            {availableYears.map((year) => (
+              <button
+                key={year}
+                type="button"
+                onClick={() => setSelectedYear(year)}
+                className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all ${
+                  selectedYear === year
+                    ? 'bg-primary/12 text-[#3DB7F4] border border-primary/25'
+                    : 'border border-white/[0.06] bg-white/[0.02] text-gray-500 hover:border-white/[0.1] hover:text-gray-300'
+                }`}
+              >
+                {year}
+              </button>
+            ))}
           </div>
         </div>
+
+        <OpexColumnChart data={monthlyData} isDarkMode={isDarkMode} selectedYear={selectedYear} />
       </div>
     </div>
   )
@@ -546,57 +696,63 @@ function DetailTable({ items }) {
 
   function SortHeader({ label, column, align = 'left' }) {
     const isActive = sortBy === column
-    const arrow = isActive ? (sortDirection === 'desc' ? '↓' : '↑') : '⋮'
 
     return (
       <th
         onClick={() => handleSort(column)}
-        className={`px-6 py-4 cursor-pointer select-none transition-colors ${align === 'right' ? 'text-right' : ''} ${
-          isActive
-            ? 'bg-white/[0.04] text-white'
-            : 'hover:bg-white/[0.02] text-gray-500 hover:text-gray-400'
+        className={`px-3 py-2 cursor-pointer select-none whitespace-nowrap border-b border-white/[0.04] transition-colors text-center ${
+          isActive ? 'text-[#3DB7F4]' : 'text-gray-500 hover:text-gray-400'
         }`}
       >
-        <div className={`flex items-center gap-2 font-bold uppercase tracking-[0.2em] text-[9px] ${align === 'right' ? 'justify-end' : ''}`}>
+        <div className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.15em]">
           {label}
-          <span className="text-[10px] opacity-60">{arrow}</span>
+          {isActive ? (
+            <svg className="h-3 w-3 text-[#3DB7F4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sortDirection === 'desc' ? 'M19 9l-7 7-7-7' : 'M5 15l7-7 7 7'} />
+            </svg>
+          ) : (
+            <svg className="h-3 w-3 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            </svg>
+          )}
         </div>
       </th>
     )
   }
 
   return (
-    <div className="rounded-[28px] border border-white/10 bg-surface-card/60 backdrop-blur-sm overflow-hidden">
-      <div className="flex items-center justify-between px-6 py-5 border-b border-white/6">
-        <div>
-          <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">Log de Entregas</h3>
-          <p className="text-[10px] text-gray-600 mt-0.5">{items.length} INICIATIVAS CONCLUÍDAS - Ganhos OPEX (economia/mês) vs Custo CAPEX (investimento one-time)</p>
+    <div className="rounded-xl border border-white/[0.05] bg-surface-card/50 shadow-glow-sm overflow-hidden">
+      {/* Header — mesmo padrão do thead da tabela do dashboard */}
+      <div className="flex items-center justify-between px-3 py-2 bg-surface-elevated/90 backdrop-blur-sm border-b border-white/[0.04]">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500">Log de Entregas</span>
+          <span className="text-[10px] text-gray-700">{items.length} concluídas</span>
         </div>
         {items.length > 10 && (
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="text-[11px] font-bold text-primary-light hover:text-white transition-colors"
+            className="text-[11px] font-medium text-gray-500 transition-colors hover:text-[#3DB7F4]"
           >
-            {expanded ? 'VER MENOS' : `VER TODAS (${items.length})`}
+            {expanded ? 'Ver menos' : `Ver todas (${items.length})`}
           </button>
         )}
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full table-auto">
-          <thead>
-            <tr className="bg-white/[0.02] text-left">
-              <th className="px-6 py-4 text-[9px] font-bold uppercase tracking-[0.2em] text-gray-500">Key</th>
-              <th className="px-6 py-4 text-[9px] font-bold uppercase tracking-[0.2em] text-gray-500">Iniciativa</th>
+        <table className="min-w-full table-auto text-sm">
+          <thead className="sticky top-0 z-10">
+            <tr className="bg-surface-elevated/90 backdrop-blur-sm text-center">
+              <th className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500 whitespace-nowrap border-b border-white/[0.04]">Key</th>
+              <th className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500 whitespace-nowrap border-b border-white/[0.04]">Iniciativa</th>
               <SortHeader label="Lead Time" column="lead_time" />
-              <th className="px-6 py-4 text-[9px] font-bold uppercase tracking-[0.2em] text-gray-500">Tempo (Est. vs Real)</th>
+              <th className="px-3 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500 whitespace-nowrap border-b border-white/[0.04]">Tempo Est. vs Real</th>
               <SortHeader label="Variância" column="variance" />
-              <SortHeader label="Economia/mês" column="gains" align="right" />
-              <SortHeader label="ROI (Est. vs Real)" column="roi_real" align="right" />
-              <SortHeader label="Payback" column="payback" align="right" />
+              <SortHeader label="Economia/mês" column="gains" />
+              <SortHeader label="ROI Est. vs Real" column="roi_real" />
+              <SortHeader label="Payback" column="payback" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.04]">
+          <tbody className="divide-y divide-white/[0.03]">
             {visible.map((item) => {
               const roiEstimated = item.metrics?.roi_percent
               const roiReal = item.metrics?.roi_percent_real
@@ -608,68 +764,68 @@ function DetailTable({ items }) {
               const spentHours = item.metrics?.time_spent_hours || 0
               const hasReal = spentHours > 0
               return (
-                <tr key={item.jira_key || item.id} className="group transition-colors hover:bg-white/[0.02]">
-                  <td className="px-6 py-4">
-                    <a href={item.jira_url} target="_blank" rel="noreferrer" className="font-mono text-[11px] font-black text-primary-light hover:underline">
+                <tr key={item.jira_key || item.id} className="group border-b border-white/[0.03] transition-colors hover:bg-white/[0.02]">
+                  <td className="px-3 py-2">
+                    <a href={item.jira_url} target="_blank" rel="noreferrer" className="font-mono text-[11px] text-[#3DB7F4]/80 transition-colors hover:text-[#3DB7F4]">
                       {item.jira_key}
                     </a>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="block truncate text-xs font-medium text-gray-300 group-hover:text-white transition-colors max-w-[300px]">
+                  <td className="px-3 py-2 max-w-[280px]">
+                    <span className="block truncate text-[13px] text-gray-300 group-hover:text-white transition-colors">
                       {item.summary}
                     </span>
-                    <span className="text-[9px] text-gray-600 uppercase tracking-wider">{item.activity_type || 'Geral'}</span>
+                    <span className="text-[10px] text-gray-600 uppercase tracking-[0.12em]">{item.activity_type || 'Geral'}</span>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="text-[11px] font-bold text-gray-400">{formatDays(getLeadTimeDays(item))}</span>
+                  <td className="px-3 py-2 text-center">
+                    <span className="text-[13px] font-medium text-gray-300">{formatDays(getLeadTimeDays(item))}</span>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-[11px]">
-                      <span className="text-blue-400 font-semibold">{formatHours(estimatedHours)}</span>
+                  <td className="px-3 py-2 text-center">
+                    <div className="inline-flex items-center gap-1.5 text-[12px]">
+                      <span className="font-medium text-[#3DB7F4]">{formatHours(estimatedHours)}</span>
                       {hasReal && (
                         <>
                           <span className="text-gray-600">→</span>
-                          <span className="text-amber-400 font-semibold">{formatHours(spentHours)}</span>
+                          <span className="font-medium text-amber-400">{formatHours(spentHours)}</span>
                         </>
                       )}
-                      {!hasReal && <span className="text-[10px] text-gray-600 italic">sem real</span>}
+                      {!hasReal && <span className="text-[11px] text-gray-600 italic">sem real</span>}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-2 text-center">
                     {variance !== null ? (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[11px] font-black" style={{ color: varianceColor }}>
+                      <div className="inline-flex items-center gap-1">
+                        <span className="text-[13px] font-semibold" style={{ color: varianceColor }}>
                           {variance > 0 ? '+' : ''}{variance.toFixed(1)}%
                         </span>
-                        <span className="text-[9px] font-medium text-gray-600">{varianceStatus}</span>
+                        <span className="text-[10px] text-gray-600">{varianceStatus}</span>
                       </div>
                     ) : (
-                      <span className="text-[11px] text-gray-700">—</span>
+                      <span className="text-[13px] text-gray-700">—</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="text-[11px] font-black text-[#6BFFEB]">{fmtCompact(item.metrics?.total_gains || 0)}</span>
+                  <td className="px-3 py-2 text-center">
+                    <span className="text-[13px] font-semibold text-[#40EB4F]">{fmtCompact(item.metrics?.total_gains || 0)}</span>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex flex-col items-end gap-0.5">
+                  <td className="px-3 py-2 text-center">
+                    <div className="flex flex-col items-center gap-0.5">
                       {roiEstimated != null ? (
-                        <span className={`text-[10px] font-black ${roiEstimated >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                        <span className={`text-[11px] font-medium ${roiEstimated >= 0 ? 'text-[#3DB7F4]' : 'text-red-400'}`}>
                           Est: {roiEstimated.toFixed(0)}%
                         </span>
                       ) : (
-                        <span className="text-[10px] text-gray-700">Est: —</span>
+                        <span className="text-[11px] text-gray-700">Est: —</span>
                       )}
                       {roiReal != null ? (
-                        <span className={`text-[11px] font-black ${roiReal >= 0 ? 'text-[#40EB4F]' : 'text-[#FE70BD]'}`}>
+                        <span className={`text-[12px] font-semibold ${roiReal >= 0 ? 'text-[#40EB4F]' : 'text-[#FE70BD]'}`}>
                           Real: {roiReal.toFixed(0)}%
                         </span>
                       ) : (
-                        <span className="text-[10px] text-gray-700">Real: —</span>
+                        <span className="text-[11px] text-gray-700">Real: —</span>
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="text-[11px] font-bold text-gray-500">{payback != null ? `${payback.toFixed(1)}m` : '—'}</span>
+                  <td className="px-3 py-2 text-center">
+                    <span className="text-[13px] font-medium text-gray-300">{payback != null ? `${payback.toFixed(1)} m` : '—'}</span>
                   </td>
                 </tr>
               )
@@ -683,19 +839,26 @@ function DetailTable({ items }) {
 
 // ── Main Page Component ───────────────────────────────────────────────────────
 export default function DeliveriesView({ initiatives = [] }) {
-  const [activityType, setActivityType] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
+  const [filters, setFilters] = useState({
+    activityType: '',
+    itemType: '',
+    statusOperator: 'not_equals',
+    statuses: [],
+    assignee: '',
+    costCenter: '',
+    searchTerm: '',
+  })
 
   try {
     const completed = Array.isArray(initiatives) ? initiatives.filter(isCompleted) : []
-    const activityTypes = [...new Set(completed.map((i) => i.activity_type).filter(Boolean))].sort()
     const filtered = completed.filter((i) => {
-      const matchesActivityType = activityType ? i.activity_type === activityType : true
-      const matchesSearch = searchTerm ? (
-        i.summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        i.jira_key?.toLowerCase().includes(searchTerm.toLowerCase())
-      ) : true
-      return matchesActivityType && matchesSearch
+      if (filters.activityType && i.activity_type !== filters.activityType) return false
+      if (filters.costCenter && i.cost_center !== filters.costCenter) return false
+      if (filters.searchTerm) {
+        const term = filters.searchTerm.toLowerCase()
+        if (!i.summary?.toLowerCase().includes(term) && !i.jira_key?.toLowerCase().includes(term)) return false
+      }
+      return true
     })
 
     // Secure Matrix Calculations
@@ -759,46 +922,6 @@ export default function DeliveriesView({ initiatives = [] }) {
 
     return (
       <div className="space-y-8 pb-10">
-        {/* Header Section */}
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-white">Entregas</h2>
-            <p className="text-[11px] text-gray-500">Portfólio de iniciativas concluídas, ROI acumulado e análises financeiras.</p>
-          </div>
-
-          <div className="flex items-center gap-3">
-             <div className="relative">
-               <input
-                 type="text"
-                 placeholder="Buscar por nome ou chave Jira..."
-                 value={searchTerm}
-                 onChange={(e) => setSearchTerm(e.target.value)}
-                 className="h-10 w-56 rounded-xl border border-white/10 bg-surface-card px-4 text-[10px] font-black text-gray-300 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-primary/40 shadow-lg"
-               />
-             </div>
-             {activityType && (
-               <button onClick={() => setActivityType('')} className="flex h-9 items-center gap-2 rounded-xl bg-white/5 px-4 text-[10px] font-black text-gray-400 hover:text-white transition-all tracking-widest">
-                 LIMPAR SEGMENTO
-               </button>
-             )}
-             {searchTerm && (
-               <button onClick={() => setSearchTerm('')} className="flex h-9 items-center gap-2 rounded-xl bg-white/5 px-4 text-[10px] font-black text-gray-400 hover:text-white transition-all tracking-widest">
-                 LIMPAR BUSCA
-               </button>
-             )}
-             <div className="relative">
-               <select
-                 value={activityType}
-                 onChange={(e) => setActivityType(e.target.value)}
-                 className="h-10 w-56 rounded-xl border border-white/10 bg-surface-card px-4 text-[10px] font-black text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/40 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22currentColor%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M19%209l-7%207-7-7%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.2em_1.2em] bg-[right_1rem_center] bg-no-repeat uppercase tracking-widest shadow-lg"
-               >
-                 <option value="">FILTRAR SEGMENTO</option>
-                 {activityTypes.map((o) => <option key={o} value={o}>{o.toUpperCase()}</option>)}
-               </select>
-             </div>
-          </div>
-        </div>
-
         {/* KPI Pills — Dashboard style */}
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8 mb-6">
           <KpiPill
@@ -842,6 +965,19 @@ export default function DeliveriesView({ initiatives = [] }) {
             sub="Ciclo médio"
             color="#F2F24B"
             tooltip="Tempo médio entre criação e conclusão."
+          />
+        </div>
+
+        {/* Filtros */}
+        <div className="flex items-center justify-end">
+          <FilterBar
+            initiatives={completed}
+            filters={filters}
+            onFilterChange={setFilters}
+            showStatus={false}
+            showAssignee={false}
+            showItemType={false}
+            showSearch
           />
         </div>
 

@@ -1,32 +1,19 @@
-import {
-  DndContext,
-  KeyboardSensor,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core'
-import {
-  SortableContext,
-  arrayMove,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useEffect, useMemo, useState } from 'react'
 import Tooltip from '../UI/Tooltip'
 import SortableRow from './SortableRow'
 
 const COLUMNS = [
-  { key: 'priority_order', label: '#', minWidth: 52, tooltip: 'Ordem atual de priorização da iniciativa.' },
+  { key: 'priority_order', label: '#', minWidth: 52 },
   { key: 'jira_key', label: 'Jira', minWidth: 88, tooltip: 'Chave da issue no Jira.' },
   { key: 'summary', label: 'Iniciativa', minWidth: 280, tooltip: 'Resumo da demanda. Passe o mouse para ver detalhes.' },
   { key: 'jira_status', label: 'Status', minWidth: 130, badge: true, tooltip: 'Status atual no Jira.' },
+  { key: 'roi_percent', label: 'ROI Automação', minWidth: 125, computed: true, sortable: true, tooltip: 'ROI da automação: (ganho_mensal − custos) ÷ custos × 100. Mede se 1 mês de ganho já cobre o investimento.' },
+  { key: 'payback_months', label: 'Payback', minWidth: 100, computed: true, sortable: true, tooltip: 'Meses para recuperar o investimento: custos ÷ ganhos_mensais.' },
   { key: 'hours_saved', label: 'Horas/mês', minWidth: 105, computed: true, sortable: true, tooltip: 'Tempo economizado por mês (horas_salvas_dia × dias_mês × pessoas_afetadas).' },
   { key: 'development_estimate_seconds', label: 'Tempo Dev (Est.)', minWidth: 110, sortable: true, tooltip: 'Tempo estimado de desenvolvimento (horas) — vem do Jira. Usado para calcular CAPEX em planejamento.' },
   { key: 'total_gains', label: 'OPEX Ganhos/mês', minWidth: 140, computed: true, sortable: true, tooltip: 'OPEX (Operational Expenditure): Economia operacional MENSAL. Cálculo: (horas_economizadas_mês × custo_hora_pessoa_afetada) + ganhos_headcount + ganhos_produtividade. Exemplo: 160h/mês × R$ 60/h = R$ 9.600/mês OPEX.' },
   { key: 'total_costs', label: 'CAPEX Investimento', minWidth: 140, computed: true, sortable: true, tooltip: 'CAPEX (Capital Expenditure): Custo total one-time de desenvolvimento. Cálculo: (horas_dev × R$/h_dev) + (horas_terceiros × R$/h_terceiros). NÃO é salário de pessoas — é custo técnico.' },
-  { key: 'roi_percent', label: 'ROI Automação', minWidth: 125, computed: true, sortable: true, tooltip: 'ROI da automação: (ganho_mensal − custos) ÷ custos × 100. Mede se 1 mês de ganho já cobre o investimento.' },
-  { key: 'payback_months', label: 'Payback', minWidth: 100, computed: true, sortable: true, tooltip: 'Meses para recuperar o investimento: custos ÷ ganhos_mensais.' },
 ]
 
 function SortIcon({ direction }) {
@@ -55,16 +42,11 @@ function getSortValue(initiative, key) {
   return initiative[key] ?? ''
 }
 
-export default function InitiativeTable({ initiatives, onReorder, onUpdateField, selectedId, onSelect }) {
+export default function InitiativeTable({ initiatives, onUpdateField, selectedId, onSelect }) {
   const [summaryWidth, setSummaryWidth] = useState(320)
   const [isResizing, setIsResizing] = useState(false)
   const [sortKey, setSortKey] = useState(null)
   const [sortDir, setSortDir] = useState('desc')
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  )
 
   useEffect(() => {
     if (!isResizing) return undefined
@@ -94,14 +76,6 @@ export default function InitiativeTable({ initiatives, onReorder, onUpdateField,
     }
   }
 
-  function handleDragEnd(event) {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-    const oldIndex = initiatives.findIndex((i) => i.id === active.id)
-    const newIndex = initiatives.findIndex((i) => i.id === over.id)
-    onReorder(arrayMove(initiatives, oldIndex, newIndex), active.id)
-  }
-
   const displayedInitiatives = useMemo(() => {
     if (!sortKey) return initiatives
     return [...initiatives].sort((a, b) => {
@@ -114,15 +88,14 @@ export default function InitiativeTable({ initiatives, onReorder, onUpdateField,
   }, [initiatives, sortKey, sortDir])
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] rounded-xl border border-white/[0.05] bg-surface-card/50 shadow-glow-sm">
+    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] rounded-xl border border-white/[0.05] bg-surface-card/50 shadow-glow-sm">
         <table className="min-w-full table-fixed text-sm">
           <thead className="sticky top-0 z-10">
             <tr className="bg-surface-elevated/90 backdrop-blur-sm">
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500 whitespace-nowrap border-b border-white/[0.04]"
+                  className="px-3 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500 whitespace-nowrap border-b border-white/[0.04]"
                   style={column.width
                     ? { width: `${column.width}px`, minWidth: `${column.minWidth}px`, maxWidth: `${column.width}px` }
                     : { minWidth: `${column.minWidth}px` }
@@ -186,6 +159,5 @@ export default function InitiativeTable({ initiatives, onReorder, onUpdateField,
           </div>
         )}
       </div>
-    </DndContext>
   )
 }

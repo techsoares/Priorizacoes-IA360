@@ -6,6 +6,8 @@ const DEFAULT_FILTERS = {
   statusOperator: 'not_equals',
   statuses: ['Concluído', 'Cancelado'],
   assignee: '',
+  costCenter: '',
+  searchTerm: '',
 }
 
 export default function FilterBar({
@@ -14,18 +16,22 @@ export default function FilterBar({
   onFilterChange,
   showStatus = true,
   showAssignee = true,
+  showItemType = true,
+  showSearch = false,
 }) {
   const options = useMemo(() => {
     const activityTypes = new Set()
     const itemTypes = new Set()
     const statuses = new Set()
     const assignees = new Set()
+    const costCenters = new Set()
 
     initiatives.forEach((initiative) => {
       if (initiative.activity_type) activityTypes.add(initiative.activity_type)
       if (initiative.item_type) itemTypes.add(initiative.item_type)
       if (initiative.jira_status) statuses.add(initiative.jira_status)
       if (initiative.assignee) assignees.add(initiative.assignee)
+      if (initiative.cost_center) costCenters.add(initiative.cost_center)
     })
 
     return {
@@ -33,6 +39,7 @@ export default function FilterBar({
       itemTypes: [...itemTypes].sort(),
       statuses: [...statuses].sort(),
       assignees: [...assignees].sort(),
+      costCenters: [...costCenters].sort(),
     }
   }, [initiatives])
 
@@ -40,6 +47,8 @@ export default function FilterBar({
     filters.activityType,
     filters.itemType && filters.itemType !== 'Tarefa' ? 'itemType' : '',
     filters.assignee,
+    filters.costCenter,
+    filters.searchTerm,
     filters.statuses?.length ? 'status' : '',
   ].filter(Boolean).length
 
@@ -68,6 +77,21 @@ export default function FilterBar({
         Filtros
       </div>
 
+      {showSearch && (
+        <div className="relative flex items-center">
+          <svg className="pointer-events-none absolute left-2 h-3 w-3 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar nome ou chave..."
+            value={filters.searchTerm || ''}
+            onChange={(e) => handleChange('searchTerm', e.target.value)}
+            className="h-[26px] w-48 rounded-lg border border-white/[0.06] bg-white/[0.02] pl-6 pr-2 text-[11px] text-gray-300 placeholder-gray-600 outline-none transition-all focus:border-primary/30 focus:bg-white/[0.04]"
+          />
+        </div>
+      )}
+
       <SingleSelectFilter
         label="Tipo de atividade"
         value={filters.activityType}
@@ -75,12 +99,14 @@ export default function FilterBar({
         onChange={(value) => handleChange('activityType', value)}
       />
 
-      <SingleSelectFilter
-        label="Tipo Jira"
-        value={filters.itemType}
-        options={options.itemTypes}
-        onChange={(value) => handleChange('itemType', value)}
-      />
+      {showItemType && (
+        <SingleSelectFilter
+          label="Tipo Jira"
+          value={filters.itemType}
+          options={options.itemTypes}
+          onChange={(value) => handleChange('itemType', value)}
+        />
+      )}
 
       {showStatus && (
         <StatusMultiFilter
@@ -101,6 +127,14 @@ export default function FilterBar({
         />
       )}
 
+      <SingleSelectFilter
+        label="Centro de Custo"
+        value={filters.costCenter}
+        options={options.costCenters}
+        onChange={(value) => handleChange('costCenter', value)}
+        align="right"
+      />
+
       {activeCount > 0 && (
         <button
           onClick={clearAll}
@@ -116,7 +150,7 @@ export default function FilterBar({
   )
 }
 
-function SingleSelectFilter({ label, value, options, onChange }) {
+function SingleSelectFilter({ label, value, options, onChange, align = 'left' }) {
   const [open, setOpen] = useState(false)
   const containerRef = useRef(null)
   const isDisabled = options.length === 0
@@ -165,7 +199,7 @@ function SingleSelectFilter({ label, value, options, onChange }) {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-[calc(100%+6px)] z-40 min-w-[220px] rounded-xl border border-white/[0.06] bg-surface-elevated p-2 shadow-glow-lg">
+        <div className={`absolute top-[calc(100%+6px)] z-40 min-w-[220px] rounded-xl border border-white/[0.06] bg-surface-elevated p-2 shadow-glow-lg ${align === 'right' ? 'right-0' : 'left-0'}`}>
           <button
             type="button"
             onClick={() => handleSelect('')}

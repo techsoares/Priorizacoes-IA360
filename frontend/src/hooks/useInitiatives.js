@@ -97,6 +97,8 @@ const DEFAULT_FILTERS = {
   statusOperator: 'not_equals',
   statuses: ['Concluído', 'Cancelado'],
   assignee: '',
+  costCenter: '',
+  searchTerm: '',
 }
 
 export default function useInitiatives() {
@@ -207,6 +209,18 @@ export default function useInitiatives() {
 
       if (filters.assignee && initiative.assignee !== filters.assignee) {
         return false
+      }
+
+      if (filters.costCenter && initiative.cost_center !== filters.costCenter) {
+        return false
+      }
+
+      if (filters.searchTerm) {
+        const term = filters.searchTerm.toLowerCase()
+        const matchesSearch =
+          initiative.summary?.toLowerCase().includes(term) ||
+          initiative.jira_key?.toLowerCase().includes(term)
+        if (!matchesSearch) return false
       }
 
       if (filters.statuses.length > 0) {

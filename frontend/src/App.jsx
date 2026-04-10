@@ -276,6 +276,7 @@ function WorkspacePage() {
             onFilterChange={setFilters}
             onReorder={reorder}
             onUpdateField={updateField}
+            isAdmin={isAdmin}
           />
         ) : null}
 

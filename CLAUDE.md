@@ -54,7 +54,7 @@ cd frontend
 # Install dependencies
 npm install
 
-# Start development server (Vite on port 5173)
+# Start development server (Vite on port 5176)
 npm run dev
 
 # Build for production
@@ -78,22 +78,22 @@ source .venv/bin/activate      # Mac/Linux
 # Install dependencies
 pip install -r requirements.txt
 
-# Run API server (Uvicorn on port 8001 by default)
-uvicorn app.main:app --reload --port 8001
+# Run API server (Uvicorn on port 8080 — matches Vite proxy target)
+# Linux/Mac:
+uvicorn app.main:app --reload --port 8080
+# Windows PowerShell (sem precisar ativar o venv):
+.venv\Scripts\uvicorn.exe app.main:app --reload --port 8080
 
 # Check API health
-curl http://localhost:8001/health
+curl http://localhost:8080/health
 ```
 
 ### Environment Setup
 
 1. Copy `.env.example` to `.env` in the backend directory
 2. Fill in required variables:
-   - Supabase: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `SUPABASE_JWT_SECRET`
-   - Google OAuth: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-   - Jira: `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`
-   - Email domain restriction: `ALLOWED_EMAIL_DOMAIN` (default: pgmais.com.br)
-   - Frontend URL for CORS: `FRONTEND_URL` (default: http://localhost:5173)
+   - Backend `.env`: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `SUPABASE_JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, `ALLOWED_EMAIL_DOMAIN` (default: pgmais.com.br), `FRONTEND_URL` (default: http://localhost:5176)
+   - Frontend `.env` (in `frontend/`): `VITE_JIRA_BASE_URL` — used to build Jira ticket URLs in the UI
 
 ## Architecture
 
@@ -107,11 +107,12 @@ curl http://localhost:8001/health
 
 **Key Patterns:**
 - **AuthContext** (`contexts/AuthContext`) — Manages Google OAuth flow and user session, required for all protected views
-- **useInitiatives hook** — Fetches and manages initiatives data
-- **Components** are organized by feature (Auth, Views, Admin, etc.)
-- **Services** layer handles API calls to backend via Axios
+- **useInitiatives hook** — Fetches and manages initiatives data; calls Supabase client directly (not backend API)
+- **useSprintQueue hook** — Manages sprint queue state; two activity-type lists (Produto, Governança), max 5 items each; backed by `sprint_queue` table in Supabase
+- **services/api.js** — Calls Supabase client directly for initiatives CRUD and reordering; calls backend `/api/*` routes for Jira sync and sprint queue operations
+- **Components** are organized by feature: `Auth/`, `Views/`, `Admin/`, `Dashboard/` (FilterBar, SprintQueuePanel, SummaryCards, InitiativeDetail), `InitiativeTable/`, `UI/`
 - **Tailwind CSS** with custom CSS in `index.css` for theme and dark mode support
-- **Drag & drop** uses DnD Kit (`@dnd-kit/core`, `@dnd-kit/sortable`)
+- **Drag & drop** uses DnD Kit (`@dnd-kit/core`, `@dnd-kit/sortable`) for initiative reordering and sprint queue management
 
 ### Backend Architecture
 
@@ -157,8 +158,8 @@ curl http://localhost:8001/health
 
 1. **Backend:** `cd backend && source .venv/bin/activate && uvicorn app.main:app --reload`
 2. **Frontend:** `cd frontend && npm run dev`
-3. **Access:** http://localhost:5173 (redirects to login if not authenticated)
-4. **Test API:** http://localhost:8001/health
+3. **Access:** http://localhost:5176 (redirects to login if not authenticated)
+4. **Test API:** http://localhost:8080/health
 
 ## Testing & Code Quality
 

@@ -339,35 +339,33 @@ function CustomTooltip({ active, payload, label }) {
   )
 }
 
-function OpexColumnChart({ data, isDarkMode, selectedYear }) {
-  const currentMonthIndex = new Date().getFullYear() === selectedYear ? new Date().getMonth() : -1
-
-  const trendOpex = buildTrendSeries(data, d => d.opex, currentMonthIndex)
-  const trendEntregas = buildTrendSeries(data, d => d.deliveryCount, currentMonthIndex)
-
-  // Médias apenas sobre meses com dados, excluindo mês atual
-  const validOpex = data.filter((d, i) => d.opex > 0 && i !== currentMonthIndex)
-  const validEntregas = data.filter((d, i) => d.deliveryCount > 0 && i !== currentMonthIndex)
+function OpexColumnChart({ data, isDarkMode, selectedYear, onMonthClick, selectedMonthIndex }) {
+  // Médias sobre todos os meses com dados (incluindo mês atual)
+  const validOpex = data.filter(d => d.opex > 0)
+  const validEntregas = data.filter(d => d.deliveryCount > 0)
   const avgOpex = validOpex.length ? validOpex.reduce((s, d) => s + d.opex, 0) / validOpex.length : 0
   const avgEntregas = validEntregas.length ? validEntregas.reduce((s, d) => s + d.deliveryCount, 0) / validEntregas.length : 0
 
   const chartData = data.map((d, i) => ({
     name: d.monthName,
+    monthIndex: i,
     OPEX: d.opex,
     Entregas: d.deliveryCount,
-    'Tendência OPEX': trendOpex[i] != null ? Math.round(trendOpex[i]) : null,
-    'Tendência Entregas': trendEntregas[i] != null ? Math.round(trendEntregas[i] * 10) / 10 : null,
   }))
 
   const cyan = isDarkMode ? '#3DB7F4' : '#0066CC'
   const pink = isDarkMode ? '#FE70BD' : '#C81E7E'
-  const yellow = isDarkMode ? '#F2F24B' : '#D4A520'
-  const green = isDarkMode ? '#40EB4F' : '#1B8E2C'
-  const orange = isDarkMode ? '#FB923C' : '#EA580C'
+
+  function handleChartClick(payload) {
+    if (!payload?.activePayload?.length) return
+    const monthIndex = payload.activePayload[0]?.payload?.monthIndex
+    if (monthIndex == null) return
+    onMonthClick(monthIndex === selectedMonthIndex ? null : monthIndex)
+  }
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <ComposedChart data={chartData} margin={{ top: 16, right: 16, left: 0, bottom: 0 }}>
+      <ComposedChart data={chartData} margin={{ top: 16, right: 16, left: 0, bottom: 0 }} onClick={handleChartClick} style={{ cursor: 'pointer' }}>
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
         <XAxis
           dataKey="name"
@@ -393,7 +391,7 @@ function OpexColumnChart({ data, isDarkMode, selectedYear }) {
           width={28}
           allowDecimals={false}
         />
-        <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+        <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
         <Legend
           wrapperStyle={{ fontSize: '10px', color: '#9ca3af', paddingTop: '12px' }}
           iconType="circle"
@@ -423,10 +421,16 @@ function OpexColumnChart({ data, isDarkMode, selectedYear }) {
         />
 
         {/* Colunas OPEX */}
-        <Bar yAxisId="opex" dataKey="OPEX" fill={cyan} radius={[4, 4, 0, 0]} maxBarSize={40} fillOpacity={0.85} />
+        <Bar yAxisId="opex" dataKey="OPEX" radius={[4, 4, 0, 0]} maxBarSize={40}
+          fill={cyan}
+          fillOpacity={0.85}
+        />
 
         {/* Colunas Entregas */}
-        <Bar yAxisId="count" dataKey="Entregas" fill={pink} radius={[4, 4, 0, 0]} maxBarSize={20} fillOpacity={0.75} />
+        <Bar yAxisId="count" dataKey="Entregas" radius={[4, 4, 0, 0]} maxBarSize={20}
+          fill={pink}
+          fillOpacity={0.75}
+        />
 
       </ComposedChart>
     </ResponsiveContainer>
@@ -450,6 +454,7 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
   }, [items])
 
   const [selectedYear, setSelectedYear] = useState(() => currentYear)
+  const [selectedMonthIndex, setSelectedMonthIndex] = useState(null)
 
   // Prepare monthly data for new temporal charts
   const monthlyData = useMemo(() => {
@@ -635,7 +640,73 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
           </div>
         </div>
 
-        <OpexColumnChart data={monthlyData} isDarkMode={isDarkMode} selectedYear={selectedYear} />
+        <div className="flex gap-3">
+          <div className={selectedMonthIndex != null ? 'flex-1 min-w-0' : 'w-full'}>
+            <OpexColumnChart
+              data={monthlyData}
+              isDarkMode={isDarkMode}
+              selectedYear={selectedYear}
+              onMonthClick={setSelectedMonthIndex}
+              selectedMonthIndex={selectedMonthIndex}
+            />
+          </div>
+
+          {selectedMonthIndex != null && (() => {
+            const month = monthlyData[selectedMonthIndex]
+            const monthItems = items.filter(item => {
+              if (!isCompleted(item)) return false
+              const resDate = getResolutionDate(item) || (item.status_updated_at ? new Date(item.status_updated_at) : null)
+              return resDate && resDate.getFullYear() === selectedYear && resDate.getMonth() === selectedMonthIndex
+            })
+            return (
+              <div className="w-72 shrink-0 rounded-xl border border-white/[0.05] bg-surface-card/50 shadow-glow-sm overflow-hidden">
+                <div className="flex items-center justify-between px-3 py-2 bg-surface-elevated/90 backdrop-blur-sm border-b border-white/[0.04]">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500">
+                    {month.monthName} · {monthItems.length} entregas
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMonthIndex(null)}
+                    className="text-gray-600 hover:text-gray-400 transition-colors"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="overflow-y-auto max-h-[268px] divide-y divide-white/[0.03]">
+                  {monthItems.length === 0 ? (
+                    <p className="px-3 py-6 text-center text-[11px] text-gray-600">Nenhuma entrega neste mês</p>
+                  ) : monthItems.map(item => (
+                    <div key={item.id} className="px-3 py-2 hover:bg-white/[0.02] transition-colors">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <a
+                            href={item.jira_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-mono text-[10px] text-[#3DB7F4]/80 hover:text-[#3DB7F4] transition-colors"
+                          >
+                            {item.jira_key}
+                          </a>
+                          <p className="mt-0.5 text-[11px] text-gray-300 leading-snug line-clamp-2">{item.summary}</p>
+                        </div>
+                        <span className="shrink-0 text-[11px] font-semibold text-[#40EB4F]">
+                          {fmtCompact(item.metrics?.total_gains || 0)}
+                        </span>
+                      </div>
+                      {item.activity_type && (
+                        <span className="mt-1 inline-block text-[9px] uppercase tracking-[0.12em] text-gray-600">
+                          {item.activity_type}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+        </div>
       </div>
     </div>
   )
@@ -982,7 +1053,7 @@ export default function DeliveriesView({ initiatives = [] }) {
         </div>
 
         {/* Main Detail Table */}
-        <DetailTable items={filtered} />
+        <DetailTable items={filtered.filter(i => i.item_type === 'Tarefa')} />
 
         {/* Analytics Charts */}
         <AnalyticsCharts

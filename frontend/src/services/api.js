@@ -67,16 +67,22 @@ export async function bulkUpdateCosts(items) {
 
 export async function syncJira() {
   const headers = await getAuthHeader()
-  const res = await fetch('/api/sync-jira', {
+  const res = await fetch('/api/initiatives/sync-jira', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...headers },
   })
+  const text = await res.text()
   if (!res.ok) {
-    const err = await res.json()
-    throw new Error(err.error || 'Erro ao sincronizar com Jira')
+    let detail = `HTTP ${res.status}`
+    try { detail = JSON.parse(text)?.detail || detail } catch {}
+    throw new Error(detail)
   }
-  const data = await res.json()
-  return data.map(enrich)
+  try {
+    const data = JSON.parse(text)
+    return data.map(enrich)
+  } catch {
+    throw new Error(`Resposta inválida do servidor: ${text.slice(0, 200)}`)
+  }
 }
 
 // ── Sprint Queue ──────────────────────────────────────────────────────────────
@@ -125,7 +131,7 @@ const api = {
     throw new Error(`GET ${url} não suportado`)
   },
   post: async (url) => {
-    if (url.includes('sync-jira')) {
+    if (url.includes('initiatives/sync-jira') || url.includes('sync-jira')) {
       return { data: await syncJira() }
     }
     throw new Error(`POST ${url} não suportado`)

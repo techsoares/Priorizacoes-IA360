@@ -51,10 +51,11 @@ function getInitials(user) {
     .join('') || 'U'
 }
 
-function ViewTabs({ currentView, onViewChange }) {
+function ViewTabs({ currentView, onViewChange, isAdmin }) {
+  const visibleViews = isAdmin ? VIEWS : VIEWS.filter((v) => v.id !== 'admin')
   return (
     <nav className="flex items-center gap-1">
-      {VIEWS.map((view) => (
+      {visibleViews.map((view) => (
         <button
           key={view.id}
           type="button"
@@ -154,12 +155,23 @@ function WorkspacePage() {
 
   useEffect(() => {
     function handleHashChange() {
-      setCurrentView(readViewFromHash())
+      const view = readViewFromHash()
+      if (view === 'admin' && !isAdmin) {
+        window.location.hash = '/dashboard'
+        return
+      }
+      setCurrentView(view)
     }
 
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
-  }, [])
+  }, [isAdmin])
+
+  useEffect(() => {
+    if (currentView === 'admin' && !isAdmin) {
+      window.location.hash = '/dashboard'
+    }
+  }, [currentView, isAdmin])
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -190,7 +202,7 @@ function WorkspacePage() {
               <div className="hidden h-4 w-px bg-white/[0.06] sm:block" />
               <span className="hidden text-[11px] tracking-wide text-gray-600 sm:block">Priorização</span>
             </div>
-            <ViewTabs currentView={currentView} onViewChange={navigateTo} />
+            <ViewTabs currentView={currentView} onViewChange={navigateTo} isAdmin={isAdmin} />
           </div>
 
           {/* Right: Actions */}
@@ -293,7 +305,7 @@ function WorkspacePage() {
           <DeliveriesView initiatives={initiatives} />
         ) : null}
 
-        {!loading && currentView === 'admin' ? (
+        {!loading && currentView === 'admin' && isAdmin ? (
           <AdminView
             initiatives={initiatives}
             filters={filters}

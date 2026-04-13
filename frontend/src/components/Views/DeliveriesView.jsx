@@ -48,6 +48,13 @@ function fmtCompact(value) {
   return fmt(value)
 }
 
+function getSelectedCostCenters(filters) {
+  if (Array.isArray(filters.costCenters)) {
+    return filters.costCenters.filter(Boolean)
+  }
+  return filters.costCenter ? [filters.costCenter] : []
+}
+
 // ── KPI Pill (matches Dashboard SummaryCards style) ──────────────────────────────────────────────────────
 function KpiPill({ label, value, sub, color, tooltip, highlight }) {
   return (
@@ -917,14 +924,16 @@ export default function DeliveriesView({ initiatives = [] }) {
     statuses: [],
     assignee: '',
     costCenter: '',
+    costCenters: [],
     searchTerm: '',
   })
 
   try {
     const completed = Array.isArray(initiatives) ? initiatives.filter(isCompleted) : []
+    const selectedCostCenters = getSelectedCostCenters(filters)
     const filtered = completed.filter((i) => {
       if (filters.activityType && i.activity_type !== filters.activityType) return false
-      if (filters.costCenter && i.cost_center !== filters.costCenter) return false
+      if (selectedCostCenters.length > 0 && !selectedCostCenters.includes(i.cost_center)) return false
       if (filters.searchTerm) {
         const term = filters.searchTerm.toLowerCase()
         if (!i.summary?.toLowerCase().includes(term) && !i.jira_key?.toLowerCase().includes(term)) return false

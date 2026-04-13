@@ -61,6 +61,13 @@ function formatCurrency(value) {
   })
 }
 
+function getSelectedCostCenters(filters) {
+  if (Array.isArray(filters.costCenters)) {
+    return filters.costCenters.filter(Boolean)
+  }
+  return filters.costCenter ? [filters.costCenter] : []
+}
+
 export default function AdminView({
   initiatives,
   filters,
@@ -71,18 +78,22 @@ export default function AdminView({
   const [activePillFilter, setActivePillFilter] = useState(null)
 
   const adminInitiatives = useMemo(
-    () =>
-      initiatives.filter((initiative) => {
+    () => {
+      const selectedCostCenters = getSelectedCostCenters(filters)
+
+      return initiatives.filter((initiative) => {
         if (filters.activityType && initiative.activity_type !== filters.activityType) return false
         if (filters.assignee && initiative.assignee !== filters.assignee) return false
+        if (selectedCostCenters.length > 0 && !selectedCostCenters.includes(initiative.cost_center)) return false
         if (filters.statuses.length > 0) {
           const matchesStatus = filters.statuses.includes(initiative.jira_status)
           if (filters.statusOperator === 'equals' && !matchesStatus) return false
           if (filters.statusOperator === 'not_equals' && matchesStatus) return false
         }
         return true
-      }),
-    [initiatives, filters.activityType, filters.assignee, filters.statuses, filters.statusOperator]
+      })
+    },
+    [initiatives, filters]
   )
 
   const displayedInitiatives = useMemo(() => {

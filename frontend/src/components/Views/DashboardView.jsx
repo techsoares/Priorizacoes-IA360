@@ -122,6 +122,7 @@ export default function DashboardView({
           initiatives={initiatives}
           filters={filters}
           onFilterChange={onFilterChange}
+          showItemType={false}
           showSearch
         />
       </div>

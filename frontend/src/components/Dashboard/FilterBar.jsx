@@ -7,7 +7,15 @@ const DEFAULT_FILTERS = {
   statuses: ['Concluído', 'Cancelado'],
   assignee: '',
   costCenter: '',
+  costCenters: [],
   searchTerm: '',
+}
+
+function getSelectedCostCenters(filters) {
+  if (Array.isArray(filters.costCenters)) {
+    return filters.costCenters.filter(Boolean)
+  }
+  return filters.costCenter ? [filters.costCenter] : []
 }
 
 export default function FilterBar({
@@ -19,6 +27,8 @@ export default function FilterBar({
   showItemType = true,
   showSearch = false,
 }) {
+  const selectedCostCenters = getSelectedCostCenters(filters)
+
   const options = useMemo(() => {
     const activityTypes = new Set()
     const itemTypes = new Set()
@@ -47,7 +57,7 @@ export default function FilterBar({
     filters.activityType,
     filters.itemType && filters.itemType !== 'Tarefa' ? 'itemType' : '',
     filters.assignee,
-    filters.costCenter,
+    selectedCostCenters.length ? 'costCenters' : '',
     filters.searchTerm,
     filters.statuses?.length ? 'status' : '',
   ].filter(Boolean).length
@@ -62,6 +72,14 @@ export default function FilterBar({
 
   function handleStatusOperatorChange(statusOperator) {
     onFilterChange({ ...filters, statusOperator })
+  }
+
+  function handleCostCentersChange(costCenters) {
+    onFilterChange({
+      ...filters,
+      costCenters,
+      costCenter: costCenters.length === 1 ? costCenters[0] : '',
+    })
   }
 
   function clearAll() {
@@ -127,11 +145,11 @@ export default function FilterBar({
         />
       )}
 
-      <SingleSelectFilter
+      <MultiSelectFilter
         label="Centro de Custo"
-        value={filters.costCenter}
+        selectedValues={selectedCostCenters}
         options={options.costCenters}
-        onChange={(value) => handleChange('costCenter', value)}
+        onSelectionChange={handleCostCentersChange}
         align="right"
       />
 
@@ -232,6 +250,90 @@ function SingleSelectFilter({ label, value, options, onChange, align = 'left' })
                   </svg>
                 ) : null}
               </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MultiSelectFilter({ label, selectedValues, options, onSelectionChange, align = 'left' }) {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef(null)
+  const disabled = options.length === 0
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  function toggleOption(option) {
+    const next = selectedValues.includes(option)
+      ? selectedValues.filter((item) => item !== option)
+      : [...selectedValues, option]
+    onSelectionChange(next)
+  }
+
+  const summary =
+    selectedValues.length === 0
+      ? label
+      : selectedValues.length === 1
+        ? selectedValues[0]
+        : `${selectedValues.length} centros`
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => !disabled && setOpen((value) => !value)}
+        className={`rounded-lg border px-2.5 py-1 text-[11px] transition-all ${
+          disabled
+            ? 'cursor-not-allowed border-white/[0.04] bg-white/[0.02] text-gray-700'
+            : selectedValues.length > 0
+              ? 'border-primary/25 bg-primary/8 text-[#3DB7F4]'
+              : 'border-white/[0.06] bg-white/[0.02] text-gray-400 hover:border-white/[0.1] hover:text-gray-300'
+        }`}
+      >
+        {summary}
+      </button>
+
+      {open && (
+        <div className={`absolute top-[calc(100%+6px)] z-40 w-72 rounded-xl border border-white/[0.06] bg-surface-elevated p-3 shadow-glow-lg ${align === 'right' ? 'right-0' : 'left-0'}`}>
+          <div className="mb-2.5 flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500">
+              {label}
+            </span>
+            <button
+              type="button"
+              onClick={() => onSelectionChange([])}
+              className="text-[11px] text-gray-500 transition-colors hover:text-[#FE70BD]"
+            >
+              Limpar
+            </button>
+          </div>
+
+          <div className="max-h-56 space-y-1 overflow-y-auto">
+            {options.map((option) => (
+              <label
+                key={option}
+                className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] text-gray-400 transition-colors hover:bg-white/[0.03]"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedValues.includes(option)}
+                  onChange={() => toggleOption(option)}
+                  className="h-3.5 w-3.5 rounded border-white/20 bg-transparent text-primary focus:ring-primary/50"
+                />
+                <span className="truncate">{option}</span>
+              </label>
             ))}
           </div>
         </div>

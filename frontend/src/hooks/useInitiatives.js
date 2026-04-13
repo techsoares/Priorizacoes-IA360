@@ -98,7 +98,15 @@ const DEFAULT_FILTERS = {
   statuses: ['Concluído', 'Cancelado'],
   assignee: '',
   costCenter: '',
+  costCenters: [],
   searchTerm: '',
+}
+
+function getSelectedCostCenters(filters) {
+  if (Array.isArray(filters.costCenters)) {
+    return filters.costCenters.filter(Boolean)
+  }
+  return filters.costCenter ? [filters.costCenter] : []
 }
 
 export default function useInitiatives() {
@@ -198,6 +206,8 @@ export default function useInitiatives() {
   }
 
   const filteredInitiatives = useMemo(() => {
+    const selectedCostCenters = getSelectedCostCenters(filters)
+
     return initiatives.filter((initiative) => {
       if (filters.activityType && initiative.activity_type !== filters.activityType) {
         return false
@@ -211,7 +221,7 @@ export default function useInitiatives() {
         return false
       }
 
-      if (filters.costCenter && initiative.cost_center !== filters.costCenter) {
+      if (selectedCostCenters.length > 0 && !selectedCostCenters.includes(initiative.cost_center)) {
         return false
       }
 

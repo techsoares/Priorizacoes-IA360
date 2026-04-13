@@ -2,6 +2,7 @@ import { supabase } from './supabase'
 import { calculateMetrics } from '../utils/calculations'
 
 const JIRA_BASE_URL = import.meta.env.VITE_JIRA_BASE_URL
+const SYNC_JIRA_ENDPOINTS = ['/api/initiatives/sync-jira', '/api/sync-jira']
 
 function enrich(row) {
   if (!row.jira_url && row.jira_key) {
@@ -13,6 +14,14 @@ function enrich(row) {
 async function getAuthHeader() {
   const { data: { session } } = await supabase.auth.getSession()
   return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
+}
+
+function parseSyncResponse(text, endpoint) {
+  try {
+    return JSON.parse(text)
+  } catch {
+    throw new Error(`Resposta invalida do servidor em ${endpoint}: ${text.slice(0, 200)}`)
+  }
 }
 
 export async function listInitiatives() {
@@ -67,25 +76,37 @@ export async function bulkUpdateCosts(items) {
 
 export async function syncJira() {
   const headers = await getAuthHeader()
-  const res = await fetch('/api/initiatives/sync-jira', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...headers },
-  })
-  const text = await res.text()
-  if (!res.ok) {
+  let lastError = null
+
+  for (let index = 0; index < SYNC_JIRA_ENDPOINTS.length; index++) {
+    const endpoint = SYNC_JIRA_ENDPOINTS[index]
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+    })
+    const text = await res.text()
+
+    if (res.ok) {
+      return parseSyncResponse(text, endpoint).map(enrich)
+    }
+
+    if (res.status === 404 && index < SYNC_JIRA_ENDPOINTS.length - 1) {
+      continue
+    }
+
     let detail = `HTTP ${res.status}`
-    try { detail = JSON.parse(text)?.detail || detail } catch {}
-    throw new Error(detail)
+    try {
+      const parsed = JSON.parse(text)
+      detail = parsed?.detail || parsed?.error || detail
+    } catch {}
+    lastError = new Error(detail)
+    break
   }
-  try {
-    const data = JSON.parse(text)
-    return data.map(enrich)
-  } catch {
-    throw new Error(`Resposta inválida do servidor: ${text.slice(0, 200)}`)
-  }
+
+  throw lastError || new Error('Nao foi possivel encontrar uma rota de sincronizacao disponivel.')
 }
 
-// ── Sprint Queue ──────────────────────────────────────────────────────────────
+// Sprint Queue
 
 export async function listSprintQueue() {
   const { data, error } = await supabase
@@ -122,19 +143,19 @@ export async function reorderSprintQueue(items) {
   }
 }
 
-// Mantém compatibilidade com código que usa `api` como default (axios-style)
+// Mantem compatibilidade com codigo que usa `api` como default (axios-style)
 const api = {
   get: async (url) => {
     if (url.startsWith('/api/initiatives')) {
       return { data: await listInitiatives() }
     }
-    throw new Error(`GET ${url} não suportado`)
+    throw new Error(`GET ${url} nao suportado`)
   },
   post: async (url) => {
     if (url.includes('initiatives/sync-jira') || url.includes('sync-jira')) {
       return { data: await syncJira() }
     }
-    throw new Error(`POST ${url} não suportado`)
+    throw new Error(`POST ${url} nao suportado`)
   },
   put: async (url, payload) => {
     const id = url.split('/').pop()
@@ -144,7 +165,7 @@ const api = {
     if (url.includes('reorder')) {
       return { data: await reorderInitiatives(payload.ordered_ids, payload.updated_by, payload.dragged) }
     }
-    throw new Error(`PATCH ${url} não suportado`)
+    throw new Error(`PATCH ${url} nao suportado`)
   },
 }
 

@@ -87,6 +87,7 @@ class InitiativeResponse(BaseModel):
     project_key: str | None = None
     project_name: str | None = None
     cost_center: str | None = None
+    cost_center_responsible: str | None = None
     category: str | None = None
     item_type: str | None = None
     gain_type: str | None = None

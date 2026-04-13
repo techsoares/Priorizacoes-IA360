@@ -92,6 +92,7 @@ async def sync_from_jira(user: dict = Depends(get_current_user)):
             "project_key",
             "project_name",
             "cost_center",
+            "cost_center_responsible",
             "category",
             "item_type",
             "gain_type",

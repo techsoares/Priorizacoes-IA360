@@ -84,6 +84,10 @@ export default function AdminView({
       return initiatives.filter((initiative) => {
         if (filters.activityType && initiative.activity_type !== filters.activityType) return false
         if (filters.assignee && initiative.assignee !== filters.assignee) return false
+        if (
+          filters.costCenterResponsible &&
+          initiative.cost_center_responsible !== filters.costCenterResponsible
+        ) return false
         if (selectedCostCenters.length > 0 && !selectedCostCenters.includes(initiative.cost_center)) return false
         if (filters.statuses.length > 0) {
           const matchesStatus = filters.statuses.includes(initiative.jira_status)

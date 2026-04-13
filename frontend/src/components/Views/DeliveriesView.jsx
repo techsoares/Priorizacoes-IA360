@@ -923,6 +923,7 @@ export default function DeliveriesView({ initiatives = [] }) {
     statusOperator: 'not_equals',
     statuses: [],
     assignee: '',
+    costCenterResponsible: '',
     costCenter: '',
     costCenters: [],
     searchTerm: '',
@@ -933,6 +934,10 @@ export default function DeliveriesView({ initiatives = [] }) {
     const selectedCostCenters = getSelectedCostCenters(filters)
     const filtered = completed.filter((i) => {
       if (filters.activityType && i.activity_type !== filters.activityType) return false
+      if (
+        filters.costCenterResponsible &&
+        i.cost_center_responsible !== filters.costCenterResponsible
+      ) return false
       if (selectedCostCenters.length > 0 && !selectedCostCenters.includes(i.cost_center)) return false
       if (filters.searchTerm) {
         const term = filters.searchTerm.toLowerCase()

@@ -40,6 +40,14 @@ function extractText(raw) {
   return String(raw)
 }
 
+function extractUserDisplayName(raw) {
+  if (!raw) return ''
+  if (typeof raw === 'object') {
+    return raw.displayName || raw.emailAddress || ''
+  }
+  return String(raw)
+}
+
 async function fetchJiraIssues() {
   const jql = process.env.JIRA_JQL || `project = ${process.env.JIRA_PROJECT_KEY} ORDER BY created DESC`
   const credentials = Buffer.from(`${process.env.JIRA_EMAIL}:${process.env.JIRA_API_TOKEN}`).toString('base64')
@@ -60,6 +68,7 @@ async function fetchJiraIssues() {
         'customfield_10015', 'customfield_10201', 'customfield_10934',
         'customfield_10935', 'customfield_10936', 'customfield_10937',
         'customfield_10938', 'customfield_10949', 'customfield_10950', 'customfield_10951',
+        'customfield_11085',
       ],
     }),
   })
@@ -77,6 +86,7 @@ async function fetchJiraIssues() {
       project_key: f.project?.key || '',
       project_name: f.project?.name || '',
       cost_center: extractFirstOption(f.customfield_10201),
+      cost_center_responsible: extractUserDisplayName(f.customfield_11085),
       category: extractOptionValue(f.customfield_10951),
       item_type: f.issuetype?.name || '',
       gain_type: extractOptionValue(f.customfield_10950),
@@ -135,7 +145,7 @@ export default async function handler(req, res) {
 
     const jiraFields = [
       'jira_url', 'summary', 'project_key', 'project_name', 'cost_center', 'category',
-      'item_type', 'gain_type', 'gain', 'activity_type', 'tool', 'jira_status',
+      'cost_center_responsible', 'item_type', 'gain_type', 'gain', 'activity_type', 'tool', 'jira_status',
       'jira_priority', 'assignee', 'assignee_email', 'assignee_avatar_url',
       'jira_description', 'start_date', 'due_date', 'status_updated_at',
       'resolution_date', 'jira_created_at', 'jira_updated_at', 'time_saved_per_day',

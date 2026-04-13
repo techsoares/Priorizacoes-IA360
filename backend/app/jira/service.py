@@ -70,6 +70,14 @@ def _extract_text(raw_value) -> str:
     return str(raw_value)
 
 
+def _extract_user_display_name(raw_value) -> str:
+    if not raw_value:
+        return ""
+    if isinstance(raw_value, dict):
+        return raw_value.get("displayName", "") or raw_value.get("emailAddress", "")
+    return str(raw_value)
+
+
 _JIRA_FIELDS = ",".join([
     "summary",
     "project",
@@ -95,6 +103,7 @@ _JIRA_FIELDS = ",".join([
     "customfield_10949",
     "customfield_10950",
     "customfield_10951",
+    "customfield_11085",
 ])
 
 
@@ -111,6 +120,7 @@ def _parse_issue(issue: dict, base: str) -> dict:
         "project_key": project.get("key", ""),
         "project_name": project.get("name", ""),
         "cost_center": _extract_first_option_value(fields.get("customfield_10201")),
+        "cost_center_responsible": _extract_user_display_name(fields.get("customfield_11085")),
         "category": _extract_option_value(fields.get("customfield_10951")),
         "item_type": issue_type.get("name", ""),
         "gain_type": _extract_option_value(fields.get("customfield_10950")),

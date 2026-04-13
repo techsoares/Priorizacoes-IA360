@@ -6,6 +6,7 @@ const DEFAULT_FILTERS = {
   statusOperator: 'not_equals',
   statuses: ['Concluído', 'Cancelado'],
   assignee: '',
+  costCenterResponsible: '',
   costCenter: '',
   costCenters: [],
   searchTerm: '',
@@ -34,6 +35,7 @@ export default function FilterBar({
     const itemTypes = new Set()
     const statuses = new Set()
     const assignees = new Set()
+    const costCenterResponsibles = new Set()
     const costCenters = new Set()
 
     initiatives.forEach((initiative) => {
@@ -41,6 +43,7 @@ export default function FilterBar({
       if (initiative.item_type) itemTypes.add(initiative.item_type)
       if (initiative.jira_status) statuses.add(initiative.jira_status)
       if (initiative.assignee) assignees.add(initiative.assignee)
+      if (initiative.cost_center_responsible) costCenterResponsibles.add(initiative.cost_center_responsible)
       if (initiative.cost_center) costCenters.add(initiative.cost_center)
     })
 
@@ -49,6 +52,7 @@ export default function FilterBar({
       itemTypes: [...itemTypes].sort(),
       statuses: [...statuses].sort(),
       assignees: [...assignees].sort(),
+      costCenterResponsibles: [...costCenterResponsibles].sort(),
       costCenters: [...costCenters].sort(),
     }
   }, [initiatives])
@@ -57,6 +61,7 @@ export default function FilterBar({
     filters.activityType,
     filters.itemType && filters.itemType !== 'Tarefa' ? 'itemType' : '',
     filters.assignee,
+    filters.costCenterResponsible,
     selectedCostCenters.length ? 'costCenters' : '',
     filters.searchTerm,
     filters.statuses?.length ? 'status' : '',
@@ -144,6 +149,13 @@ export default function FilterBar({
           onChange={(value) => handleChange('assignee', value)}
         />
       )}
+
+      <SingleSelectFilter
+        label="Resp. Centro de Custo"
+        value={filters.costCenterResponsible}
+        options={options.costCenterResponsibles}
+        onChange={(value) => handleChange('costCenterResponsible', value)}
+      />
 
       <MultiSelectFilter
         label="Centro de Custo"

@@ -97,6 +97,7 @@ const DEFAULT_FILTERS = {
   statusOperator: 'not_equals',
   statuses: ['Concluído', 'Cancelado'],
   assignee: '',
+  costCenterResponsible: '',
   costCenter: '',
   costCenters: [],
   searchTerm: '',
@@ -218,6 +219,13 @@ export default function useInitiatives() {
       }
 
       if (filters.assignee && initiative.assignee !== filters.assignee) {
+        return false
+      }
+
+      if (
+        filters.costCenterResponsible &&
+        initiative.cost_center_responsible !== filters.costCenterResponsible
+      ) {
         return false
       }
 

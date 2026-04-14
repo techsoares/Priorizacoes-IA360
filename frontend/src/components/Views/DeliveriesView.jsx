@@ -10,6 +10,12 @@ import {
   Legend,
   ReferenceLine,
   ResponsiveContainer,
+  ScatterChart,
+  Scatter,
+  ZAxis,
+  LineChart,
+  BarChart,
+  Cell,
 } from 'recharts'
 import FilterBar from '../Dashboard/FilterBar'
 import Tooltip from '../UI/Tooltip'
@@ -25,6 +31,7 @@ import {
   groupBy,
   isCompleted,
   getResolutionDate,
+  getStartDate,
 } from '../../utils/initiativeInsights'
 
 // ── Color utility for dark/light mode support ──────────────────────────────
@@ -444,6 +451,150 @@ function OpexColumnChart({ data, isDarkMode, selectedYear, onMonthClick, selecte
   )
 }
 
+function EfficiencyQuadrant({ items, isDarkMode }) {
+  const data = items
+    .filter(i => getLeadTimeDays(i) != null && (i.metrics?.roi_percent_real ?? i.metrics?.roi_percent) != null)
+    .map(i => ({
+      key: i.jira_key,
+      summary: i.summary,
+      leadTime: getLeadTimeDays(i),
+      roi: i.metrics?.roi_percent_real ?? i.metrics?.roi_percent,
+    }))
+
+  if (data.length === 0) return <div className="h-48 flex items-center justify-center text-gray-600 text-[11px]">Dados insuficientes para o quadrante</div>
+
+  const avgLeadTime = data.reduce((s, i) => s + i.leadTime, 0) / data.length
+  const avgRoi = data.reduce((s, i) => s + i.roi, 0) / data.length
+
+  const cyan = isDarkMode ? '#3DB7F4' : '#0066CC'
+
+  return (
+    <div className="h-[300px] w-full relative">
+      <ResponsiveContainer width="100%" height="100%">
+        <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+          <XAxis 
+            type="number" 
+            dataKey="leadTime" 
+            name="Lead Time" 
+            unit="d" 
+            tick={{ fill: '#6b7280', fontSize: 10 }}
+            axisLine={false}
+            tickLine={false}
+            label={{ value: 'Tempo de Entrega (Dias)', position: 'bottom', fill: '#4b5563', fontSize: 10, offset: 0 }}
+          />
+          <YAxis 
+            type="number" 
+            dataKey="roi" 
+            name="ROI" 
+            unit="%" 
+            tick={{ fill: '#6b7280', fontSize: 10 }}
+            axisLine={false}
+            tickLine={false}
+            label={{ value: 'ROI (%)', angle: -90, position: 'insideLeft', fill: '#4b5563', fontSize: 10, offset: 10 }}
+          />
+          <ZAxis type="number" range={[50, 400]} />
+          <RechartsTooltip 
+             content={({ active, payload }) => {
+               if (!active || !payload?.length) return null
+               const d = payload[0].payload
+               return (
+                 <div className="rounded-lg border border-white/[0.08] bg-surface-elevated px-3 py-2 text-[11px] shadow-xl">
+                   <p className="font-bold text-white mb-1">{d.key}</p>
+                   <p className="text-gray-400 mb-1">{d.summary}</p>
+                   <div className="flex gap-4">
+                     <span>Lead Time: <strong className="text-white">{d.leadTime}d</strong></span>
+                     <span>ROI: <strong className="text-[#40EB4F]">{d.roi.toFixed(0)}%</strong></span>
+                   </div>
+                 </div>
+               )
+             }}
+          />
+          <ReferenceLine x={avgLeadTime} stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" label={{ value: 'Média Lead Time', position: 'top', fill: '#6b7280', fontSize: 9 }} />
+          <ReferenceLine y={avgRoi} stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" label={{ value: 'Média ROI', position: 'right', fill: '#6b7280', fontSize: 9 }} />
+          <Scatter name="Iniciativas" data={data} fill={cyan}>
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={cyan} fillOpacity={0.6} />
+            ))}
+          </Scatter>
+        </ScatterChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+function ValueCurveChart({ data, isDarkMode }) {
+  const chartData = data.map((d, i) => {
+    const prev = i > 0 ? data.slice(0, i).reduce((s, prevM) => s + prevM.opex, 0) : 0
+    return {
+      name: d.monthName,
+      Acumulado: prev + d.opex,
+      Mensal: d.opex
+    }
+  })
+
+  const green = isDarkMode ? '#40EB4F' : '#1B8E2C'
+  const cyan = isDarkMode ? '#3DB7F4' : '#0066CC'
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+        <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} />
+        <YAxis tickFormatter={(v) => fmtCompact(v)} tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} width={60} />
+        <RechartsTooltip 
+          content={({ active, payload, label }) => {
+            if (!active || !payload?.length) return null
+            return (
+              <div className="rounded-lg border border-white/[0.08] bg-surface-elevated px-3 py-2 text-[11px] shadow-xl">
+                <p className="mb-2 font-bold text-white">{label}</p>
+                {payload.map(p => (
+                  <div key={p.name} className="flex justify-between gap-4">
+                    <span style={{ color: p.color }}>{p.name}:</span>
+                    <span className="font-mono text-white">{fmt(p.value)}</span>
+                  </div>
+                ))}
+              </div>
+            )
+          }}
+        />
+        <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+        <Line type="monotone" dataKey="Mensal" stroke={cyan} strokeWidth={1} dot={{ r: 2 }} strokeOpacity={0.5} />
+        <Line type="monotone" dataKey="Acumulado" stroke={green} strokeWidth={3} dot={{ r: 4, fill: green, strokeWidth: 2, stroke: '#000' }} />
+      </LineChart>
+    </ResponsiveContainer>
+  )
+}
+
+function CostCenterBenchmarking({ data, isDarkMode }) {
+  const cyan = isDarkMode ? '#3DB7F4' : '#0066CC'
+  
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
+        <XAxis type="number" tickFormatter={(v) => fmtCompact(v)} tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} />
+        <YAxis type="category" dataKey="label" tick={{ fill: '#9ca3af', fontSize: 10 }} axisLine={false} tickLine={false} width={100} />
+        <RechartsTooltip 
+           cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+           content={({ active, payload }) => {
+             if (!active || !payload?.length) return null
+             const d = payload[0].payload
+             return (
+               <div className="rounded-lg border border-white/[0.08] bg-surface-elevated px-3 py-2 text-[11px] shadow-xl">
+                 <p className="font-bold text-white mb-1">{d.label}</p>
+                 <p className="text-gray-400">Total Economia: <strong className="text-[#40EB4F]">{fmt(d.value)}</strong></p>
+                 <p className="text-gray-400">ROI Médio: <strong className="text-[#3DB7F4]">{d.avgRoi.toFixed(0)}%</strong></p>
+               </div>
+             )
+           }}
+        />
+        <Bar dataKey="value" fill={cyan} radius={[0, 4, 4, 0]} barSize={20} />
+      </BarChart>
+    </ResponsiveContainer>
+  )
+}
+
 function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, totalGainsMonthly }) {
   const currentYear = new Date().getFullYear()
 
@@ -601,6 +752,31 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">Quadrante de Eficiência (Lead Time vs ROI)</h4>
+        <EfficiencyQuadrant items={items} isDarkMode={isDarkMode} />
+      </div>
+
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">Curva de Valor Realizado (OPEX Acumulado)</h4>
+        <ValueCurveChart data={monthlyData} isDarkMode={isDarkMode} />
+      </div>
+
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">Benchmarking por Centro de Custo (ROI & Ganhos)</h4>
+        <CostCenterBenchmarking 
+          data={Object.entries(groupBy(items, (i) => i.cost_center || 'Sem centro'))
+            .map(([label, list]) => ({ 
+              label, 
+              value: list.reduce((s, i) => s + (i.metrics?.total_gains || 0), 0),
+              avgRoi: list.length ? list.reduce((s, i) => s + (i.metrics?.roi_percent_real ?? i.metrics?.roi_percent ?? 0), 0) / list.length : 0
+            }))
+            .sort((a, b) => b.value - a.value)
+          } 
+          isDarkMode={isDarkMode} 
+        />
       </div>
 
       {/* Chart 4: Top Cost Centers */}
@@ -1005,16 +1181,35 @@ export default function DeliveriesView({ initiatives = [] }) {
         costs: Number(i.metrics?.total_costs || 0),
       })).sort((a, b) => b.gains - a.gains)
 
+    // TTV Calculation: Avg days between start and resolution
+    const withTtv = filtered.filter(i => {
+      const start = getStartDate(i)
+      const res = getResolutionDate(i)
+      return start && res && res >= start
+    })
+    const ttvDays = withTtv.map(i => {
+      const diff = getResolutionDate(i) - getStartDate(i)
+      return Math.ceil(diff / (1000 * 60 * 60 * 24))
+    })
+    const avgTtv = ttvDays.length > 0 ? ttvDays.reduce((s, v) => s + v, 0) / ttvDays.length : null
+
     return (
       <div className="space-y-8 pb-10">
         {/* KPI Pills — Dashboard style */}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8 mb-6">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-9 mb-6">
           <KpiPill
             label="ROI Acumulado"
             value={accumulatedRoi != null ? `${accumulatedRoi.toFixed(0)}%` : '—'}
             sub={withResolutionDate.length > 0 ? `${withResolutionDate.length} em produção` : 'Sem entregas'}
             color="#3DB7F4" highlight
             tooltip="ROI real acumulado desde conclusão. Acumula a cada mês."
+          />
+          <KpiPill
+            label="Time to Value"
+            value={formatDays(avgTtv)}
+            sub="Tempo de ciclo real"
+            color="#FE70BD"
+            tooltip="Média de dias entre o início do desenvolvimento e a resolução (entrega de valor)."
           />
           <KpiPill
             label="Economia Anual"
@@ -1047,9 +1242,9 @@ export default function DeliveriesView({ initiatives = [] }) {
           <KpiPill
             label="Lead Time"
             value={formatDays(avgLead)}
-            sub="Ciclo médio"
+            sub="Ciclo Jira"
             color="#F2F24B"
-            tooltip="Tempo médio entre criação e conclusão."
+            tooltip="Tempo médio entre criação e conclusão no Jira."
           />
         </div>
 

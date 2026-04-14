@@ -57,8 +57,13 @@ function buildMonthGroups(days) {
 
 const ROW_H = 36
 const COL_W = 28
-const LABEL_W = 280
+const LABEL_W = 420
 const HEADER_H = 52
+
+function formatDateShort(date) {
+  if (!date) return '—'
+  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+}
 
 function LabelRow({ initiative, rowIdx }) {
   const [showTooltip, setShowTooltip] = useState(false)
@@ -68,7 +73,7 @@ function LabelRow({ initiative, rowIdx }) {
       className={`border-r border-white/[0.04] px-3 flex items-center ${rowIdx % 2 === 1 ? 'bg-white/[0.01]' : ''}`}
       style={{ height: ROW_H }}
     >
-      <div className="grid grid-cols-[72px_1fr_80px] items-center gap-2 w-full">
+      <div className="grid grid-cols-[72px_1fr_55px_55px_80px] items-center gap-2 w-full text-[12px]">
         <a
           href={initiative.jira_url}
           target="_blank"
@@ -82,11 +87,17 @@ function LabelRow({ initiative, rowIdx }) {
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
         >
-          <p className="truncate text-[12px] text-white/80 cursor-default">{initiative.summary}</p>
+          <p className="truncate text-white/80 cursor-default">{initiative.summary}</p>
           <p className="truncate text-[10px] text-gray-600">{initiative.assignee || '—'}</p>
           {showTooltip && <InitiativeTooltip initiative={initiative} />}
         </div>
-        <div className="min-w-0 overflow-hidden">
+        <div className="text-center font-mono text-[11px] text-gray-500">
+          {formatDateShort(getStartDate(initiative))}
+        </div>
+        <div className="text-center font-mono text-[11px] text-gray-500">
+          {formatDateShort(getTimelineEndDate(initiative))}
+        </div>
+        <div className="min-w-0 overflow-hidden text-right">
           <StatusBadge status={initiative.jira_status} />
         </div>
       </div>
@@ -124,7 +135,13 @@ export default function TimelineView({ initiatives, filteredInitiatives, filters
           <h2 className="text-sm font-semibold text-white">Timeline</h2>
           <p className="text-[11px] text-gray-500">Planejamento visual por início e data de resolução.</p>
         </div>
-        <FilterBar initiatives={initiatives} filters={filters} onFilterChange={onFilterChange} />
+        <FilterBar 
+          initiatives={initiatives} 
+          filters={filters} 
+          onFilterChange={onFilterChange} 
+          showSearch={true}
+          showItemType={false}
+        />
       </div>
 
       <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] overflow-hidden">
@@ -138,10 +155,12 @@ export default function TimelineView({ initiatives, filteredInitiatives, filters
               className="border-b border-r border-white/[0.04] px-3 flex items-end"
               style={{ height: HEADER_H }}
             >
-              <div className="grid grid-cols-[72px_1fr_80px] gap-2 pb-2 w-full text-[10px] uppercase tracking-[0.12em] text-gray-600">
+              <div className="grid grid-cols-[72px_1fr_55px_55px_80px] gap-2 pb-2 w-full text-[10px] uppercase tracking-[0.12em] text-gray-600">
                 <span>Jira</span>
                 <span>Iniciativa</span>
-                <span>Status</span>
+                <span className="text-center">Início</span>
+                <span className="text-center">Limite</span>
+                <span className="text-right">Status</span>
               </div>
             </div>
 
@@ -159,15 +178,15 @@ export default function TimelineView({ initiatives, filteredInitiatives, filters
             {/* legend footer */}
             <div className="border-t border-r border-white/[0.04] px-3 py-2.5 flex flex-col gap-1.5">
               <span className="flex items-center gap-1.5 text-[10px] text-gray-600">
-                <span className="h-1 w-5 rounded-full bg-[linear-gradient(90deg,#3559EB,#3DB7F4)]" />
+                <span className="h-2 w-3 rounded bg-[#40EB4F]" />
                 Concluído
               </span>
               <span className="flex items-center gap-1.5 text-[10px] text-gray-600">
-                <span className="h-1 w-5 rounded-full bg-[linear-gradient(90deg,#3559EB,#FE70BD)]" />
+                <span className="h-2 w-3 rounded bg-[#3DB7F4]" />
                 Em andamento
               </span>
               <span className="flex items-center gap-1.5 text-[10px] text-gray-600">
-                <span className="h-1 w-5 rounded-full bg-[linear-gradient(90deg,#FE70BD,#3559EB)]" />
+                <span className="h-2 w-3 rounded bg-[#FE70BD]" />
                 Atrasado
               </span>
               <span className="flex items-center gap-1.5 text-[10px] text-gray-600">
@@ -253,10 +272,10 @@ export default function TimelineView({ initiatives, filteredInitiatives, filters
                     <div
                       className={`absolute top-1/2 -translate-y-1/2 h-4 rounded-full ${
                         resolved
-                          ? 'bg-[linear-gradient(90deg,#3559EB,#3DB7F4)]'
+                          ? 'bg-[#40EB4F]'
                           : isLate
-                          ? 'bg-[linear-gradient(90deg,#FE70BD,#3559EB)]'
-                          : 'bg-[linear-gradient(90deg,#3559EB,#FE70BD)]'
+                          ? 'bg-[#FE70BD]'
+                          : 'bg-[#3DB7F4]'
                       }`}
                       style={{
                         left: startOffset * COL_W + 4,

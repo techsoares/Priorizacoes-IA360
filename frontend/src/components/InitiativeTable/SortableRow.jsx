@@ -195,14 +195,14 @@ function PriorityScoreCell({ initiative, isExpanded, onToggle, onRequestPriority
 
       <ScoreBreakdownTooltip initiative={initiative} />
 
-      {hasRequests && (
+      {(hasRequests || isExpanded) && (
         <button
           type="button"
           onClick={(event) => {
             event.stopPropagation()
             onToggle?.(initiative.id)
           }}
-          title="Ver pedidos de prioridade"
+          title={isExpanded ? "Fechar detalhes" : "Ver pedidos de prioridade"}
           className={`inline-flex h-4 w-4 items-center justify-center rounded transition-colors ${
             isExpanded ? 'text-[#F2F24B]' : 'text-gray-600 hover:text-[#F2F24B]'
           }`}

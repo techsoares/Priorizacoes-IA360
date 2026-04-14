@@ -49,3 +49,9 @@ desktop.ini
 # Supabase local
 # ========================
 supabase/.temp/
+# ========================
+# Logs e Temporários
+# ========================
+*.log
+.claude/
+sync_db.js

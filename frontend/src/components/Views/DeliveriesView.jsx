@@ -1103,6 +1103,8 @@ export default function DeliveriesView({ initiatives = [] }) {
     costCenter: '',
     costCenters: [],
     searchTerm: '',
+    startDate: '',
+    endDate: '',
   })
 
   try {
@@ -1119,6 +1121,19 @@ export default function DeliveriesView({ initiatives = [] }) {
         const term = filters.searchTerm.toLowerCase()
         if (!i.summary?.toLowerCase().includes(term) && !i.jira_key?.toLowerCase().includes(term)) return false
       }
+      
+      if (filters.startDate) {
+        const resDate = getResolutionDate(i)
+        if (!resDate || resDate < new Date(filters.startDate)) return false
+      }
+      if (filters.endDate) {
+        const resDate = getResolutionDate(i)
+        // Adiciona final do dia no comparativo do endDate
+        const endLimit = new Date(filters.endDate)
+        endLimit.setHours(23, 59, 59, 999)
+        if (!resDate || resDate > endLimit) return false
+      }
+      
       return true
     })
 
@@ -1241,6 +1256,7 @@ export default function DeliveriesView({ initiatives = [] }) {
             showAssignee={false}
             showItemType={false}
             showSearch
+            showDateRange
           />
         </div>
 

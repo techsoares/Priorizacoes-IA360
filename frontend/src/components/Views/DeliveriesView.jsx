@@ -731,7 +731,7 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
       {/* Chart 3: CAPEX x OPEX Ratio — Donut */}
       <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
         <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">Investimento vs Economia</h4>
-        <div className="flex items-center gap-10 mt-4">
+        <div className="flex items-center justify-center gap-16 mt-4 py-2">
           {/* SVG Donut */}
           <DonutChart
             slices={[

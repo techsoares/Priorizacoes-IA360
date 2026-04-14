@@ -13,7 +13,7 @@ export function getStartDate(initiative) {
 }
 
 export function getResolutionDate(initiative) {
-  return toDate(initiative?.resolution_date)
+  return toDate(initiative?.resolution_date) || (isCompleted(initiative) ? toDate(initiative?.status_updated_at) : null)
 }
 
 export function getTimelineEndDate(initiative) {

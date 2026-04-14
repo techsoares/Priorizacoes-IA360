@@ -10,8 +10,7 @@ const DEFAULT_FILTERS = {
   costCenter: '',
   costCenters: [],
   searchTerm: '',
-  startDate: '',
-  endDate: '',
+  period: '',
   hasPriorityRequests: false,
 }
 
@@ -68,8 +67,7 @@ export default function FilterBar({
     filters.costCenterResponsible,
     selectedCostCenters.length ? 'costCenters' : '',
     filters.searchTerm,
-    filters.startDate,
-    filters.endDate,
+    filters.period,
     filters.statuses?.length ? 'status' : '',
     filters.hasPriorityRequests ? 'priorityRequests' : '',
   ].filter(Boolean).length
@@ -123,21 +121,20 @@ export default function FilterBar({
       )}
 
       {showDateRange && (
-        <div className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2 py-0.5 ml-1">
-          <input
-            type="date"
-            value={filters.startDate || ''}
-            onChange={(e) => handleChange('startDate', e.target.value)}
-            className="h-5 bg-transparent text-[11px] text-gray-300 outline-none [color-scheme:dark]"
-          />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-gray-600">até</span>
-          <input
-            type="date"
-            value={filters.endDate || ''}
-            onChange={(e) => handleChange('endDate', e.target.value)}
-            className="h-5 bg-transparent text-[11px] text-gray-300 outline-none [color-scheme:dark]"
-          />
-        </div>
+        <SingleSelectFilter
+          label="Período"
+          value={filters.period}
+          options={[
+            'Este mês',
+            'Mês anterior',
+            'Últimos 3 meses',
+            'Últimos 6 meses',
+            'Este ano',
+            'Ano anterior',
+          ]}
+          onChange={(value) => handleChange('period', value)}
+          align="left"
+        />
       )}
 
       <SingleSelectFilter

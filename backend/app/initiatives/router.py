@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.auth.dependencies import get_current_user
@@ -6,6 +8,7 @@ from app.database.supabase_client import get_supabase_client
 from app.initiatives.calculations import calculate_metrics
 from app.initiatives.models import BulkCostRequest, InitiativeResponse, InitiativeUpdate, ReorderRequest
 from app.jira.service import fetch_jira_issues
+from app.priorities.scoring import build_priority_fields
 
 router = APIRouter(prefix="/api/initiatives", tags=["initiatives"])
 
@@ -50,6 +53,41 @@ def _enrich_with_metrics(row: dict) -> InitiativeResponse:
     return InitiativeResponse(**enriched, metrics=metrics)
 
 
+def _refresh_priority_scores(supabase, initiative_id: str) -> dict:
+    initiative = (
+        supabase.table("initiatives")
+        .select("*")
+        .eq("id", initiative_id)
+        .single()
+        .execute()
+    )
+    if not initiative.data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Iniciativa nao encontrada.",
+        )
+
+    active_requests = (
+        supabase.table("priority_requests")
+        .select("ai_delta_score")
+        .eq("initiative_id", initiative_id)
+        .eq("status", "active")
+        .execute()
+    )
+    active_rows = active_requests.data or []
+    aggregated_request_score = sum(float(row.get("ai_delta_score") or 0) for row in active_rows)
+    priority_fields = build_priority_fields(initiative.data, aggregated_request_score, len(active_rows))
+    priority_fields["priority_score_updated_at"] = datetime.now(timezone.utc).isoformat()
+
+    updated = (
+        supabase.table("initiatives")
+        .update(priority_fields)
+        .eq("id", initiative_id)
+        .execute()
+    )
+    return updated.data[0] if updated.data else {**initiative.data, **priority_fields}
+
+
 @router.get("/", response_model=list[InitiativeResponse])
 async def list_initiatives(user: dict = Depends(get_current_user)):
     """Lista todas as iniciativas ordenadas por prioridade."""
@@ -74,8 +112,25 @@ async def sync_from_jira(user: dict = Depends(get_current_user)):
         supabase = get_supabase_client()
         jira_issues = await fetch_jira_issues()
 
-        existing = supabase.table("initiatives").select("id, jira_key").execute()
-        existing_keys = {row["jira_key"]: row["id"] for row in existing.data}
+        existing = supabase.table("initiatives").select("*").execute()
+        existing_rows = existing.data or []
+        existing_keys = {row["jira_key"]: row["id"] for row in existing_rows}
+        existing_rows_by_key = {row["jira_key"]: row for row in existing_rows}
+
+        active_requests = (
+            supabase.table("priority_requests")
+            .select("initiative_id, ai_delta_score")
+            .eq("status", "active")
+            .execute()
+        )
+        request_totals = {}
+        request_counts = {}
+        for row in active_requests.data or []:
+            initiative_id = row.get("initiative_id")
+            if not initiative_id:
+                continue
+            request_totals[initiative_id] = request_totals.get(initiative_id, 0) + float(row.get("ai_delta_score") or 0)
+            request_counts[initiative_id] = request_counts.get(initiative_id, 0) + 1
 
         max_order_result = (
             supabase.table("initiatives")
@@ -118,6 +173,8 @@ async def sync_from_jira(user: dict = Depends(get_current_user)):
             "time_spent_seconds",
         ]
 
+        score_updated_at = datetime.now(timezone.utc).isoformat()
+
         for issue in jira_issues:
             sync_data = {field: issue.get(field) for field in jira_fields}
             sync_data["jira_key"] = issue["jira_key"]
@@ -126,6 +183,17 @@ async def sync_from_jira(user: dict = Depends(get_current_user)):
             sync_data["hours_saved"] = _monthly_time_saved_hours_per_person(issue)
             sync_data["headcount_reduction"] = issue.get("affected_people_count", 0)
             sync_data["tools"] = issue.get("tool", "")
+
+            initiative_id = existing_keys.get(issue["jira_key"])
+            score_source = {**(existing_rows_by_key.get(issue["jira_key"]) or {}), **sync_data}
+            sync_data.update(
+                build_priority_fields(
+                    score_source,
+                    request_totals.get(initiative_id, 0) if initiative_id else 0,
+                    request_counts.get(initiative_id, 0) if initiative_id else 0,
+                )
+            )
+            sync_data["priority_score_updated_at"] = score_updated_at
 
             if issue["jira_key"] in existing_keys:
                 supabase.table("initiatives").update(sync_data).eq("jira_key", issue["jira_key"]).execute()
@@ -181,16 +249,8 @@ async def update_initiative(
             detail="Iniciativa não encontrada.",
         )
 
-    # Busca o registro completo para garantir que todos os campos sejam retornados
-    full = (
-        supabase.table("initiatives")
-        .select("*")
-        .eq("id", initiative_id)
-        .single()
-        .execute()
-    )
-
-    return _enrich_with_metrics(full.data)
+    refreshed = _refresh_priority_scores(supabase, initiative_id)
+    return _enrich_with_metrics(refreshed)
 
 
 @router.post("/bulk-costs")
@@ -213,6 +273,7 @@ async def bulk_update_costs(
             .execute()
         )
         if result.data:
+            _refresh_priority_scores(supabase, result.data[0]["id"])
             updated += 1
 
     return {"message": f"Custos atualizados para {updated} iniciativas.", "count": updated}

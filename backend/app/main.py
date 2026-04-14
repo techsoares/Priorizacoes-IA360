@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.initiatives.router import router as initiatives_router
+from app.priorities.router import router as priorities_router
 
 app = FastAPI(
     title="IA360° Dashboard API",
@@ -24,6 +25,7 @@ app.add_middleware(
 
 # Rotas
 app.include_router(initiatives_router)
+app.include_router(priorities_router)
 
 
 @app.get("/health")

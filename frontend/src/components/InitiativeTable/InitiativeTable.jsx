@@ -1,27 +1,31 @@
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import Tooltip from '../UI/Tooltip'
 import SortableRow from './SortableRow'
 
 const COLUMNS = [
-  { key: 'priority_order', label: '#', minWidth: 52 },
   { key: 'jira_key', label: 'Jira', minWidth: 88, tooltip: 'Chave da issue no Jira.' },
   { key: 'summary', label: 'Iniciativa', minWidth: 280, tooltip: 'Resumo da demanda. Passe o mouse para ver detalhes.' },
   { key: 'jira_status', label: 'Status', minWidth: 130, badge: true, tooltip: 'Status atual no Jira.' },
-  { key: 'roi_percent', label: 'ROI Automação', minWidth: 125, computed: true, sortable: true, tooltip: 'ROI da automação: (ganho_mensal − custos) ÷ custos × 100. Mede se 1 mês de ganho já cobre o investimento.' },
-  { key: 'payback_months', label: 'Payback', minWidth: 100, computed: true, sortable: true, tooltip: 'Meses para recuperar o investimento: custos ÷ ganhos_mensais.' },
-  { key: 'hours_saved', label: 'Horas/mês', minWidth: 105, computed: true, sortable: true, tooltip: 'Tempo economizado por mês (horas_salvas_dia × dias_mês × pessoas_afetadas).' },
-  { key: 'development_estimate_seconds', label: 'Tempo Dev (Est.)', minWidth: 110, sortable: true, tooltip: 'Tempo estimado de desenvolvimento (horas) — vem do Jira. Usado para calcular CAPEX em planejamento.' },
-  { key: 'total_gains', label: 'OPEX Ganhos/mês', minWidth: 140, computed: true, sortable: true, tooltip: 'OPEX (Operational Expenditure): Economia operacional MENSAL. Cálculo: (horas_economizadas_mês × custo_hora_pessoa_afetada) + ganhos_headcount + ganhos_produtividade. Exemplo: 160h/mês × R$ 60/h = R$ 9.600/mês OPEX.' },
-  { key: 'total_costs', label: 'CAPEX Investimento', minWidth: 140, computed: true, sortable: true, tooltip: 'CAPEX (Capital Expenditure): Custo total one-time de desenvolvimento. Cálculo: (horas_dev × R$/h_dev) + (horas_terceiros × R$/h_terceiros). NÃO é salário de pessoas — é custo técnico.' },
+  { key: 'priority_final_score', label: 'Score Prioridade', minWidth: 118, computed: true, sortable: true, tooltip: 'Score geral de prioridade: base objetiva mais ajustes dos pedidos avaliados.' },
+  { key: 'roi_percent', label: 'ROI Automação', minWidth: 125, computed: true, sortable: true, tooltip: 'ROI da automação: ganho mensal líquido dividido pelo investimento.' },
+  { key: 'payback_months', label: 'Payback', minWidth: 100, computed: true, sortable: true, tooltip: 'Meses para recuperar o investimento.' },
+  { key: 'hours_saved', label: 'Horas/mês', minWidth: 105, computed: true, sortable: true, tooltip: 'Tempo economizado por mês.' },
+  { key: 'development_estimate_seconds', label: 'Tempo Dev (Est.)', minWidth: 110, sortable: true, tooltip: 'Tempo estimado de desenvolvimento em horas.' },
+  { key: 'total_gains', label: 'OPEX Ganhos/mês', minWidth: 140, computed: true, sortable: true, tooltip: 'Economia operacional mensal líquida.' },
+  { key: 'total_costs', label: 'CAPEX Investimento', minWidth: 140, computed: true, sortable: true, tooltip: 'Investimento técnico inicial.' },
 ]
 
+const PAGE_SIZE = 25
+
 function SortIcon({ direction }) {
-  if (!direction) return (
-    <svg className="h-3 w-3 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-    </svg>
-  )
+  if (!direction) {
+    return (
+      <svg className="h-3 w-3 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+      </svg>
+    )
+  }
+
   return direction === 'asc' ? (
     <svg className="h-3 w-3 text-[#3DB7F4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -34,71 +38,95 @@ function SortIcon({ direction }) {
 }
 
 function getSortValue(initiative, key) {
-  if (key === 'hours_saved') return initiative.hours_saved || 0
+  if (key === 'priority_final_score') return Number(initiative.priority_final_score || 0)
+  if (key === 'hours_saved') return initiative.metrics?.total_hours_saved ?? initiative.hours_saved ?? 0
   if (key === 'development_estimate_seconds') return initiative.development_estimate_seconds || 0
-  if (['total_gains', 'total_costs', 'roi_percent', 'roi_accumulated', 'payback_months'].includes(key)) {
+  if (['total_gains', 'total_costs', 'roi_percent', 'payback_months'].includes(key)) {
     return initiative.metrics?.[key] ?? -Infinity
   }
   return initiative[key] ?? ''
 }
 
-export default function InitiativeTable({ initiatives, onUpdateField, selectedId, onSelect }) {
+export default function InitiativeTable({
+  initiatives,
+  onUpdateField,
+  selectedId,
+  onSelect,
+  onRequestPriority,
+  expandedPriorityIds = [],
+  priorityRequestsByInitiative = {},
+  onTogglePriorityDetails,
+  isAdmin = false,
+  onDeleteRequest,
+}) {
   const [summaryWidth, setSummaryWidth] = useState(320)
   const [isResizing, setIsResizing] = useState(false)
   const [sortKey, setSortKey] = useState(null)
   const [sortDir, setSortDir] = useState('desc')
+  const [showAll, setShowAll] = useState(false)
 
-  useEffect(() => {
-    if (!isResizing) return undefined
-    function handleMouseMove(e) {
-      setSummaryWidth((prev) => Math.min(540, Math.max(180, prev + e.movementX)))
-    }
-    function handleMouseUp() { setIsResizing(false) }
-    window.addEventListener('mousemove', handleMouseMove)
-    window.addEventListener('mouseup', handleMouseUp)
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [isResizing])
-
-  const columns = useMemo(() =>
-    COLUMNS.map((col) => col.key === 'summary' ? { ...col, width: summaryWidth, resizable: true } : col),
+  const columns = useMemo(
+    () => COLUMNS.map((column) => (
+      column.key === 'summary' ? { ...column, width: summaryWidth, resizable: true } : column
+    )),
     [summaryWidth]
   )
 
+  function handleMouseMove(event) {
+    setSummaryWidth((prev) => Math.min(540, Math.max(180, prev + event.movementX)))
+  }
+  function handleResizeStart() {
+    setIsResizing(true)
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleResizeEnd)
+  }
+  function handleResizeEnd() {
+    setIsResizing(false)
+    window.removeEventListener('mousemove', handleMouseMove)
+    window.removeEventListener('mouseup', handleResizeEnd)
+  }
+
   function handleSort(key) {
     if (sortKey === key) {
-      setSortDir((d) => d === 'desc' ? 'asc' : 'desc')
+      setSortDir((prev) => (prev === 'desc' ? 'asc' : 'desc'))
     } else {
       setSortKey(key)
       setSortDir('desc')
     }
   }
 
-  const displayedInitiatives = useMemo(() => {
+  const sortedInitiatives = useMemo(() => {
     if (!sortKey) return initiatives
     return [...initiatives].sort((a, b) => {
-      const va = getSortValue(a, sortKey)
-      const vb = getSortValue(b, sortKey)
-      if (va === vb) return 0
-      const cmp = va < vb ? -1 : 1
-      return sortDir === 'desc' ? -cmp : cmp
+      const valueA = getSortValue(a, sortKey)
+      const valueB = getSortValue(b, sortKey)
+      if (valueA === valueB) return 0
+      const comparison = valueA < valueB ? -1 : 1
+      return sortDir === 'desc' ? -comparison : comparison
     })
   }, [initiatives, sortKey, sortDir])
 
+  const displayedInitiatives = showAll ? sortedInitiatives : sortedInitiatives.slice(0, PAGE_SIZE)
+  const hasMore = sortedInitiatives.length > PAGE_SIZE
+
   return (
-    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] rounded-xl border border-white/[0.05] bg-surface-card/50 shadow-glow-sm">
+    <div className="flex flex-col">
+      <div
+        className={`overflow-x-auto overflow-y-auto rounded-xl border border-white/[0.05] bg-surface-card/50 shadow-glow-sm ${
+          showAll ? '' : 'max-h-[calc(100vh-280px)]'
+        }`}
+      >
         <table className="min-w-full table-fixed text-sm">
           <thead className="sticky top-0 z-10">
             <tr className="bg-surface-elevated/90 backdrop-blur-sm">
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className="px-3 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500 whitespace-nowrap border-b border-white/[0.04]"
-                  style={column.width
-                    ? { width: `${column.width}px`, minWidth: `${column.minWidth}px`, maxWidth: `${column.width}px` }
-                    : { minWidth: `${column.minWidth}px` }
+                  className="whitespace-nowrap border-b border-white/[0.04] px-3 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500"
+                  style={
+                    column.width
+                      ? { width: `${column.width}px`, minWidth: `${column.minWidth}px`, maxWidth: `${column.width}px` }
+                      : { minWidth: `${column.minWidth}px` }
                   }
                 >
                   <div className="flex items-center justify-between gap-1">
@@ -119,7 +147,10 @@ export default function InitiativeTable({ initiatives, onUpdateField, selectedId
                       {column.resizable && (
                         <button
                           type="button"
-                          onMouseDown={(e) => { e.stopPropagation(); setIsResizing(true) }}
+                          onMouseDown={(event) => {
+                            event.stopPropagation()
+                            handleResizeStart()
+                          }}
                           className="h-4 w-1 cursor-col-resize rounded-full bg-white/[0.06] transition-colors hover:bg-[#3DB7F4]/40"
                         />
                       )}
@@ -129,24 +160,25 @@ export default function InitiativeTable({ initiatives, onUpdateField, selectedId
               ))}
             </tr>
           </thead>
-          <SortableContext
-            items={displayedInitiatives.map((i) => i.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            <tbody>
-              {displayedInitiatives.map((initiative, index) => (
-                <SortableRow
-                  key={initiative.id}
-                  initiative={initiative}
-                  index={index}
-                  columns={columns}
-                  onUpdateField={onUpdateField}
-                  isSelected={selectedId === initiative.id}
-                  onSelect={onSelect}
-                />
-              ))}
-            </tbody>
-          </SortableContext>
+
+          <tbody>
+            {displayedInitiatives.map((initiative) => (
+              <SortableRow
+                key={initiative.id}
+                initiative={initiative}
+                columns={columns}
+                onUpdateField={onUpdateField}
+                isSelected={selectedId === initiative.id}
+                onSelect={onSelect}
+                onRequestPriority={onRequestPriority}
+                isPriorityExpanded={expandedPriorityIds.includes(initiative.id)}
+                priorityRequests={priorityRequestsByInitiative[initiative.id] || []}
+                onTogglePriorityDetails={onTogglePriorityDetails}
+                isAdmin={isAdmin}
+                onDeleteRequest={onDeleteRequest}
+              />
+            ))}
+          </tbody>
         </table>
 
         {initiatives.length === 0 && (
@@ -159,5 +191,18 @@ export default function InitiativeTable({ initiatives, onUpdateField, selectedId
           </div>
         )}
       </div>
+
+      {hasMore && (
+        <div className="mt-2 flex justify-end px-1">
+          <button
+            type="button"
+            onClick={() => setShowAll((v) => !v)}
+            className="text-[11px] text-gray-600 transition-colors hover:text-gray-300"
+          >
+            {showAll ? 'Recolher' : `Mostrar todas (${sortedInitiatives.length})`}
+          </button>
+        </div>
+      )}
+    </div>
   )
 }

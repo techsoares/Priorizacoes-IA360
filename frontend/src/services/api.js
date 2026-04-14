@@ -103,7 +103,110 @@ export async function syncJira() {
     break
   }
 
-  throw lastError || new Error('Nao foi possivel encontrar uma rota de sincronizacao disponivel.')
+  throw lastError || new Error('Não foi possível encontrar uma rota de sincronização disponível.')
+}
+
+export async function listPriorityRequests() {
+  const headers = await getAuthHeader()
+  const res = await fetch('/api/priorities/requests', {
+    method: 'GET',
+    headers,
+  })
+  const text = await res.text()
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`
+    try {
+      detail = JSON.parse(text)?.detail || detail
+    } catch {}
+    throw new Error(detail)
+  }
+  return parseSyncResponse(text, '/api/priorities/requests')
+}
+
+export async function createPriorityRequest(payload) {
+  const headers = await getAuthHeader()
+  const res = await fetch('/api/priorities/requests', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: JSON.stringify(payload),
+  })
+  const text = await res.text()
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`
+    try {
+      detail = JSON.parse(text)?.detail || detail
+    } catch {}
+    throw new Error(detail)
+  }
+  const parsed = parseSyncResponse(text, '/api/priorities/requests')
+  if (parsed?.initiative) {
+    parsed.initiative = enrich(parsed.initiative)
+  }
+  return parsed
+}
+
+export async function deletePriorityRequest(requestId) {
+  const headers = await getAuthHeader()
+  const res = await fetch(`/api/priorities/requests/${requestId}`, {
+    method: 'DELETE',
+    headers,
+  })
+  const text = await res.text()
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`
+    try {
+      detail = JSON.parse(text)?.detail || detail
+    } catch {}
+    throw new Error(detail)
+  }
+  const parsed = parseSyncResponse(text, `/api/priorities/requests/${requestId}`)
+  if (parsed?.initiative) {
+    parsed.initiative = enrich(parsed.initiative)
+  }
+  return parsed
+}
+
+export async function reevaluatePriorityRequest(requestId) {
+  const headers = await getAuthHeader()
+  const res = await fetch(`/api/priorities/requests/${requestId}/re-evaluate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...headers },
+  })
+  const text = await res.text()
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`
+    try {
+      detail = JSON.parse(text)?.detail || detail
+    } catch {}
+    throw new Error(detail)
+  }
+  const parsed = parseSyncResponse(text, `/api/priorities/requests/${requestId}/re-evaluate`)
+  if (parsed?.initiative) {
+    parsed.initiative = enrich(parsed.initiative)
+  }
+  return parsed
+}
+
+export async function updatePriorityRequestStatus(requestId, status) {
+  const headers = await getAuthHeader()
+  const res = await fetch(`/api/priorities/requests/${requestId}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: JSON.stringify({ status }),
+  })
+  const text = await res.text()
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`
+    try {
+      detail = JSON.parse(text)?.detail || detail
+    } catch {}
+    throw new Error(detail)
+  }
+  const parsed = parseSyncResponse(text, `/api/priorities/requests/${requestId}/status`)
+  if (parsed?.initiative) {
+    parsed.initiative = enrich(parsed.initiative)
+  }
+  return parsed
 }
 
 // Sprint Queue
@@ -149,13 +252,13 @@ const api = {
     if (url.startsWith('/api/initiatives')) {
       return { data: await listInitiatives() }
     }
-    throw new Error(`GET ${url} nao suportado`)
+    throw new Error(`GET ${url} não suportado`)
   },
   post: async (url) => {
     if (url.includes('initiatives/sync-jira') || url.includes('sync-jira')) {
       return { data: await syncJira() }
     }
-    throw new Error(`POST ${url} nao suportado`)
+    throw new Error(`POST ${url} não suportado`)
   },
   put: async (url, payload) => {
     const id = url.split('/').pop()
@@ -165,7 +268,7 @@ const api = {
     if (url.includes('reorder')) {
       return { data: await reorderInitiatives(payload.ordered_ids, payload.updated_by, payload.dragged) }
     }
-    throw new Error(`PATCH ${url} nao suportado`)
+    throw new Error(`PATCH ${url} não suportado`)
   },
 }
 

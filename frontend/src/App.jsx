@@ -144,8 +144,8 @@ function WorkspacePage() {
     filters,
     setFilters,
     syncJira,
-    reorder,
     updateField,
+    replaceInitiative,
   } = useInitiatives()
 
   const [currentView, setCurrentView] = useState(readViewFromHash)
@@ -286,8 +286,8 @@ function WorkspacePage() {
             filteredInitiatives={filteredInitiatives}
             filters={filters}
             onFilterChange={setFilters}
-            onReorder={reorder}
             onUpdateField={updateField}
+            onInitiativePatched={replaceInitiative}
             isAdmin={isAdmin}
           />
         ) : null}

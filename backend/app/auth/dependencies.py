@@ -60,4 +60,9 @@ async def get_current_user(
         "id": user_data.get("id"),
         "email": email,
         "role": user_data.get("role", "authenticated"),
+        "full_name": (
+            (user_data.get("user_metadata") or {}).get("full_name")
+            or (user_data.get("user_metadata") or {}).get("name")
+            or ""
+        ),
     }

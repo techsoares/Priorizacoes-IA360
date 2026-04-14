@@ -100,6 +100,11 @@ class InitiativeResponse(BaseModel):
     assignee_email: str | None = None
     assignee_avatar_url: str | None = None
     priority_order: int
+    priority_base_score: float = 0
+    priority_request_score: float = 0
+    priority_final_score: float = 0
+    priority_requests_count: int = 0
+    priority_score_breakdown: dict = Field(default_factory=dict)
 
     jira_description: str | None = None
     start_date: date | None = None
@@ -136,3 +141,4 @@ class InitiativeResponse(BaseModel):
 
     created_at: datetime | None = None
     updated_at: datetime | None = None
+    priority_score_updated_at: datetime | None = None

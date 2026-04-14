@@ -10,6 +10,7 @@ const DEFAULT_FILTERS = {
   costCenter: '',
   costCenters: [],
   searchTerm: '',
+  hasPriorityRequests: false,
 }
 
 function getSelectedCostCenters(filters) {
@@ -65,6 +66,7 @@ export default function FilterBar({
     selectedCostCenters.length ? 'costCenters' : '',
     filters.searchTerm,
     filters.statuses?.length ? 'status' : '',
+    filters.hasPriorityRequests ? 'priorityRequests' : '',
   ].filter(Boolean).length
 
   function handleChange(key, value) {
@@ -165,6 +167,17 @@ export default function FilterBar({
         align="right"
       />
 
+      <button
+        type="button"
+        onClick={() => onFilterChange({ ...filters, hasPriorityRequests: !filters.hasPriorityRequests })}
+        className={`rounded-lg border px-2.5 py-1 text-[11px] transition-all ${filters.hasPriorityRequests
+            ? 'border-primary/25 bg-primary/8 text-[#3DB7F4]'
+            : 'border-white/[0.06] bg-white/[0.02] text-gray-400 hover:border-white/[0.1] hover:text-gray-300'
+          }`}
+      >
+        Com prioridade
+      </button>
+
       {activeCount > 0 && (
         <button
           onClick={clearAll}
@@ -207,13 +220,12 @@ function SingleSelectFilter({ label, value, options, onChange, align = 'left' })
         type="button"
         disabled={isDisabled}
         onClick={() => !isDisabled && setOpen((current) => !current)}
-        className={`inline-flex items-center justify-between gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] transition-all ${
-          isDisabled
+        className={`inline-flex items-center justify-between gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] transition-all ${isDisabled
             ? 'cursor-not-allowed border-white/[0.04] bg-white/[0.02] text-gray-700'
             : value
               ? 'border-primary/25 bg-primary/8 text-[#3DB7F4]'
               : 'border-white/[0.06] bg-white/[0.02] text-gray-400 hover:border-white/[0.1] hover:text-gray-300'
-        }`}
+          }`}
       >
         <span className="truncate">{value || label}</span>
         {!isDisabled ? (
@@ -233,11 +245,10 @@ function SingleSelectFilter({ label, value, options, onChange, align = 'left' })
           <button
             type="button"
             onClick={() => handleSelect('')}
-            className={`mb-1 flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[12px] transition-colors ${
-              !value
+            className={`mb-1 flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[12px] transition-colors ${!value
                 ? 'bg-primary/10 text-[#3DB7F4]'
                 : 'text-gray-400 hover:bg-white/[0.03]'
-            }`}
+              }`}
           >
             <span>{label}</span>
             {!value ? <span className="text-[10px] uppercase tracking-[0.15em] text-gray-600">Todos</span> : null}
@@ -249,11 +260,10 @@ function SingleSelectFilter({ label, value, options, onChange, align = 'left' })
                 key={option}
                 type="button"
                 onClick={() => handleSelect(option)}
-                className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[12px] transition-colors ${
-                  value === option
+                className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[12px] transition-colors ${value === option
                     ? 'bg-primary/10 text-[#3DB7F4]'
                     : 'text-gray-400 hover:bg-white/[0.03]'
-                }`}
+                  }`}
               >
                 <span className="truncate">{option}</span>
                 {value === option ? (
@@ -306,13 +316,12 @@ function MultiSelectFilter({ label, selectedValues, options, onSelectionChange, 
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setOpen((value) => !value)}
-        className={`rounded-lg border px-2.5 py-1 text-[11px] transition-all ${
-          disabled
+        className={`rounded-lg border px-2.5 py-1 text-[11px] transition-all ${disabled
             ? 'cursor-not-allowed border-white/[0.04] bg-white/[0.02] text-gray-700'
             : selectedValues.length > 0
               ? 'border-primary/25 bg-primary/8 text-[#3DB7F4]'
               : 'border-white/[0.06] bg-white/[0.02] text-gray-400 hover:border-white/[0.1] hover:text-gray-300'
-        }`}
+          }`}
       >
         {summary}
       </button>
@@ -394,13 +403,12 @@ function StatusMultiFilter({
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setOpen((value) => !value)}
-        className={`rounded-lg border px-2.5 py-1 text-[11px] transition-all ${
-          disabled
+        className={`rounded-lg border px-2.5 py-1 text-[11px] transition-all ${disabled
             ? 'cursor-not-allowed border-white/[0.04] bg-white/[0.02] text-gray-700'
             : selectedStatuses.length > 0
               ? 'border-primary/25 bg-primary/8 text-[#3DB7F4]'
               : 'border-white/[0.06] bg-white/[0.02] text-gray-400 hover:border-white/[0.1] hover:text-gray-300'
-        }`}
+          }`}
       >
         {summary}
       </button>
@@ -424,22 +432,20 @@ function StatusMultiFilter({
             <button
               type="button"
               onClick={() => onOperatorChange('equals')}
-              className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-all ${
-                operator === 'equals'
+              className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-all ${operator === 'equals'
                   ? 'bg-primary text-white shadow-sm'
                   : 'text-gray-500 hover:text-gray-300'
-              }`}
+                }`}
             >
               =
             </button>
             <button
               type="button"
               onClick={() => onOperatorChange('not_equals')}
-              className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-all ${
-                operator === 'not_equals'
+              className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-all ${operator === 'not_equals'
                   ? 'bg-accent-pink text-white shadow-sm'
                   : 'text-gray-500 hover:text-gray-300'
-              }`}
+                }`}
             >
               !=
             </button>

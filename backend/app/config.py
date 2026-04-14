@@ -1,4 +1,8 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings
+
+_ENV_FILE = Path(__file__).parent.parent / ".env"
 
 
 class Settings(BaseSettings):
@@ -22,11 +26,17 @@ class Settings(BaseSettings):
     jira_project_key: str = "IA360"
     jira_jql: str = ""
 
+    # OpenRouter
+    openrouter_api_key: str = ""
+    openrouter_model: str = "anthropic/claude-opus-4-5"
+    openrouter_site_url: str = ""
+    openrouter_app_name: str = "IA360 Dashboard"
+
     # CORS
     frontend_url: str = "http://localhost:5173"
 
     model_config = {
-        "env_file": ".env",
+        "env_file": str(_ENV_FILE),
         "env_file_encoding": "utf-8",
     }
 

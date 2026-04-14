@@ -238,22 +238,9 @@ export default function AdminView({
       )}
 
       <div className="mb-5 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div>
-            <h2 className="text-sm font-semibold text-white">Administração de custos</h2>
-            <p className="text-[11px] text-gray-500">Campos manuais que não vêm do Jira. O tempo de desenvolvimento é lido automaticamente.</p>
-          </div>
-          <a
-            href="/manual.html"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1.5 text-[11px] font-medium text-gray-400 transition-all hover:border-white/[0.1] hover:text-white"
-          >
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-            </svg>
-            Manual
-          </a>
+        <div>
+          <h2 className="text-sm font-semibold text-white">Administração de custos</h2>
+          <p className="text-[11px] text-gray-500">Campos manuais que não vêm do Jira. O tempo de desenvolvimento é lido automaticamente.</p>
         </div>
         <FilterBar initiatives={initiatives} filters={filters} onFilterChange={onFilterChange} showStatus={true} />
       </div>

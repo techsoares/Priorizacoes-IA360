@@ -181,7 +181,7 @@ export default function FilterBar({
       {activeCount > 0 && (
         <button
           onClick={clearAll}
-          className="ml-1 flex items-center gap-1 text-[11px] text-gray-500 transition-colors hover:text-[#FE70BD]"
+          className="ml-auto flex items-center gap-1 text-[11px] text-gray-500 transition-colors hover:text-[#FE70BD]"
         >
           <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

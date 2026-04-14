@@ -21,8 +21,8 @@ function ExistingRequestPreview({ request }) {
   const displayDate = wasEdited ? request.updated_at : request.created_at
   const date = displayDate
     ? new Date(displayDate).toLocaleDateString('pt-BR', {
-        day: '2-digit', month: 'short', year: 'numeric',
-      })
+      day: '2-digit', month: 'short', year: 'numeric',
+    })
     : null
 
   return (
@@ -194,7 +194,7 @@ export default function PriorityRequestModal({ initiative, initiativeRequests = 
 
                 <div className="flex items-end justify-between gap-4 border-t border-white/[0.06] pt-4">
                   <p className="max-w-[250px] text-[11px] leading-relaxed text-gray-600">
-                    Sua solicitação será avaliada automaticamente pela IA.
+                    Sua solicitação será avaliada automaticamente pela IA - Claude Opus 4.5 via Open Router PGMais.
                   </p>
                   <div className="flex items-center gap-2">
                     <button

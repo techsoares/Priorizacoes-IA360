@@ -52,6 +52,11 @@ export default async function handler(req, res) {
             }
             
             const result = rows.map(row => serialize_request(row, initiatives_by_id));
+            
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            
             return res.status(200).json(result);
         } catch (error) {
             return res.status(error.status || 500).json({ detail: error.detail || error.message });

@@ -938,6 +938,10 @@ function DetailTable({ items }) {
         aVal = a.metrics?.payback_months ?? 999
         bVal = b.metrics?.payback_months ?? 999
         break
+      case 'resolution_date':
+        aVal = getResolutionDate(a)?.getTime() || 0
+        bVal = getResolutionDate(b)?.getTime() || 0
+        break
       default:
         return 0
     }
@@ -1004,6 +1008,7 @@ function DetailTable({ items }) {
               <SortHeader label="Economia/mês" column="gains" />
               <SortHeader label="ROI Est. vs Real" column="roi_real" />
               <SortHeader label="Payback" column="payback" />
+              <SortHeader label="Conclusão" column="resolution_date" />
             </tr>
           </thead>
           <tbody className="divide-y divide-white/[0.03]">
@@ -1081,6 +1086,11 @@ function DetailTable({ items }) {
                   <td className="px-3 py-2 text-center">
                     <span className="text-[13px] font-medium text-gray-300">{payback != null ? `${payback.toFixed(1)} m` : '—'}</span>
                   </td>
+                  <td className="px-3 py-2 text-center">
+                    <span className="text-[13px] font-medium text-gray-300">
+                      {getResolutionDate(item) ? getResolutionDate(item).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—'}
+                    </span>
+                  </td>
                 </tr>
               )
             })}
@@ -1100,11 +1110,9 @@ export default function DeliveriesView({ initiatives = [] }) {
     statuses: [],
     assignee: '',
     costCenterResponsible: '',
-    costCenter: '',
     costCenters: [],
     searchTerm: '',
-    startDate: '',
-    endDate: '',
+    period: '',
   })
 
   try {
@@ -1122,16 +1130,43 @@ export default function DeliveriesView({ initiatives = [] }) {
         if (!i.summary?.toLowerCase().includes(term) && !i.jira_key?.toLowerCase().includes(term)) return false
       }
       
-      if (filters.startDate) {
+      if (filters.period) {
         const resDate = getResolutionDate(i)
-        if (!resDate || resDate < new Date(filters.startDate)) return false
-      }
-      if (filters.endDate) {
-        const resDate = getResolutionDate(i)
-        // Adiciona final do dia no comparativo do endDate
-        const endLimit = new Date(filters.endDate)
-        endLimit.setHours(23, 59, 59, 999)
-        if (!resDate || resDate > endLimit) return false
+        if (!resDate) return false
+        
+        const now = new Date()
+        const year = now.getFullYear()
+        const month = now.getMonth()
+        let startLimit = null
+        let endLimit = null
+
+        switch (filters.period) {
+          case 'Este mês':
+            startLimit = new Date(year, month, 1)
+            break
+          case 'Mês anterior':
+            startLimit = new Date(year, month - 1, 1)
+            endLimit = new Date(year, month, 0, 23, 59, 59, 999)
+            break
+          case 'Últimos 3 meses':
+            startLimit = new Date()
+            startLimit.setMonth(startLimit.getMonth() - 3)
+            break
+          case 'Últimos 6 meses':
+            startLimit = new Date()
+            startLimit.setMonth(startLimit.getMonth() - 6)
+            break
+          case 'Este ano':
+            startLimit = new Date(year, 0, 1)
+            break
+          case 'Ano anterior':
+            startLimit = new Date(year - 1, 0, 1)
+            endLimit = new Date(year - 1, 11, 31, 23, 59, 59, 999)
+            break
+        }
+
+        if (startLimit && resDate < startLimit) return false
+        if (endLimit && resDate > endLimit) return false
       }
       
       return true

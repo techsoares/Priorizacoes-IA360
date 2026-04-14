@@ -247,11 +247,11 @@ function EconomyVsCost({ items }) {
 }
 
 // ── DonutChart component (pure SVG) ─────────────────────────────────────────
-function DonutChart({ slices, size = 100 }) {
+function DonutChart({ slices, size = 140 }) {
   const total = slices.reduce((s, sl) => s + sl.value, 0)
   if (total === 0) return <div style={{ width: size, height: size }} className="flex items-center justify-center text-[9px] text-gray-500">Sem dados</div>
 
-  const r = 35, cx = 50, cy = 50
+  const r = 40, cx = 50, cy = 50
   const circumference = 2 * Math.PI * r
   let offset = 0
 
@@ -570,11 +570,11 @@ function CostCenterBenchmarking({ data, isDarkMode }) {
   const cyan = isDarkMode ? '#3DB7F4' : '#0066CC'
   
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+    <ResponsiveContainer width="100%" height={320}>
+      <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
         <XAxis type="number" tickFormatter={(v) => fmtCompact(v)} tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} />
-        <YAxis type="category" dataKey="label" tick={{ fill: '#9ca3af', fontSize: 10 }} axisLine={false} tickLine={false} width={100} />
+        <YAxis type="category" dataKey="label" tick={{ fill: '#9ca3af', fontSize: 10 }} axisLine={false} tickLine={false} width={130} />
         <RechartsTooltip 
            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
            content={({ active, payload }) => {
@@ -731,24 +731,24 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
       {/* Chart 3: CAPEX x OPEX Ratio — Donut */}
       <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
         <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">Investimento vs Economia</h4>
-        <div className="flex items-center gap-6 mt-4">
+        <div className="flex items-center gap-10 mt-4">
           {/* SVG Donut */}
           <DonutChart
             slices={[
               { value: initialInvestment, color: getChartColor('pink', isDarkMode), label: 'CAPEX' },
               { value: totalGainsMonthly * 12, color: getChartColor('green', isDarkMode), label: 'OPEX/ano' },
             ]}
-            size={100}
+            size={140}
           />
           {/* Legend */}
-          <div className="space-y-2 text-[10px]">
-            <div className="flex items-center gap-2">
+          <div className="space-y-4 text-[11px]">
+            <div className="flex items-center gap-3">
               <span className="w-3 h-3 rounded-full" style={{ background: getChartColor('pink', isDarkMode) }} />
-              <span className="text-gray-400">CAPEX: <strong className="text-white">{fmtCompact(initialInvestment)}</strong></span>
+              <span className="text-gray-400 font-medium">CAPEX (Investimento): <strong className="text-white text-sm">{fmtCompact(initialInvestment)}</strong></span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <span className="w-3 h-3 rounded-full" style={{ background: getChartColor('green', isDarkMode) }} />
-              <span className="text-gray-400">OPEX/ano: <strong className="text-white">{fmtCompact(totalGainsMonthly * 12)}</strong></span>
+              <span className="text-gray-400 font-medium">OPEX/ano (Ganho anual): <strong className="text-white text-sm">{fmtCompact(totalGainsMonthly * 12)}</strong></span>
             </div>
           </div>
         </div>
@@ -1181,35 +1181,18 @@ export default function DeliveriesView({ initiatives = [] }) {
         costs: Number(i.metrics?.total_costs || 0),
       })).sort((a, b) => b.gains - a.gains)
 
-    // TTV Calculation: Avg days between start and resolution
-    const withTtv = filtered.filter(i => {
-      const start = getStartDate(i)
-      const res = getResolutionDate(i)
-      return start && res && res >= start
-    })
-    const ttvDays = withTtv.map(i => {
-      const diff = getResolutionDate(i) - getStartDate(i)
-      return Math.ceil(diff / (1000 * 60 * 60 * 24))
-    })
-    const avgTtv = ttvDays.length > 0 ? ttvDays.reduce((s, v) => s + v, 0) / ttvDays.length : null
+    // Domain Visual Data
 
     return (
       <div className="space-y-8 pb-10">
         {/* KPI Pills — Dashboard style */}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-9 mb-6">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8 mb-6">
           <KpiPill
             label="ROI Acumulado"
             value={accumulatedRoi != null ? `${accumulatedRoi.toFixed(0)}%` : '—'}
             sub={withResolutionDate.length > 0 ? `${withResolutionDate.length} em produção` : 'Sem entregas'}
             color="#3DB7F4" highlight
             tooltip="ROI real acumulado desde conclusão. Acumula a cada mês."
-          />
-          <KpiPill
-            label="Time to Value"
-            value={formatDays(avgTtv)}
-            sub="Tempo de ciclo real"
-            color="#FE70BD"
-            tooltip="Média de dias entre o início do desenvolvimento e a resolução (entrega de valor)."
           />
           <KpiPill
             label="Economia Anual"

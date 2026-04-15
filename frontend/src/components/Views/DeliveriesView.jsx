@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ComposedChart,
   Bar,
@@ -62,6 +62,58 @@ function getSelectedCostCenters(filters) {
   return filters.costCenter ? [filters.costCenter] : []
 }
 
+function getMonthOptions() {
+  return Array.from({ length: 12 }, (_, monthIndex) => ({
+    value: monthIndex,
+    label: new Date(2026, monthIndex, 1).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase(),
+  }))
+}
+
+function computeSelectedPeriodMonthsLive(item, selectedYears = [], selectedMonths = []) {
+  const completionDate = getResolutionDate(item) || (item.status_updated_at ? new Date(item.status_updated_at) : null)
+  if (!completionDate) return 0
+
+  const now = new Date()
+  const liveStart = completionDate > now ? now : completionDate
+  const liveEnd = now
+
+  if (liveStart >= liveEnd) return 0
+
+  const ranges = selectedYears.flatMap((year) => {
+    if (selectedMonths.length) {
+      return selectedMonths.map((month) => ({
+        start: new Date(year, month, 1),
+        end: new Date(year, month + 1, 1),
+      }))
+    }
+
+    return [{
+      start: new Date(year, 0, 1),
+      end: new Date(year + 1, 0, 1),
+    }]
+  })
+
+  const overlapDays = ranges.reduce((sum, range) => {
+    const overlapStart = liveStart > range.start ? liveStart : range.start
+    const overlapEnd = liveEnd < range.end ? liveEnd : range.end
+    const diffMs = overlapEnd - overlapStart
+    return diffMs > 0 ? sum + (diffMs / (1000 * 60 * 60 * 24)) : sum
+  }, 0)
+
+  return Math.round((overlapDays / 30.44) * 10) / 10
+}
+
+// Calcula quantos meses completos (decimais) a entrega está em produção desde sua conclusão até hoje.
+// Usado para o OPEX Acumulado: cada mês em produção "entrega" o valor mensal de economia.
+function computeMonthsSinceCompletion(item) {
+  const completionDate = getResolutionDate(item) || (item.status_updated_at ? new Date(item.status_updated_at) : null)
+  if (!completionDate) return 0
+  const now = new Date()
+  if (completionDate >= now) return 0
+  const diffMs = now - completionDate
+  return diffMs / (1000 * 60 * 60 * 24 * 30.44)
+}
+
 // ── KPI Pill (matches Dashboard SummaryCards style) ──────────────────────────────────────────────────────
 function KpiPill({ label, value, sub, color, tooltip, highlight }) {
   return (
@@ -122,7 +174,7 @@ function RankedList({ title, items, formatter, color, tooltip, icon }) {
   return (
     <div className="rounded-[28px] border border-white/[0.08] bg-white/[0.02] p-6 backdrop-blur-md">
       <div className="mb-6 flex items-center justify-between border-b border-white/[0.04] pb-4">
-        <div className="flex items-center gap-2">
+        <div className="min-w-0 space-y-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/[0.04] text-sm ring-1 ring-white/10">
             {icon}
           </div>
@@ -165,7 +217,7 @@ function RoiSpotlight({ items }) {
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/[0.04] text-sm ring-1 ring-white/10">🏆</div>
           <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400">Top Performance</h3>
-          <Tooltip content="Maiores ROIs acumulativos entregues até o momento." />
+          <Tooltip content="Iniciativas com maior ROI estimado (ganho_mensal / CAPEX_estimado × 100). Ordenadas por retorno mensal sobre o investimento. Use como referência de quais tipos de iniciativa geram maior eficiência financeira." />
         </div>
       </div>
 
@@ -213,7 +265,7 @@ function EconomyVsCost({ items }) {
           <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400">Eficiência Financeira</h3>
           <p className="text-[10px] text-gray-600 mt-1 uppercase">Ganhos OPEX Mensais vs Investimento CAPEX (Top 6)</p>
         </div>
-        <Tooltip content="OPEX (Ganhos): Economia mensal operacional. CAPEX (Investimento): Custo initial one-time. Quanto menor o período payback, melhor o ROI." />
+        <Tooltip content="OPEX (barra verde): economia mensal líquida recorrente da iniciativa. CAPEX (barra rosa): investimento one-time em desenvolvimento. Quanto maior o OPEX em relação ao CAPEX, mais rápido o payback. Iniciativas sem barra CAPEX tiveram custo zerado ou não cadastrado." />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -241,6 +293,229 @@ function EconomyVsCost({ items }) {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  )
+}
+
+function DeliveryPeriodFilter({
+  items,
+  selectedYears,
+  selectedMonths,
+  onYearsChange,
+  onMonthsChange,
+}) {
+  const availableYears = useMemo(() => {
+    const years = new Set()
+    items.forEach((item) => {
+      const resolutionDate = getResolutionDate(item) || (item.status_updated_at ? new Date(item.status_updated_at) : null)
+      if (resolutionDate) years.add(resolutionDate.getFullYear())
+    })
+    return [...years].sort((a, b) => b - a)
+  }, [items])
+
+  const yearDetailsRef = useRef(null)
+  const monthDetailsRef = useRef(null)
+  const monthOptions = useMemo(() => getMonthOptions(), [])
+  const hasSelectedYears = selectedYears.length > 0
+  const activeCount = selectedYears.length + selectedMonths.length
+  const selectedMonthLabels = monthOptions
+    .filter((month) => selectedMonths.includes(month.value))
+    .map((month) => month.label)
+
+  const yearSummary = selectedYears.length === 0
+    ? 'Todos'
+    : selectedYears.length <= 2
+      ? selectedYears.join(', ')
+      : `${selectedYears.length} anos`
+
+  const monthSummary = !hasSelectedYears
+    ? 'Selecione o ano'
+    : selectedMonthLabels.length === 0
+      ? 'Todos'
+      : selectedMonthLabels.length <= 3
+        ? selectedMonthLabels.join(', ')
+        : `${selectedMonthLabels.length} meses`
+
+  function toggleYear(year) {
+    const nextYears = selectedYears.includes(year)
+      ? selectedYears.filter((value) => value !== year)
+      : [...selectedYears, year].sort((a, b) => b - a)
+
+    onYearsChange(nextYears)
+    if (nextYears.length === 0 && selectedMonths.length > 0) {
+      onMonthsChange([])
+    }
+  }
+
+  function toggleMonth(month) {
+    if (!hasSelectedYears) return
+    const nextMonths = selectedMonths.includes(month)
+      ? selectedMonths.filter((value) => value !== month)
+      : [...selectedMonths, month].sort((a, b) => a - b)
+    onMonthsChange(nextMonths)
+  }
+
+  function clearAll() {
+    onYearsChange([])
+    onMonthsChange([])
+    if (yearDetailsRef.current) yearDetailsRef.current.removeAttribute('open')
+    if (monthDetailsRef.current) monthDetailsRef.current.removeAttribute('open')
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <div className="mr-1 flex items-center gap-1.5 text-[11px] text-gray-600">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-gray-300">Período de Entrega</span>
+        <Tooltip content="Selecione um ou mais anos e, depois, um ou mais meses para filtrar as entregas concluídas." />
+      </div>
+
+      <details ref={yearDetailsRef} className="group relative">
+        <summary className="flex list-none cursor-pointer items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1 text-left text-[11px] transition-all hover:border-white/[0.1] hover:text-gray-300">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-500">Ano</span>
+          <span className="max-w-[88px] truncate text-[11px] font-medium text-gray-300">{yearSummary}</span>
+          <span className="text-[9px] text-gray-500 transition-transform group-open:rotate-180">▼</span>
+        </summary>
+        <div className="absolute left-0 top-full z-20 mt-2 w-56 rounded-2xl border border-white/[0.08] bg-[#14192b] p-2 shadow-2xl">
+          <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-500">Selecione os anos</p>
+          <div className="space-y-1">
+            {availableYears.map((year) => {
+              const isSelected = selectedYears.includes(year)
+              return (
+                <button
+                  key={year}
+                  type="button"
+                  onClick={() => toggleYear(year)}
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-[11px] transition-colors ${
+                    isSelected
+                      ? 'bg-primary/12 text-[#3DB7F4]'
+                      : 'text-gray-400 hover:bg-white/[0.04] hover:text-gray-200'
+                  }`}
+                >
+                  <span>{year}</span>
+                  <span className="text-[10px] uppercase tracking-[0.14em]">
+                    {isSelected ? 'Ativo' : 'Selecionar'}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </details>
+
+      <details ref={monthDetailsRef} className={`group relative ${hasSelectedYears ? '' : 'pointer-events-none opacity-50'}`}>
+        <summary className="flex list-none cursor-pointer items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1 text-left text-[11px] transition-all hover:border-white/[0.1] hover:text-gray-300">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-500">Mês</span>
+          <span className="max-w-[92px] truncate text-[11px] font-medium text-gray-300">{monthSummary}</span>
+          <span className="text-[9px] text-gray-500 transition-transform group-open:rotate-180">▼</span>
+        </summary>
+        <div className="absolute left-0 top-full z-20 mt-2 w-64 rounded-2xl border border-white/[0.08] bg-[#14192b] p-2 shadow-2xl">
+          <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-500">Selecione os meses</p>
+          <div className="grid grid-cols-3 gap-1">
+            {monthOptions.map((month) => {
+              const isSelected = selectedMonths.includes(month.value)
+              return (
+                <button
+                  key={month.value}
+                  type="button"
+                  onClick={() => toggleMonth(month.value)}
+                  className={`rounded-xl px-2 py-2 text-[10px] font-medium uppercase tracking-[0.14em] transition-colors ${
+                    isSelected
+                      ? 'bg-primary/12 text-[#3DB7F4]'
+                      : 'text-gray-400 hover:bg-white/[0.04] hover:text-gray-200'
+                  }`}
+                >
+                  {month.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </details>
+
+      {activeCount > 0 && (
+        <button
+          type="button"
+          onClick={clearAll}
+          className="flex items-center gap-1 text-[11px] text-gray-500 transition-colors hover:text-[#FE70BD]"
+        >
+          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Limpar ({activeCount})
+        </button>
+      )}
+    </div>
+  )
+
+  return (
+    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.015] px-4 py-3">
+      <div className="flex flex-col gap-2">
+        <div className="min-w-0 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-gray-300">Período de Entrega</span>
+          <Tooltip content="Selecione um ou mais anos e, depois, um ou mais meses para filtrar as entregas concluídas." />
+        </div>
+        {activeCount > 0 && (
+          <button
+            type="button"
+            onClick={clearAll}
+            className="self-start rounded-full border border-white/[0.08] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-gray-500 transition-colors hover:border-[#FE70BD]/25 hover:text-[#FE70BD]"
+          >
+            Limpar período ({activeCount})
+          </button>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-600">Ano</span>
+          <div className="flex flex-wrap gap-2">
+            {availableYears.map((year) => (
+              <button
+                key={year}
+                type="button"
+                onClick={() => toggleYear(year)}
+                className={`rounded-full px-3 py-1 text-[11px] font-medium transition-all ${
+                  selectedYears.includes(year)
+                    ? 'border border-primary/25 bg-primary/12 text-[#3DB7F4]'
+                    : 'border border-white/[0.06] bg-white/[0.02] text-gray-500 hover:border-white/[0.1] hover:text-gray-300'
+                }`}
+              >
+                {year}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500">Mês</span>
+            {!hasSelectedYears && (
+              <span className="text-[10px] text-gray-600">Selecione ao menos um ano</span>
+            )}
+          </div>
+          {hasSelectedYears ? (
+          <div className="flex flex-wrap gap-2">
+            {monthOptions.map((month) => {
+              const isSelected = selectedMonths.includes(month.value)
+              return (
+                <button
+                  key={month.value}
+                  type="button"
+                  onClick={() => toggleMonth(month.value)}
+                  className={`rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] transition-all ${
+                    isSelected
+                      ? 'border border-primary/25 bg-primary/12 text-[#3DB7F4]'
+                      : 'border border-white/[0.06] bg-white/[0.02] text-gray-500 hover:border-white/[0.1] hover:text-gray-300'
+                  }`}
+                >
+                  {month.label}
+                </button>
+              )
+            })}
+          </div>
+          ) : null}
+        </div>
       </div>
     </div>
   )
@@ -566,8 +841,7 @@ function ValueCurveChart({ data, isDarkMode }) {
   )
 }
 
-function CostCenterBenchmarking({ data, isDarkMode }) {
-  const cyan = isDarkMode ? '#3DB7F4' : '#0066CC'
+function CostCenterBenchmarking({ data }) {
   
   return (
     <ResponsiveContainer width="100%" height={320}>
@@ -595,6 +869,220 @@ function CostCenterBenchmarking({ data, isDarkMode }) {
   )
 }
 
+function CostCenterBenchmarkingCards({ data }) {
+  const [sortBy, setSortBy] = useState('gains')
+
+  const sortedData = useMemo(() => {
+    const items = [...data]
+    items.sort((a, b) => {
+      if (sortBy === 'roi') return b.avgRoi - a.avgRoi
+      return b.value - a.value
+    })
+    return items.slice(0, 8)
+  }, [data, sortBy])
+
+  const maxGains = Math.max(...sortedData.map((item) => item.value), 1)
+
+  if (sortedData.length === 0) {
+    return <div className="flex h-[320px] items-center justify-center text-[11px] text-gray-600">Sem dados suficientes</div>
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[10px] uppercase tracking-[0.14em] text-gray-500">
+          Ranking visual por centro com ganhos, ROI médio e volume de iniciativas.
+        </p>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setSortBy('gains')}
+            className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all ${
+              sortBy === 'gains'
+                ? 'border border-primary/25 bg-primary/12 text-[#3DB7F4]'
+                : 'border border-white/[0.06] bg-white/[0.02] text-gray-500 hover:border-white/[0.1] hover:text-gray-300'
+            }`}
+          >
+            Ordenar por ganhos
+          </button>
+          <button
+            type="button"
+            onClick={() => setSortBy('roi')}
+            className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all ${
+              sortBy === 'roi'
+                ? 'border border-primary/25 bg-primary/12 text-[#3DB7F4]'
+                : 'border border-white/[0.06] bg-white/[0.02] text-gray-500 hover:border-white/[0.1] hover:text-gray-300'
+            }`}
+          >
+            Ordenar por ROI
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        {sortedData.map((item, index) => {
+          const gainsWidth = Math.max((item.value / maxGains) * 100, 4)
+          const roiTone = item.avgRoi >= 100 ? 'text-[#40EB4F]' : item.avgRoi >= 0 ? 'text-[#3DB7F4]' : 'text-[#FE70BD]'
+
+          return (
+            <div
+              key={item.label}
+              className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 transition-all hover:bg-white/[0.04]"
+            >
+              <div className="mb-3 flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-start gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/[0.05] text-[11px] font-black text-gray-400">
+                    {(index + 1).toString().padStart(2, '0')}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-[13px] font-semibold text-white">{item.label}</p>
+                    <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-gray-600">
+                      {item.initiatives} iniciativa{item.initiatives !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="shrink-0 text-right">
+                  <p className="text-[14px] font-black text-white">{fmtCompact(item.value)}</p>
+                  <p className="text-[10px] uppercase tracking-[0.14em] text-gray-600">Ganhos</p>
+                </div>
+              </div>
+
+              <div className="mb-3 h-2 overflow-hidden rounded-full bg-white/[0.04]">
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${gainsWidth}%`,
+                    background: 'linear-gradient(90deg, rgba(61,183,244,0.75), rgba(61,183,244,1))',
+                    boxShadow: '0 0 18px rgba(61,183,244,0.18)',
+                  }}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-2">
+                  <p className="text-[10px] uppercase tracking-[0.14em] text-gray-600">ROI médio</p>
+                  <p className={`mt-1 text-[13px] font-bold ${roiTone}`}>{item.avgRoi.toFixed(0)}%</p>
+                </div>
+                <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-2">
+                  <p className="text-[10px] uppercase tracking-[0.14em] text-gray-600">Ganho total</p>
+                  <p className="mt-1 text-[13px] font-bold text-white">{fmtCompact(item.value)}</p>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function OpexMonthlySection({
+  availableYears,
+  selectedYear,
+  setSelectedYear,
+  selectedMonthIndex,
+  setSelectedMonthIndex,
+  monthlyData,
+  items,
+  isDarkMode,
+}) {
+  return (
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300">OPEX Mensal + Iniciativas Entregues</h4>
+          <Tooltip content="Barras azuis: economia operacional líquida mensal (soma dos ganhos das entregas concluídas naquele mês). Barras rosas: quantidade de iniciativas entregues. Clique em um mês para ver o detalhamento das entregas." />
+        </div>
+        <div className="flex items-center gap-1">
+          {availableYears.map((year) => (
+            <button
+              key={year}
+              type="button"
+              onClick={() => setSelectedYear(year)}
+              className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all ${
+                selectedYear === year
+                  ? 'bg-primary/12 text-[#3DB7F4] border border-primary/25'
+                  : 'border border-white/[0.06] bg-white/[0.02] text-gray-500 hover:border-white/[0.1] hover:text-gray-300'
+              }`}
+            >
+              {year}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex gap-3">
+        <div className={selectedMonthIndex != null ? 'flex-1 min-w-0' : 'w-full'}>
+          <OpexColumnChart
+            data={monthlyData}
+            isDarkMode={isDarkMode}
+            selectedYear={selectedYear}
+            onMonthClick={setSelectedMonthIndex}
+            selectedMonthIndex={selectedMonthIndex}
+          />
+        </div>
+
+        {selectedMonthIndex != null && (() => {
+          const month = monthlyData[selectedMonthIndex]
+          const monthItems = items.filter((item) => {
+            if (!isCompleted(item)) return false
+            const resDate = getResolutionDate(item) || (item.status_updated_at ? new Date(item.status_updated_at) : null)
+            return resDate && resDate.getFullYear() === selectedYear && resDate.getMonth() === selectedMonthIndex
+          })
+          return (
+            <div className="w-72 shrink-0 overflow-hidden rounded-xl border border-white/[0.05] bg-surface-card/50 shadow-glow-sm">
+              <div className="flex items-center justify-between border-b border-white/[0.04] bg-surface-elevated/90 px-3 py-2 backdrop-blur-sm">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500">
+                  {month.monthName} · {monthItems.length} entregas
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedMonthIndex(null)}
+                  className="text-gray-600 transition-colors hover:text-gray-400"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="max-h-[268px] divide-y divide-white/[0.03] overflow-y-auto">
+                {monthItems.length === 0 ? (
+                  <p className="px-3 py-6 text-center text-[11px] text-gray-600">Nenhuma entrega neste mês</p>
+                ) : monthItems.map((item) => (
+                  <div key={item.id} className="px-3 py-2 transition-colors hover:bg-white/[0.02]">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <a
+                          href={item.jira_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-mono text-[10px] text-[#3DB7F4]/80 transition-colors hover:text-[#3DB7F4]"
+                        >
+                          {item.jira_key}
+                        </a>
+                        <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-gray-300">{item.summary}</p>
+                      </div>
+                      <span className="shrink-0 text-[11px] font-semibold text-[#40EB4F]">
+                        {fmtCompact(item.metrics?.total_gains || 0)}
+                      </span>
+                    </div>
+                    {item.activity_type && (
+                      <span className="mt-1 inline-block text-[9px] uppercase tracking-[0.12em] text-gray-600">
+                        {item.activity_type}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
+      </div>
+    </div>
+  )
+}
+
 function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, totalGainsMonthly }) {
   const currentYear = new Date().getFullYear()
 
@@ -613,6 +1101,14 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
 
   const [selectedYear, setSelectedYear] = useState(() => currentYear)
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(null)
+
+  useEffect(() => {
+    if (availableYears.length === 0) return
+    if (!availableYears.includes(selectedYear)) {
+      setSelectedYear(availableYears[0])
+      setSelectedMonthIndex(null)
+    }
+  }, [availableYears, selectedYear])
 
   // Prepare monthly data for new temporal charts
   const monthlyData = useMemo(() => {
@@ -729,30 +1225,16 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
       </div>
 
       {/* Chart 3: CAPEX x OPEX Ratio — Donut */}
-      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
-        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">Investimento vs Economia</h4>
-        <div className="flex items-center justify-center gap-16 mt-4 py-2">
-          {/* SVG Donut */}
-          <DonutChart
-            slices={[
-              { value: initialInvestment, color: getChartColor('pink', isDarkMode), label: 'CAPEX' },
-              { value: totalGainsMonthly * 12, color: getChartColor('green', isDarkMode), label: 'OPEX/ano' },
-            ]}
-            size={140}
-          />
-          {/* Legend */}
-          <div className="space-y-4 text-[11px]">
-            <div className="flex items-center gap-3">
-              <span className="w-3 h-3 rounded-full" style={{ background: getChartColor('pink', isDarkMode) }} />
-              <span className="text-gray-400 font-medium">CAPEX (Investimento): <strong className="text-white text-sm">{fmtCompact(initialInvestment)}</strong></span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="w-3 h-3 rounded-full" style={{ background: getChartColor('green', isDarkMode) }} />
-              <span className="text-gray-400 font-medium">OPEX/ano (Ganho anual): <strong className="text-white text-sm">{fmtCompact(totalGainsMonthly * 12)}</strong></span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <OpexMonthlySection
+        availableYears={availableYears}
+        selectedYear={selectedYear}
+        setSelectedYear={setSelectedYear}
+        selectedMonthIndex={selectedMonthIndex}
+        setSelectedMonthIndex={setSelectedMonthIndex}
+        monthlyData={monthlyData}
+        items={items}
+        isDarkMode={isDarkMode}
+      />
 
       <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
         <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">Quadrante de Eficiência (Lead Time vs ROI)</h4>
@@ -762,21 +1244,6 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
       <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
         <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">Curva de Valor Realizado (OPEX Acumulado)</h4>
         <ValueCurveChart data={monthlyData} isDarkMode={isDarkMode} />
-      </div>
-
-      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
-        <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-4">Benchmarking por Centro de Custo (ROI & Ganhos)</h4>
-        <CostCenterBenchmarking 
-          data={Object.entries(groupBy(items, (i) => i.cost_center || 'Sem centro'))
-            .map(([label, list]) => ({ 
-              label, 
-              value: list.reduce((s, i) => s + (i.metrics?.total_gains || 0), 0),
-              avgRoi: list.length ? list.reduce((s, i) => s + (i.metrics?.roi_percent_real ?? i.metrics?.roi_percent ?? 0), 0) / list.length : 0
-            }))
-            .sort((a, b) => b.value - a.value)
-          } 
-          isDarkMode={isDarkMode} 
-        />
       </div>
 
       {/* Chart 4: Top Cost Centers */}
@@ -798,12 +1265,27 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
         </div>
       </div>
 
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5 xl:col-span-2">
+        <h4 className="mb-4 text-[11px] font-bold uppercase tracking-wider text-gray-300">Benchmarking por Centro de Custo (ROI & Ganhos)</h4>
+        <CostCenterBenchmarkingCards
+          data={Object.entries(groupBy(items, (i) => i.cost_center || 'Sem centro'))
+            .map(([label, list]) => ({
+              label,
+              value: list.reduce((s, i) => s + (i.metrics?.total_gains || 0), 0),
+              avgRoi: list.length ? list.reduce((s, i) => s + (i.metrics?.roi_percent_real ?? i.metrics?.roi_percent ?? 0), 0) / list.length : 0,
+              initiatives: list.length,
+            }))
+            .sort((a, b) => b.value - a.value)
+          }
+        />
+      </div>
+
       {/* Chart 5: OPEX Mensal + Iniciativas Entregues (Grouped Bars) */}
-      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
+      {false && (<div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-300">OPEX Mensal + Iniciativas Entregues</h4>
-            <Tooltip content="Economia operacional mensal (OPEX) e quantidade de iniciativas entregues agrupadas por mês do ano selecionado." />
+            <Tooltip content="Barras azuis: economia operacional líquida mensal (soma dos ganhos das entregas concluídas naquele mês). Barras rosas: quantidade de iniciativas entregues. Clique em um mês para ver o detalhamento das entregas." />
           </div>
           <div className="flex items-center gap-1">
             {availableYears.map((year) => (
@@ -890,7 +1372,7 @@ function AnalyticsCharts({ items, byCostCenter, byArea, initialInvestment, total
             )
           })()}
         </div>
-      </div>
+      </div>)}
     </div>
   )
 }
@@ -1112,7 +1594,8 @@ export default function DeliveriesView({ initiatives = [] }) {
     costCenterResponsible: '',
     costCenters: [],
     searchTerm: '',
-    period: '',
+    selectedYears: [],
+    selectedMonths: [],
   })
 
   try {
@@ -1129,53 +1612,45 @@ export default function DeliveriesView({ initiatives = [] }) {
         const term = filters.searchTerm.toLowerCase()
         if (!i.summary?.toLowerCase().includes(term) && !i.jira_key?.toLowerCase().includes(term)) return false
       }
-      
-      if (filters.period) {
-        const resDate = getResolutionDate(i)
-        if (!resDate) return false
-        
-        const now = new Date()
-        const year = now.getFullYear()
-        const month = now.getMonth()
-        let startLimit = null
-        let endLimit = null
 
-        switch (filters.period) {
-          case 'Este mês':
-            startLimit = new Date(year, month, 1)
-            break
-          case 'Mês anterior':
-            startLimit = new Date(year, month - 1, 1)
-            endLimit = new Date(year, month, 0, 23, 59, 59, 999)
-            break
-          case 'Últimos 3 meses':
-            startLimit = new Date()
-            startLimit.setMonth(startLimit.getMonth() - 3)
-            break
-          case 'Últimos 6 meses':
-            startLimit = new Date()
-            startLimit.setMonth(startLimit.getMonth() - 6)
-            break
-          case 'Este ano':
-            startLimit = new Date(year, 0, 1)
-            break
-          case 'Ano anterior':
-            startLimit = new Date(year - 1, 0, 1)
-            endLimit = new Date(year - 1, 11, 31, 23, 59, 59, 999)
-            break
-        }
-
-        if (startLimit && resDate < startLimit) return false
-        if (endLimit && resDate > endLimit) return false
+      const resolutionDate = getResolutionDate(i)
+      if ((filters.selectedYears?.length || filters.selectedMonths?.length) && !resolutionDate) {
+        return false
       }
-      
+      if (filters.selectedYears?.length && !filters.selectedYears.includes(resolutionDate.getFullYear())) {
+        return false
+      }
+      if (filters.selectedMonths?.length && !filters.selectedMonths.includes(resolutionDate.getMonth())) {
+        return false
+      }
+
       return true
     })
 
     // Secure Matrix Calculations
     const totalGainsMonthly = filtered.reduce((s, i) => s + (i.metrics?.total_gains || 0), 0)
-    const annualEconomy = totalGainsMonthly * 12
-    const initialInvestment = filtered.reduce((s, i) => s + (i.metrics?.total_costs || 0), 0)
+    // OPEX Acumulado: quando há filtro de período ativo, restringe a contagem de meses ao intervalo
+    // selecionado (ex: apenas meses de 2026). Sem filtro, conta da conclusão até hoje.
+    const hasPeriodFilter = (filters.selectedYears?.length || 0) > 0
+    const accumulatedDeliveredOpex = filtered.reduce((sum, item) => {
+      const months = hasPeriodFilter
+        ? computeSelectedPeriodMonthsLive(item, filters.selectedYears, filters.selectedMonths)
+        : computeMonthsSinceCompletion(item)
+      return sum + Number(item.metrics?.total_gains || 0) * months
+    }, 0)
+    // CAPEX Total: usa CAPEX real (horas gastas × custo) quando disponível, senão estimado.
+    const initialInvestment = filtered.reduce((s, i) => {
+      const hasRealTime = (i.metrics?.time_spent_hours || 0) > 0
+      if (hasRealTime) {
+        const techHourCost = i.tech_hour_cost || 0
+        return s + (
+          (i.metrics?.time_spent_hours || 0) * techHourCost +
+          (i.metrics?.capex_devops_cost || 0) +
+          (i.metrics?.capex_third_party_cost || 0)
+        )
+      }
+      return s + (i.metrics?.total_costs || 0)
+    }, 0)
     const totalHours = filtered.reduce((s, i) => s + getMonthlyTimeSavedHours(i), 0)
     const leadTimes = filtered.map(getLeadTimeDays).filter((v) => v != null && !isNaN(v))
     const avgLead = leadTimes.length > 0 ? leadTimes.reduce((s, v) => s + v, 0) / leadTimes.length : null
@@ -1183,30 +1658,28 @@ export default function DeliveriesView({ initiatives = [] }) {
     const withRoi = filtered.filter((i) => (i.metrics?.roi_percent_real ?? i.metrics?.roi_percent) != null && !isNaN(i.metrics?.roi_percent_real ?? i.metrics?.roi_percent))
     const avgRoi = withRoi.length > 0 ? withRoi.reduce((s, i) => s + (i.metrics?.roi_percent_real ?? i.metrics?.roi_percent), 0) / withRoi.length : null
 
-    // ROI Acumulado: usa months_live exato (em dias/30.44) desde a data de conclusão
-    // Inclui todas as entregas com data de conclusão (resolution_date ou status_updated_at)
-    // Usa CAPEX real quando time_spent_hours > 0, senão usa CAPEX estimado
-    const withResolutionDate = filtered.filter((i) => i.metrics?.months_live != null)
-    const matureInvestment = withResolutionDate.reduce((s, i) => {
-      const hasRealTime = (i.metrics?.time_spent_hours || 0) > 0
-      // Se tem tempo real gasto, usa CAPEX real (dev_real + third_party)
+    // ROI Acumulado de portfolio: calculado sobre o conjunto das entregas, não somando % individuais.
+    // Fórmula: ((Σ ganho_mensal × meses_em_produção) − Σ capex_real) / Σ capex_real × 100
+    // Usa CAPEX real (horas gastas × custo) quando disponível, senão estimado.
+    const filteredCompletedWithRuntime = filtered.filter((i) => i.metrics?.months_live != null)
+    const portfolioAccumulatedGains = filteredCompletedWithRuntime.reduce((sum, item) => {
+      const monthsLive = Number(item.metrics?.months_live || 0)
+      return sum + Number(item.metrics?.total_gains || 0) * monthsLive
+    }, 0)
+    const portfolioCapex = filteredCompletedWithRuntime.reduce((sum, item) => {
+      const hasRealTime = (item.metrics?.time_spent_hours || 0) > 0
       if (hasRealTime) {
-        const techHourCost = i.tech_hour_cost || 0
-        const capexReal =
-          (i.metrics?.time_spent_hours || 0) * techHourCost +
-          (i.metrics?.capex_devops_cost || 0) +
-          (i.metrics?.capex_third_party_cost || 0)
-        return s + capexReal
+        const techHourCost = item.tech_hour_cost || 0
+        return sum + (
+          (item.metrics?.time_spent_hours || 0) * techHourCost +
+          (item.metrics?.capex_devops_cost || 0) +
+          (item.metrics?.capex_third_party_cost || 0)
+        )
       }
-      // Senão usa CAPEX estimado
-      return s + (i.metrics?.total_costs || 0)
+      return sum + (item.metrics?.total_costs || 0)
     }, 0)
-    const accumulatedNetGains = withResolutionDate.reduce((s, i) => {
-      const monthsLive = Number(i.metrics?.months_live || 0)
-      return s + (Number(i.metrics?.total_gains || 0) * monthsLive)
-    }, 0)
-    const accumulatedRoi = matureInvestment > 0
-      ? ((accumulatedNetGains - matureInvestment) / matureInvestment) * 100
+    const accumulatedRoi = portfolioCapex > 0
+      ? ((portfolioAccumulatedGains - portfolioCapex) / portfolioCapex) * 100
       : null
 
     // Domain Visual Data
@@ -1243,37 +1716,44 @@ export default function DeliveriesView({ initiatives = [] }) {
           <KpiPill
             label="ROI Acumulado"
             value={accumulatedRoi != null ? `${accumulatedRoi.toFixed(0)}%` : '—'}
-            sub={withResolutionDate.length > 0 ? `${withResolutionDate.length} em produção` : 'Sem entregas'}
+            sub={filteredCompletedWithRuntime.length > 0 ? `${filteredCompletedWithRuntime.length} em produção` : 'Sem entregas'}
             color="#3DB7F4" highlight
-            tooltip="ROI real acumulado desde conclusão. Acumula a cada mês."
+            tooltip="Retorno sobre investimento do portfólio até hoje. Fórmula: (Σ ganhos acumulados − Σ CAPEX) / Σ CAPEX × 100. Usa CAPEX real (horas registradas no Jira) quando disponível, senão estimado. Valor negativo indica que o investimento ainda não foi recuperado — consulte o Payback de cada entrega na tabela abaixo."
           />
           <KpiPill
-            label="Economia Anual"
-            value={fmtCompact(annualEconomy)}
-            sub={`${fmtCompact(totalGainsMonthly)}/mês`}
+            label="OPEX Acumulado"
+            value={fmtCompact(accumulatedDeliveredOpex)}
+            sub="Retornado até hoje"
             color="#6BFFEB"
-            tooltip="Projeção anual (OPEX mensal × 12)."
+            tooltip="Ganho operacional total já realizado: Σ (ganho_mensal_líquido × meses_em_produção). Com filtro de período ativo, conta apenas os meses dentro do intervalo selecionado. Sem filtro, conta da data de conclusão até hoje. Cresce diariamente conforme as entregas continuam em produção."
+          />
+          <KpiPill
+            label="OPEX Mensal"
+            value={fmtCompact(totalGainsMonthly)}
+            sub="Economia recorrente"
+            color="#3DB7F4"
+            tooltip="Economia operacional líquida mensal das entregas filtradas. Fórmula por iniciativa: ganhos (horas_poupadas × custo/h + redução_headcount + ganho_produtividade) − custos recorrentes (horas_manutenção × custo/h + tokens + infra cloud). É o valor recorrente que entra todo mês enquanto a solução estiver no ar."
           />
           <KpiPill
             label="ROI Médio"
             value={avgRoi != null ? `${avgRoi.toFixed(0)}%` : '—'}
             sub="Por iniciativa"
             color="#40EB4F"
-            tooltip="Média do ROI real das iniciativas concluídas."
+            tooltip="Média simples do ROI por iniciativa. Fórmula: ganho_mensal_líquido / CAPEX × 100. Usa CAPEX real (horas Jira) quando disponível, senão estimado. Representa a taxa de retorno mensal — não é anualizada. Ex: 16% significa que a iniciativa recupera 16% do investimento por mês."
           />
           <KpiPill
             label="Horas/mês"
             value={formatHours(totalHours)}
             sub="Economizadas"
             color="#3DB7F4"
-            tooltip="Soma total das horas economizadas."
+            tooltip="Horas economizadas mensalmente pelas automações entregues. Fórmula por iniciativa: tempo_poupado_por_dia × dias_execução_mês × pessoas_afetadas. Soma de todas as entregas filtradas."
           />
           <KpiPill
             label="CAPEX Total"
             value={fmtCompact(initialInvestment)}
             sub="Investimento"
             color="#FE70BD"
-            tooltip="Investimento ONE-TIME em desenvolvimento."
+            tooltip="Investimento one-time em desenvolvimento. Fórmula: (horas_dev × custo/hora) + (horas_devops × custo/hora) + (horas_terceiros × custo/hora). Usa horas reais registradas no Jira quando disponível; senão usa a estimativa cadastrada."
           />
           <KpiPill
             label="Lead Time"
@@ -1285,7 +1765,16 @@ export default function DeliveriesView({ initiatives = [] }) {
         </div>
 
         {/* Filtros */}
-        <div className="flex items-center justify-end">
+        <div className="flex flex-wrap items-center gap-2">
+          <DeliveryPeriodFilter
+            items={completed}
+            selectedYears={filters.selectedYears || []}
+            selectedMonths={filters.selectedMonths || []}
+            onYearsChange={(selectedYears) => setFilters((current) => ({ ...current, selectedYears }))}
+            onMonthsChange={(selectedMonths) => setFilters((current) => ({ ...current, selectedMonths }))}
+          />
+
+          <div className="flex min-w-0 flex-1 items-center justify-end">
           <FilterBar
             initiatives={completed}
             filters={filters}
@@ -1294,8 +1783,9 @@ export default function DeliveriesView({ initiatives = [] }) {
             showAssignee={false}
             showItemType={false}
             showSearch
-            showDateRange
+            showPriorityToggle={false}
           />
+          </div>
         </div>
 
         {/* Main Detail Table */}

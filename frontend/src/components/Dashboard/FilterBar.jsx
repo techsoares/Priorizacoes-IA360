@@ -30,6 +30,7 @@ export default function FilterBar({
   showItemType = true,
   showSearch = false,
   showDateRange = false,
+  showPriorityToggle = true,
 }) {
   const selectedCostCenters = getSelectedCostCenters(filters)
 
@@ -62,14 +63,14 @@ export default function FilterBar({
 
   const activeCount = [
     filters.activityType,
-    filters.itemType && filters.itemType !== 'Tarefa' ? 'itemType' : '',
-    filters.assignee,
+    showItemType && filters.itemType && filters.itemType !== 'Tarefa' ? 'itemType' : '',
+    showAssignee ? filters.assignee : '',
     filters.costCenterResponsible,
     selectedCostCenters.length ? 'costCenters' : '',
-    filters.searchTerm,
+    showSearch ? filters.searchTerm : '',
     filters.period,
-    filters.statuses?.length ? 'status' : '',
-    filters.hasPriorityRequests ? 'priorityRequests' : '',
+    showStatus && filters.statuses?.length ? 'status' : '',
+    showPriorityToggle && filters.hasPriorityRequests ? 'priorityRequests' : '',
   ].filter(Boolean).length
 
   function handleChange(key, value) {
@@ -187,16 +188,18 @@ export default function FilterBar({
         align="right"
       />
 
-      <button
-        type="button"
-        onClick={() => onFilterChange({ ...filters, hasPriorityRequests: !filters.hasPriorityRequests })}
-        className={`rounded-lg border px-2.5 py-1 text-[11px] transition-all ${filters.hasPriorityRequests
-            ? 'border-primary/25 bg-primary/8 text-[#3DB7F4]'
-            : 'border-white/[0.06] bg-white/[0.02] text-gray-400 hover:border-white/[0.1] hover:text-gray-300'
-          }`}
-      >
-        Com prioridade
-      </button>
+      {showPriorityToggle && (
+        <button
+          type="button"
+          onClick={() => onFilterChange({ ...filters, hasPriorityRequests: !filters.hasPriorityRequests })}
+          className={`rounded-lg border px-2.5 py-1 text-[11px] transition-all ${filters.hasPriorityRequests
+              ? 'border-primary/25 bg-primary/8 text-[#3DB7F4]'
+              : 'border-white/[0.06] bg-white/[0.02] text-gray-400 hover:border-white/[0.1] hover:text-gray-300'
+            }`}
+        >
+          Com prioridade
+        </button>
+      )}
 
       {activeCount > 0 && (
         <button

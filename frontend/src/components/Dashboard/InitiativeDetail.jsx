@@ -47,8 +47,9 @@ export default function InitiativeDetail({
 
   const monthlyHoursSaved = timeSaved * execDays * people
   const devHours = getDevelopmentEstimateHours(initiative)
-  const devCost = devHours * Number(initiative.tech_hour_cost || 0)
-  const thirdPartyCost = Number(initiative.third_party_hours || 0) * Number(initiative.third_party_hour_cost || 0)
+  const devCost = metrics.capex_development_cost ?? (devHours * Number(initiative.tech_hour_cost || 0))
+  const devopsCost = metrics.capex_devops_cost ?? (Number(initiative.devops_hours || 0) * Number(initiative.devops_hour_cost || 0))
+  const thirdPartyCost = metrics.capex_third_party_cost ?? (Number(initiative.third_party_hours || 0) * Number(initiative.third_party_hour_cost || 0))
   const leadTime = getLeadTimeDays(initiative)
 
   const gainHours = monthlyHoursSaved * costPerHour
@@ -155,11 +156,13 @@ export default function InitiativeDetail({
             </div>
 
             <Row label="Custo de desenvolvimento" value={formatCurrency(devCost)} />
+            {devopsCost > 0 && <Row label="Custo de DevOps" value={formatCurrency(devopsCost)} />}
             {thirdPartyCost > 0 && <Row label="Custo de terceiros" value={formatCurrency(thirdPartyCost)} />}
             {Number(initiative.token_cost || 0) > 0 && <Row label="Custo tokens LLM/mês" value={formatCurrency(initiative.token_cost)} />}
             {Number(initiative.cloud_infra_cost || 0) > 0 && <Row label="Custo infra cloud/mês" value={formatCurrency(initiative.cloud_infra_cost)} />}
             <Row label="Total investimento" value={formatCurrency(metrics.total_costs)} accent="text-[#FE70BD] font-bold" />
             <Row label="Tempo dev estimado" value={formatHours(devHours)} />
+            {Number(initiative.devops_hours || 0) > 0 && <Row label="Tempo DevOps" value={formatHours(initiative.devops_hours)} />}
           </div>
         </div>
       </div>

@@ -25,7 +25,7 @@ export default function CapexOpexBadge({ capex, opex, type = 'split', payback = 
               <span className="text-[12px] font-black text-white">{fmtCompact(capex)}</span>
             </div>
           </div>
-          <Tooltip content="CAPEX: Custo one-time de desenvolvimento (R$/h dev × horas estimadas). Não é salário — é custo técnico." />
+          <Tooltip content="CAPEX: Custo one-time de desenvolvimento, DevOps e terceiros. Não é salário — é custo técnico." />
         </div>
 
         <div className="h-4 w-px bg-white/10" />
@@ -68,7 +68,7 @@ export default function CapexOpexBadge({ capex, opex, type = 'split', payback = 
           <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600 block">CAPEX Investimento</span>
           <span className="text-[12px] font-black text-white">{fmtCompact(capex)}</span>
         </div>
-        <Tooltip content="CAPEX: Investimento técnico one-time em desenvolvimento." />
+        <Tooltip content="CAPEX: Investimento técnico one-time em desenvolvimento, DevOps e terceiros." />
       </div>
     )
   }

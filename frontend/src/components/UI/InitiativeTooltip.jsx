@@ -3,6 +3,7 @@ import { formatHours, getDevelopmentEstimateHours } from '../../utils/initiative
 export default function InitiativeTooltip({ initiative }) {
   const metrics = initiative.metrics || {}
   const devHours = getDevelopmentEstimateHours(initiative)
+  const devopsHours = Number(initiative.devops_hours || 0)
 
   return (
     <div className="pointer-events-none absolute left-0 top-full z-[9999] mt-2 w-[320px] rounded-xl border border-white/[0.06] bg-surface-elevated p-4 shadow-xl">
@@ -82,6 +83,12 @@ export default function InitiativeTooltip({ initiative }) {
           <span className="text-gray-500">Tempo dev</span>
           <span className="text-gray-300">{formatHours(devHours)}</span>
         </div>
+        {devopsHours > 0 && (
+          <div className="flex justify-between">
+            <span className="text-gray-500">Tempo DevOps</span>
+            <span className="text-gray-300">{formatHours(devopsHours)}</span>
+          </div>
+        )}
         {initiative.due_date && (
           <div className="flex justify-between">
             <span className="text-gray-500">Data limite</span>

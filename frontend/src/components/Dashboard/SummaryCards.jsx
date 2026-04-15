@@ -39,7 +39,7 @@ const CARD_CONFIG = [
   {
     key: 'totalCosts',
     label: 'CAPEX Total',
-    tooltip: 'CAPEX (Capital Expenditure): Soma dos investimentos one-time de desenvolvimento. Cálculo por iniciativa: CAPEX = (horas_estimadas_dev × CUSTO/HORA_DEV) + (horas_terceiros × R$/h_terceiros). Nota: token_cost e cloud_infra_cost descontam do OPEX mensal, não do CAPEX. NÃO é salário de pessoas — é custo técnico de desenvolvimento.',
+    tooltip: 'CAPEX (Capital Expenditure): Soma dos investimentos one-time de desenvolvimento. Cálculo por iniciativa: CAPEX = (horas_estimadas_dev × CUSTO/HORA_DEV) + (horas_devops × R$/h_devops) + (horas_terceiros × R$/h_terceiros). Nota: token_cost e cloud_infra_cost descontam do OPEX mensal, não do CAPEX. NÃO é salário de pessoas — é custo técnico de desenvolvimento.',
     color: '#FE70BD',
     format: (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
   },

@@ -27,6 +27,18 @@ function withMetrics(initiative) {
   return { ...initiative, metrics: calculateMetrics(initiative) }
 }
 
+function isDevopsPreviewFallback(field, errorMessage) {
+  return (
+    ['devops_hours', 'devops_hour_cost'].includes(field) &&
+    typeof errorMessage === 'string' &&
+    (
+      errorMessage.includes('devops_hours') ||
+      errorMessage.includes('devops_hour_cost')
+    ) &&
+    errorMessage.includes('does not exist')
+  )
+}
+
 export default function useInitiatives() {
   const [initiatives, setInitiatives] = useState([])
   const [loading, setLoading] = useState(true)
@@ -117,6 +129,10 @@ export default function useInitiatives() {
         prev.map((item) => (item.id === initiativeId ? withMetrics(data) : item))
       )
     } catch (err) {
+      if (isDevopsPreviewFallback(field, err.message)) {
+        errorTimerRef('Preview local de DevOps ativo. Para salvar de verdade no banco, aplique a migration 016_add_devops_cost_fields.sql no Supabase.')
+        return
+      }
       if (previousInitiative) {
         setInitiatives((prev) =>
           prev.map((item) => (item.id === initiativeId ? previousInitiative : item))

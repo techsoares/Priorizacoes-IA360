@@ -16,18 +16,20 @@ const ADMIN_COLUMNS = [
   { key: 'jira_key', label: 'Jira', tooltip: 'Chave do ticket no Jira.' },
   { key: 'summary', label: 'Iniciativa', tooltip: 'Resumo da iniciativa sincronizado do Jira.' },
   { key: 'assignee', label: 'Responsável', tooltip: 'Responsável atual do ticket no Jira.' },
-  { key: 'affected_people_count', label: 'Pessoas afetadas', tooltip: 'Quantidade de pessoas impactadas pela automação. Usado em: horas_totais = horas_por_pessoa × pessoas_afetadas.', editable: true },
-  { key: 'development_time_comparison', label: 'Tempo Dev (Est. vs Real)', tooltip: 'Tempo estimado vs Tempo real gasto. Permite validar precisão de estimativas e calcular CAPEX com base em estimativa (planejamento) ou real (entregas).', computed: true },
-  { key: 'time_variance', label: 'Variância (%)', tooltip: 'Eficiência de estimativa: (real - estimado) / estimado × 100. Positivo=Atrasado, Negativo=Adiantado.', computed: true },
-  { key: 'tech_hour_cost', label: 'R$/h Dev', tooltip: 'CUSTO POR HORA DO DESENVOLVEDOR (não é salário de pessoas). Usado para calcular CAPEX: horas_desenvolvimento × R$/h Dev.', editable: true },
-  { key: 'cost_per_hour', label: 'R$/h Pessoas', tooltip: 'Custo médio por hora das pessoas afetadas (não dev). Fórmula: ganho_horas = (horas_salvas_dia × dias_execução_mês × pessoas_afetadas) × R$/h Pessoas.', editable: true },
-  { key: 'token_cost', label: 'Custo Token', tooltip: 'Custo fixo estimado de tokens de IA (parte de CAPEX).', editable: true },
-  { key: 'cloud_infra_cost', label: 'Custo Infra', tooltip: 'Custo de infraestrutura (cloud, n8n, etc) — parte de CAPEX.', editable: true },
+  { key: 'affected_people_count', label: 'Pessoas afetadas', tooltip: 'Quantidade de pessoas impactadas pela automação. Usado em: horas_totais = horas_por_pessoa x pessoas_afetadas.', editable: true },
+  { key: 'development_time_comparison', label: 'Tempo Dev (Est. vs Real)', tooltip: 'Tempo estimado vs tempo real gasto. Permite validar precisão de estimativas e calcular CAPEX com base em estimativa ou real.', computed: true },
+  { key: 'time_variance', label: 'Variância (%)', tooltip: 'Eficiência de estimativa: (real - estimado) / estimado x 100. Positivo = atrasado, negativo = adiantado.', computed: true },
+  { key: 'tech_hour_cost', label: 'R$/h Dev', tooltip: 'Custo por hora do desenvolvedor. Usado para calcular CAPEX: horas_desenvolvimento x R$/h Dev.', editable: true },
+  { key: 'devops_hours', label: 'Tempo DevOps', tooltip: 'Horas de DevOps necessárias para colocar a iniciativa no ar. Entra apenas como CAPEX one-time.', editable: true },
+  { key: 'devops_hour_cost', label: 'R$/h DevOps', tooltip: 'Custo por hora do time de DevOps. Multiplicado pelo Tempo DevOps e somado ao CAPEX one-time.', editable: true },
+  { key: 'cost_per_hour', label: 'R$/h Pessoas', tooltip: 'Custo médio por hora das pessoas afetadas. Fórmula: ganho_horas = horas_salvas_dia x dias_execucao_mes x pessoas_afetadas x R$/h Pessoas.', editable: true },
+  { key: 'token_cost', label: 'Custo Token', tooltip: 'Custo fixo estimado de tokens de IA que entra como custo mensal recorrente.', editable: true },
+  { key: 'cloud_infra_cost', label: 'Custo Infra', tooltip: 'Custo de infraestrutura (cloud, n8n, etc.) que entra como custo mensal recorrente.', editable: true },
   { key: 'third_party_hours', label: 'Horas Terceiros', tooltip: 'Horas alocadas de terceiros (parte de CAPEX).', editable: true },
   { key: 'third_party_hour_cost', label: 'R$/h Terceiros', tooltip: 'Custo por hora de terceiros (parte de CAPEX).', editable: true },
-  { key: 'total_gains', label: 'OPEX Líquido/mês', tooltip: 'OPEX mensal líquido: Economia operacional gerada pela automação, já descontados custos de manutenção, tokens e infraestrutura (R$/mês).', computed: true },
-  { key: 'total_costs', label: 'CAPEX (Investimento)', tooltip: 'CAPEX: Custo total de desenvolvimento one-time. Cálculo: (horas_dev × R$/h_dev) + (horas_terceiros × R$/h_terceiros). Nota: token_cost e cloud_infra_cost descontam do OPEX mensal, não do CAPEX.', computed: true },
-  { key: 'intangible_gains', label: 'Ganhos Intangíveis', tooltip: 'Ganhos qualitativos que não entram no cálculo financeiro, como redução de erros, satisfação da equipe, conformidade, etc.', editable: true, text: true },
+  { key: 'total_gains', label: 'OPEX Líquido/mês', tooltip: 'OPEX mensal líquido: economia operacional gerada pela automação, já descontados custos recorrentes de manutenção, tokens e infraestrutura.', computed: true },
+  { key: 'total_costs', label: 'CAPEX (Investimento)', tooltip: 'CAPEX total one-time da iniciativa. Cálculo: (horas_dev x R$/h_dev) + (horas_devops x R$/h_devops) + (horas_terceiros x R$/h_terceiros).', computed: true },
+  { key: 'intangible_gains', label: 'Ganhos Intangíveis', tooltip: 'Ganhos qualitativos que não entram no cálculo financeiro, como redução de erros, satisfação da equipe e conformidade.', editable: true, text: true },
 ]
 
 const PILL_CONFIG = [
@@ -49,7 +51,7 @@ function MetricPill({ label, value, color, isActive, onClick, clickable }) {
       <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: color }} />
       <span className="text-[10px] text-gray-500">{label}</span>
       <span className="text-[11px] font-semibold text-white/80">{value}</span>
-      {isActive && <span className="text-[8px] text-gray-400 ml-1">✕</span>}
+      {isActive && <span className="ml-1 text-[8px] text-gray-400">x</span>}
     </div>
   )
 }
@@ -77,32 +79,33 @@ export default function AdminView({
 }) {
   const [activePillFilter, setActivePillFilter] = useState(null)
 
-  const adminInitiatives = useMemo(
-    () => {
+  const adminInitiatives = useMemo(() => {
       const selectedCostCenters = getSelectedCostCenters(filters)
 
       return initiatives.filter((initiative) => {
         if (filters.activityType && initiative.activity_type !== filters.activityType) return false
         if (filters.assignee && initiative.assignee !== filters.assignee) return false
-        if (
-          filters.costCenterResponsible &&
-          initiative.cost_center_responsible !== filters.costCenterResponsible
-        ) return false
+      if (filters.costCenterResponsible && initiative.cost_center_responsible !== filters.costCenterResponsible) return false
         if (selectedCostCenters.length > 0 && !selectedCostCenters.includes(initiative.cost_center)) return false
+        if (filters.searchTerm) {
+          const term = filters.searchTerm.toLowerCase()
+          const matchesSearch =
+            initiative.summary?.toLowerCase().includes(term) ||
+            initiative.jira_key?.toLowerCase().includes(term)
+          if (!matchesSearch) return false
+        }
         if (filters.statuses.length > 0) {
           const matchesStatus = filters.statuses.includes(initiative.jira_status)
           if (filters.statusOperator === 'equals' && !matchesStatus) return false
           if (filters.statusOperator === 'not_equals' && matchesStatus) return false
         }
-        return true
-      })
-    },
-    [initiatives, filters]
-  )
+      return true
+    })
+  }, [initiatives, filters])
 
   const displayedInitiatives = useMemo(() => {
     if (!activePillFilter) return adminInitiatives
-    const pill = PILL_CONFIG.find(p => p.label === activePillFilter)
+    const pill = PILL_CONFIG.find((item) => item.label === activePillFilter)
     return pill?.filterFn ? adminInitiatives.filter(pill.filterFn) : adminInitiatives
   }, [adminInitiatives, activePillFilter])
 
@@ -133,15 +136,15 @@ export default function AdminView({
       const spent = getTimeSpentHours(initiative)
       const hasReal = spent > 0
       return (
-        <div className="text-[13px] text-gray-300 flex items-center gap-2">
+        <div className="flex items-center gap-2 text-[13px] text-gray-300">
           <span className="text-[11px] font-semibold text-blue-400">{formatHours(estimated)}</span>
           {hasReal && (
             <>
-              <span className="text-[10px] text-gray-600">→</span>
+              <span className="text-[10px] text-gray-600">-&gt;</span>
               <span className="text-[11px] font-semibold text-amber-400">{formatHours(spent)}</span>
             </>
           )}
-          {!hasReal && <span className="text-[10px] text-gray-600 italic">sem registro real</span>}
+          {!hasReal && <span className="text-[10px] italic text-gray-600">sem registro real</span>}
         </div>
       )
     }
@@ -152,15 +155,12 @@ export default function AdminView({
       const color = getTimeVarianceColor(variance)
 
       if (variance === null) {
-        return <span className="text-[11px] text-gray-700">—</span>
+        return <span className="text-[11px] text-gray-700">-</span>
       }
 
       return (
         <div className="flex items-center gap-2">
-          <span
-            className="text-[11px] font-bold"
-            style={{ color }}
-          >
+          <span className="text-[11px] font-bold" style={{ color }}>
             {variance > 0 ? '+' : ''}{variance.toFixed(1)}%
           </span>
           <span className="text-[10px] font-medium text-gray-600">{status}</span>
@@ -170,7 +170,7 @@ export default function AdminView({
 
     if (column.editable && column.text) {
       if (!isAdmin) {
-        return <span className="text-[11px] text-gray-700 italic cursor-not-allowed" title="Apenas administradores podem editar">—</span>
+        return <span className="cursor-not-allowed text-[11px] italic text-gray-700" title="Apenas administradores podem editar">-</span>
       }
       return (
         <EditableTextCell
@@ -183,7 +183,7 @@ export default function AdminView({
 
     if (column.editable) {
       if (!isAdmin) {
-        return <span className="text-[11px] text-gray-700 italic cursor-not-allowed" title="Apenas administradores podem editar">—</span>
+        return <span className="cursor-not-allowed text-[11px] italic text-gray-700" title="Apenas administradores podem editar">-</span>
       }
       return (
         <EditableCell
@@ -214,13 +214,13 @@ export default function AdminView({
       }
 
       if (column.key === 'total_costs' || column.key === 'total_gains') {
-        return <span className="text-[13px] text-gray-300 font-semibold">{formatCurrency(value)}</span>
+        return <span className="text-[13px] font-semibold text-gray-300">{formatCurrency(value)}</span>
       }
 
       return <span className="text-[13px] text-gray-300">{formatCurrency(value)}</span>
     }
 
-    return <span className="text-[13px] text-gray-400">{initiative[column.key] || '—'}</span>
+    return <span className="text-[13px] text-gray-400">{initiative[column.key] || '-'}</span>
   }
 
   return (
@@ -240,9 +240,18 @@ export default function AdminView({
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
           <h2 className="text-sm font-semibold text-white">Administração de custos</h2>
-          <p className="text-[11px] text-gray-500">Campos manuais que não vêm do Jira. O tempo de desenvolvimento é lido automaticamente.</p>
+          <p className="text-[11px] text-gray-500">Campos manuais que não vêm do Jira. O tempo de desenvolvimento é lido automaticamente e o DevOps entra como CAPEX one-time.</p>
         </div>
-        <FilterBar initiatives={initiatives} filters={filters} onFilterChange={onFilterChange} showStatus={true} />
+        <FilterBar
+          initiatives={initiatives}
+          filters={filters}
+          onFilterChange={onFilterChange}
+          showStatus={true}
+          showAssignee={false}
+          showItemType={false}
+          showSearch
+          showPriorityToggle={false}
+        />
       </div>
 
       <div className="mb-5 flex flex-wrap gap-1.5">
@@ -259,14 +268,14 @@ export default function AdminView({
         ))}
       </div>
 
-      <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] rounded-xl border border-white/[0.05] bg-surface-card/50 shadow-glow-sm">
+      <div className="max-h-[calc(100vh-280px)] overflow-x-auto overflow-y-auto rounded-xl border border-white/[0.05] bg-surface-card/50 shadow-glow-sm">
         <table className="min-w-full table-auto text-sm">
           <thead className="sticky top-0 z-10">
             <tr className="bg-surface-elevated/90 backdrop-blur-sm">
               {ADMIN_COLUMNS.map((column) => (
                 <th
                   key={column.key}
-                  className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500 whitespace-nowrap border-b border-white/[0.04]"
+                  className="whitespace-nowrap border-b border-white/[0.04] px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500"
                 >
                   <span className="flex items-center gap-1">
                     {column.label}

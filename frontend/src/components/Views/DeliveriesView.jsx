@@ -1192,7 +1192,10 @@ export default function DeliveriesView({ initiatives = [] }) {
       // Se tem tempo real gasto, usa CAPEX real (dev_real + third_party)
       if (hasRealTime) {
         const techHourCost = i.tech_hour_cost || 0
-        const capexReal = (i.metrics?.time_spent_hours || 0) * techHourCost + (i.metrics?.capex_third_party_cost || 0)
+        const capexReal =
+          (i.metrics?.time_spent_hours || 0) * techHourCost +
+          (i.metrics?.capex_devops_cost || 0) +
+          (i.metrics?.capex_third_party_cost || 0)
         return s + capexReal
       }
       // Senão usa CAPEX estimado

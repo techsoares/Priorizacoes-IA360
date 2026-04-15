@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS initiatives (
     cloud_infra_cost NUMERIC(12,2) DEFAULT 0,
     maintenance_hours NUMERIC(12,2) DEFAULT 0,
     tech_hour_cost NUMERIC(12,2) DEFAULT 0,
+    devops_hours NUMERIC(12,2) DEFAULT 0,
+    devops_hour_cost NUMERIC(12,2) DEFAULT 0,
     estimated_time_months NUMERIC(6,2) DEFAULT 0,
     tools TEXT DEFAULT '',
 

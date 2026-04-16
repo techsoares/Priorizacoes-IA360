@@ -80,19 +80,68 @@ export async function bulkUpdateCosts(items) {
   return { message: `Custos atualizados para ${updated} iniciativas.`, count: updated }
 }
 
-export async function recalculateScores() {
-  const headers = await getAuthHeader()
-  const res = await fetch('/api/initiatives/recalculate-scores', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...headers },
-  })
-  if (!res.ok) {
-    const text = await res.text()
-    let detail = `HTTP ${res.status}`
-    try { detail = JSON.parse(text)?.detail || detail } catch { /* noop */ }
-    throw new Error(detail)
+// Lógica de scoring espelhada do backend (app/priorities/scoring.py).
+// Executada no frontend para evitar dependência de deploy do backend.
+function _clamp(v, min, max) { return Math.max(min, Math.min(max, v)) }
+function _normalize(v, min, max) {
+  if (max <= min) return 0
+  return ((_clamp(v, min, max) - min) / (max - min)) * 100
+}
+function _buildPriorityFields(initiative, requestScore, requestsCount) {
+  const m = calculateMetrics(initiative)
+  const roiScore    = _normalize(m.roi_percent ?? 0, -50, 200)
+  const paybackScore = m.payback_months > 0 ? 100 - _normalize(m.payback_months, 1, 18) : 0
+  const hoursSavedScore = _normalize(m.total_hours_saved, 4, 240)
+  const devScore    = m.development_estimate_hours > 0
+    ? 100 - _normalize(m.development_estimate_hours, 8, 240) : 0
+  const baseScore = _clamp(
+    roiScore * 0.40 + paybackScore * 0.25 + hoursSavedScore * 0.20 + devScore * 0.15,
+    0, 100,
+  )
+  const reqScore  = _clamp(requestScore, -25, 25)
+  const finalScore = _clamp(baseScore + reqScore, 0, 100)
+  return {
+    priority_base_score:    Math.round(baseScore  * 100) / 100,
+    priority_request_score: Math.round(reqScore   * 100) / 100,
+    priority_final_score:   Math.round(finalScore * 100) / 100,
+    priority_requests_count: requestsCount,
+    priority_score_breakdown: {
+      roi_score:          Math.round(_clamp(roiScore,        0, 100) * 100) / 100,
+      payback_score:      Math.round(_clamp(paybackScore,    0, 100) * 100) / 100,
+      hours_saved_score:  Math.round(_clamp(hoursSavedScore, 0, 100) * 100) / 100,
+      development_score:  Math.round(_clamp(devScore,        0, 100) * 100) / 100,
+      base_score:   Math.round(baseScore  * 100) / 100,
+      request_score: Math.round(reqScore  * 100) / 100,
+      final_score:  Math.round(finalScore * 100) / 100,
+    },
+    priority_score_updated_at: new Date().toISOString(),
   }
-  return res.json()
+}
+
+export async function recalculateScores() {
+  // Busca todas as iniciativas + priority_requests ativos
+  const [{ data: rows, error }, { data: requests }] = await Promise.all([
+    supabase.from('initiatives').select('*'),
+    supabase.from('priority_requests').select('initiative_id, ai_delta_score').eq('status', 'active'),
+  ])
+  if (error) throw new Error(error.message)
+
+  // Agrega request_score por iniciativa
+  const reqTotals = {}
+  const reqCounts = {}
+  for (const r of (requests || [])) {
+    const id = r.initiative_id
+    reqTotals[id] = (reqTotals[id] || 0) + Number(r.ai_delta_score || 0)
+    reqCounts[id]  = (reqCounts[id]  || 0) + 1
+  }
+
+  let updated = 0
+  for (const row of (rows || [])) {
+    const fields = _buildPriorityFields(row, reqTotals[row.id] || 0, reqCounts[row.id] || 0)
+    const { error: upErr } = await supabase.from('initiatives').update(fields).eq('id', row.id)
+    if (!upErr) updated++
+  }
+  return { message: `Scores recalculados para ${updated} iniciativas.`, count: updated }
 }
 
 export async function syncJira() {

@@ -254,17 +254,14 @@ export default function AdminView({
       )}
 
       <div className="mb-5 flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-sm font-semibold text-white">Administração de custos</h2>
-          <p className="text-[11px] text-gray-500">Campos manuais que não vêm do Jira. O tempo de desenvolvimento é lido automaticamente e o DevOps entra como CAPEX one-time.</p>
-        </div>
+        <h2 className="shrink-0 text-sm font-semibold text-white">Administração de custos</h2>
         <div className="flex items-center gap-2">
           {isAdmin && (
             <button
               type="button"
               onClick={handleRecalculateScores}
               disabled={scoreRecalcStatus === 'loading'}
-              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-all
+              className={`flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-all
                 ${scoreRecalcStatus === 'ok' ? 'border-green-500/30 bg-green-500/10 text-green-400' :
                   scoreRecalcStatus === 'error' ? 'border-red-500/30 bg-red-500/10 text-red-400' :
                   'border-white/[0.08] bg-white/[0.02] text-gray-400 hover:border-white/[0.14] hover:text-gray-200'}
@@ -290,17 +287,17 @@ export default function AdminView({
                'Recalcular Scores'}
             </button>
           )}
+          <FilterBar
+            initiatives={initiatives}
+            filters={filters}
+            onFilterChange={onFilterChange}
+            showStatus={true}
+            showAssignee={false}
+            showItemType={false}
+            showSearch
+            showPriorityToggle={false}
+          />
         </div>
-        <FilterBar
-          initiatives={initiatives}
-          filters={filters}
-          onFilterChange={onFilterChange}
-          showStatus={true}
-          showAssignee={false}
-          showItemType={false}
-          showSearch
-          showPriorityToggle={false}
-        />
       </div>
 
       <div className="mb-5 flex flex-wrap gap-1.5">

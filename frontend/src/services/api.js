@@ -80,6 +80,21 @@ export async function bulkUpdateCosts(items) {
   return { message: `Custos atualizados para ${updated} iniciativas.`, count: updated }
 }
 
+export async function recalculateScores() {
+  const headers = await getAuthHeader()
+  const res = await fetch('/api/initiatives/recalculate-scores', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...headers },
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    let detail = `HTTP ${res.status}`
+    try { detail = JSON.parse(text)?.detail || detail } catch { /* noop */ }
+    throw new Error(detail)
+  }
+  return res.json()
+}
+
 export async function syncJira() {
   const headers = await getAuthHeader()
   let lastError = null

@@ -293,3 +293,23 @@ async def reorder_initiatives(
         ).eq("id", initiative_id).execute()
 
     return {"message": "Ordem atualizada com sucesso.", "count": len(payload.ordered_ids)}
+
+
+@router.post("/recalculate-scores")
+async def recalculate_all_scores(user: dict = Depends(get_current_user)):
+    """Recalcula e persiste priority_base_score/final_score para todas as iniciativas."""
+    supabase = get_supabase_client()
+
+    result = supabase.table("initiatives").select("id").execute()
+    ids = [row["id"] for row in (result.data or [])]
+
+    updated = 0
+    errors = []
+    for initiative_id in ids:
+        try:
+            _refresh_priority_scores(supabase, initiative_id)
+            updated += 1
+        except Exception as exc:
+            errors.append({"id": initiative_id, "error": str(exc)})
+
+    return {"message": f"Scores recalculados para {updated} iniciativas.", "count": updated, "errors": errors}

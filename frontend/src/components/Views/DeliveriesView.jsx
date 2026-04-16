@@ -343,8 +343,9 @@ function DeliveryPeriodFilter({
       : [...selectedYears, year].sort((a, b) => b - a)
 
     onYearsChange(nextYears)
-    if (nextYears.length === 0 && selectedMonths.length > 0) {
-      onMonthsChange([])
+    if (nextYears.length === 0) {
+      if (selectedMonths.length > 0) onMonthsChange([])
+      if (monthDetailsRef.current) monthDetailsRef.current.removeAttribute('open')
     }
   }
 

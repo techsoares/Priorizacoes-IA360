@@ -34,15 +34,21 @@ export async function listInitiatives() {
 }
 
 export async function updateInitiative(id, payload) {
-  const { error } = await supabase.from('initiatives').update(payload).eq('id', id)
-  if (error) throw new Error(error.message)
-
-  const { data, error: fetchError } = await supabase
-    .from('initiatives')
-    .select('*')
-    .eq('id', id)
-    .single()
-  if (fetchError) throw new Error(fetchError.message)
+  // Chama o backend (não o Supabase diretamente) para que _refresh_priority_scores
+  // seja executado e o priority_score seja recalculado após cada atualização de campos.
+  const headers = await getAuthHeader()
+  const res = await fetch(`/api/initiatives/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    let detail = `HTTP ${res.status}`
+    try { detail = JSON.parse(text)?.detail || detail } catch { /* noop */ }
+    throw new Error(detail)
+  }
+  const data = await res.json()
   return enrich(data)
 }
 

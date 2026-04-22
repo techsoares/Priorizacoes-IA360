@@ -25,6 +25,7 @@ class InitiativeUpdate(BaseModel):
     tools: str | None = Field(None, description="Ferramentas utilizadas")
     intangible_gains: str | None = Field(None, description="Ganhos intangiveis ou qualitativos da iniciativa")
     affected_people_count: float | None = Field(None, ge=0, description="Quantidade de pessoas afetadas pela automacao")
+    is_one_time_gain: bool | None = Field(None, description="Se true, ganho é único/pontual (não recorrente mensalmente)")
 
 
 class BulkCostItem(BaseModel):

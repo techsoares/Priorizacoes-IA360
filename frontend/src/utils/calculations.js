@@ -1,12 +1,14 @@
 /**
  * Formula canonica de metricas no frontend.
  * Alinhada com backend/app/initiatives/calculations.py.
+ * Para ganhos únicos (is_one_time_gain=true), ROI não é anualizado.
  */
 export function calculateMetrics(data) {
   const timeSavedPerDay = Number(data.time_saved_per_day || 0)
   const executionDaysPerMonth = Number(data.execution_days_per_month || 0)
   const affectedPeopleCount = Number(data.affected_people_count || 0)
   const costPerHour = Number(data.cost_per_hour || 0)
+  const isOneTimeGain = Boolean(data.is_one_time_gain)
 
   const totalHoursSaved = timeSavedPerDay * executionDaysPerMonth * affectedPeopleCount
   const gainHours = totalHoursSaved * costPerHour
@@ -21,6 +23,7 @@ export function calculateMetrics(data) {
     Number(data.token_cost || 0) +
     Number(data.cloud_infra_cost || 0)
   const netMonthlyGain = totalGainsOpex - maintenanceCost
+  const netGain = isOneTimeGain ? totalGainsOpex : netMonthlyGain
 
   const developmentEstimateHours = Number(data.development_estimate_seconds || 0) / 3600
   const timeSpentHours = Number(data.time_spent_seconds || 0) / 3600
@@ -31,14 +34,14 @@ export function calculateMetrics(data) {
   const initialInvestment = capexDev + capexDevops + capexThirdParty
 
   const roiPercent = initialInvestment > 0
-    ? Math.round((netMonthlyGain / initialInvestment) * 10000) / 100
+    ? Math.round((netGain / initialInvestment) * 10000) / 100
     : null
 
   let roiPercentReal = null
   if (timeSpentHours > 0 && developmentEstimateHours > 0) {
     const capexReal = timeSpentHours * techHourCost + capexDevops + capexThirdParty
     if (capexReal > 0) {
-      roiPercentReal = Math.round((netMonthlyGain / capexReal) * 10000) / 100
+      roiPercentReal = Math.round((netGain / capexReal) * 10000) / 100
     }
   }
 
@@ -54,13 +57,13 @@ export function calculateMetrics(data) {
       : initialInvestment
 
     if (capexForAccumulated > 0) {
-      const accumulatedNetGain = netMonthlyGain * monthsLive
-      roiAccumulated = Math.round(((accumulatedNetGain - capexForAccumulated) / capexForAccumulated) * 10000) / 100
+      const gainForAccumulated = isOneTimeGain ? netGain : netMonthlyGain * monthsLive
+      roiAccumulated = Math.round(((gainForAccumulated - capexForAccumulated) / capexForAccumulated) * 10000) / 100
     }
   }
 
   let paybackMonths = null
-  if (netMonthlyGain > 0) {
+  if (!isOneTimeGain && netMonthlyGain > 0) {
     const capexForPayback = timeSpentHours > 0
       ? timeSpentHours * techHourCost + capexDevops + capexThirdParty
       : initialInvestment
@@ -75,7 +78,7 @@ export function calculateMetrics(data) {
   }
 
   return {
-    total_gains: Math.round(netMonthlyGain * 100) / 100,
+    total_gains: Math.round(netGain * 100) / 100,
     total_costs: Math.round(initialInvestment * 100) / 100,
     roi_percent: roiPercent,
     roi_percent_real: roiPercentReal,

@@ -156,7 +156,8 @@ export default async function handler(req, res) {
       'productivity_increase', 'additional_task_value', 'tokens_used', 'token_cost',
       'cloud_infra_cost', 'maintenance_hours', 'tech_hour_cost', 'devops_hours',
       'devops_hour_cost', 'third_party_hours', 'third_party_hour_cost',
-      'estimated_time_months', 'tools', 'intangible_gains', 'affected_people_count'
+      'estimated_time_months', 'tools', 'intangible_gains', 'affected_people_count',
+      'is_one_time_gain'
     ]
 
     const updateData = {}

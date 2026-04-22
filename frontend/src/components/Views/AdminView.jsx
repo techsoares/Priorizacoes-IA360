@@ -20,6 +20,7 @@ const ADMIN_COLUMNS = [
   { key: 'affected_people_count', label: 'Pessoas afetadas', tooltip: 'Quantidade de pessoas impactadas pela automação. Usado em: horas_totais = horas_por_pessoa x pessoas_afetadas.', editable: true },
   { key: 'development_time_comparison', label: 'Tempo Dev (Est. vs Real)', tooltip: 'Tempo estimado vs tempo real gasto. Permite validar precisão de estimativas e calcular CAPEX com base em estimativa ou real.', computed: true },
   { key: 'time_variance', label: 'Variância (%)', tooltip: 'Eficiência de estimativa: (real - estimado) / estimado x 100. Positivo = atrasado, negativo = adiantado.', computed: true },
+  { key: 'is_one_time_gain', label: 'Ganho Único', tooltip: 'Se marcado, o ganho é único/pontual e não é considerado como ganho mensal recorrente. Afeta o cálculo de ROI e payback.', editable: true, boolean: true },
   { key: 'tech_hour_cost', label: 'R$/h Dev', tooltip: 'Custo por hora do desenvolvedor. Usado para calcular CAPEX: horas_desenvolvimento x R$/h Dev.', editable: true },
   { key: 'devops_hours', label: 'Tempo DevOps', tooltip: 'Horas de DevOps necessárias para colocar a iniciativa no ar. Entra apenas como CAPEX one-time.', editable: true },
   { key: 'devops_hour_cost', label: 'R$/h DevOps', tooltip: 'Custo por hora do time de DevOps. Multiplicado pelo Tempo DevOps e somado ao CAPEX one-time.', editable: true },
@@ -181,6 +182,27 @@ export default function AdminView({
           </span>
           <span className="text-[10px] font-medium text-gray-600">{status}</span>
         </div>
+      )
+    }
+
+    if (column.editable && column.boolean) {
+      if (!isAdmin) {
+        return <span className="cursor-not-allowed text-[11px] italic text-gray-700" title="Apenas administradores podem editar">-</span>
+      }
+      const isActive = Boolean(initiative[column.key])
+      return (
+        <button
+          onClick={() => onUpdateField(initiative.id, column.key, !isActive)}
+          className={`inline-flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-all
+            ${isActive
+              ? 'border border-green-500/40 bg-green-500/10 text-green-300 hover:bg-green-500/15'
+              : 'border border-gray-600/30 bg-gray-600/10 text-gray-400 hover:bg-gray-600/15'
+            }
+          `}
+        >
+          <span className={`inline-block h-1.5 w-1.5 rounded-full ${isActive ? 'bg-green-400' : 'bg-gray-500'}`} />
+          {isActive ? 'Sim' : 'Não'}
+        </button>
       )
     }
 

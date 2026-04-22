@@ -136,6 +136,20 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Parse do body se for string
+    let payload = req.body
+    if (typeof payload === 'string') {
+      try {
+        payload = JSON.parse(payload)
+      } catch {
+        return res.status(400).json({ error: 'JSON inválido no body' })
+      }
+    }
+
+    if (!payload || typeof payload !== 'object') {
+      return res.status(400).json({ error: 'Body deve ser um objeto JSON' })
+    }
+
     // Valida payload - campos permitidos para edição
     const allowedFields = [
       'hours_saved', 'cost_per_hour', 'headcount_reduction', 'monthly_employee_cost',
@@ -146,8 +160,8 @@ export default async function handler(req, res) {
     ]
 
     const updateData = {}
-    for (const [key, value] of Object.entries(req.body || {})) {
-      if (allowedFields.includes(key)) {
+    for (const [key, value] of Object.entries(payload)) {
+      if (allowedFields.includes(key) && value != null) {
         updateData[key] = value
       }
     }

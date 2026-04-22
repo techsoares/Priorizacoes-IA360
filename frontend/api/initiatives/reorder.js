@@ -27,10 +27,24 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { ordered_ids, updated_by, dragged } = req.body
+    // Parse do body se for string
+    let payload = req.body
+    if (typeof payload === 'string') {
+      try {
+        payload = JSON.parse(payload)
+      } catch {
+        return res.status(400).json({ error: 'JSON inválido no body' })
+      }
+    }
 
-    if (!Array.isArray(ordered_ids)) {
-      return res.status(400).json({ error: 'ordered_ids deve ser um array' })
+    if (!payload || typeof payload !== 'object') {
+      return res.status(400).json({ error: 'Body deve ser um objeto JSON' })
+    }
+
+    const { ordered_ids, updated_by, dragged } = payload
+
+    if (!Array.isArray(ordered_ids) || ordered_ids.length === 0) {
+      return res.status(400).json({ error: 'ordered_ids deve ser um array não vazio' })
     }
 
     const now = new Date().toISOString()

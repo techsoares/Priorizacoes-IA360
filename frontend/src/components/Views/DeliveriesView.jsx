@@ -1634,10 +1634,12 @@ export default function DeliveriesView({ initiatives = [] }) {
     // selecionado (ex: apenas meses de 2026). Sem filtro, conta da conclusão até hoje.
     const hasPeriodFilter = (filters.selectedYears?.length || 0) > 0
     const accumulatedDeliveredOpex = filtered.reduce((sum, item) => {
+      const gain = Number(item.metrics?.total_gains || 0)
+      if (item.is_one_time_gain) return sum + gain
       const months = hasPeriodFilter
         ? computeSelectedPeriodMonthsLive(item, filters.selectedYears, filters.selectedMonths)
         : computeMonthsSinceCompletion(item)
-      return sum + Number(item.metrics?.total_gains || 0) * months
+      return sum + gain * months
     }, 0)
     // CAPEX Total: usa CAPEX real (horas gastas × custo) quando disponível, senão estimado.
     const initialInvestment = filtered.reduce((s, i) => {
@@ -1664,8 +1666,10 @@ export default function DeliveriesView({ initiatives = [] }) {
     // Usa CAPEX real (horas gastas × custo) quando disponível, senão estimado.
     const filteredCompletedWithRuntime = filtered.filter((i) => i.metrics?.months_live != null)
     const portfolioAccumulatedGains = filteredCompletedWithRuntime.reduce((sum, item) => {
+      const gain = Number(item.metrics?.total_gains || 0)
+      if (item.is_one_time_gain) return sum + gain
       const monthsLive = Number(item.metrics?.months_live || 0)
-      return sum + Number(item.metrics?.total_gains || 0) * monthsLive
+      return sum + gain * monthsLive
     }, 0)
     const portfolioCapex = filteredCompletedWithRuntime.reduce((sum, item) => {
       const hasRealTime = (item.metrics?.time_spent_hours || 0) > 0

@@ -40,6 +40,7 @@ export default function InitiativeDetail({
   if (!initiative) return null
 
   const metrics = initiative.metrics || {}
+  const isOneTimeGain = Boolean(initiative.is_one_time_gain)
   const timeSaved = Number(initiative.time_saved_per_day || 0)
   const execDays = Number(initiative.execution_days_per_month || 0)
   const people = Number(initiative.affected_people_count || 0)
@@ -55,6 +56,7 @@ export default function InitiativeDetail({
   const gainHours = monthlyHoursSaved * costPerHour
   const gainHC = Number(initiative.headcount_reduction || 0) * Number(initiative.monthly_employee_cost || 0)
   const gainProd = Number(initiative.productivity_increase || 0) * Number(initiative.additional_task_value || 0)
+  const gainLabel = isOneTimeGain ? 'Ganho único' : 'Economia mensal'
 
   const breakdown = initiative.priority_score_breakdown || {}
   const baseScore = Number(breakdown.base_score ?? initiative.priority_base_score ?? 0)
@@ -91,6 +93,12 @@ export default function InitiativeDetail({
                 value={metrics.payback_months != null ? `${metrics.payback_months.toFixed(1)} m` : 'N/A'}
                 tone="blue"
               />
+              {isOneTimeGain && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-300">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-400" />
+                  Ganho único
+                </span>
+              )}
             </div>
           </div>
           <button
@@ -144,12 +152,21 @@ export default function InitiativeDetail({
             Com Automação
           </h4>
           <div className="divide-y divide-white/[0.03]">
-            <Row label="Horas economizadas/mês" value={formatHours(monthlyHoursSaved)} accent="text-[#3DB7F4] font-semibold" />
-            <Row label="Economia mensal (horas)" value={formatCurrency(gainHours)} accent="text-[#6BFFEB]" />
-            {gainHC > 0 && <Row label="Economia mensal (headcount)" value={formatCurrency(gainHC)} accent="text-[#6BFFEB]" />}
-            {gainProd > 0 && <Row label="Economia mensal (produtividade)" value={formatCurrency(gainProd)} accent="text-[#6BFFEB]" />}
-            <Row label="Total ganhos mensais" value={formatCurrency(metrics.total_gains)} accent="text-[#40EB4F] font-bold" />
-            <Row label="Economia anual projetada" value={formatCurrency((metrics.total_gains || 0) * 12)} accent="text-[#40EB4F]" />
+            <Row label={isOneTimeGain ? 'Horas economizadas (total)' : 'Horas economizadas/mês'} value={formatHours(monthlyHoursSaved)} accent="text-[#3DB7F4] font-semibold" />
+            <Row label={`${gainLabel} (horas)`} value={formatCurrency(gainHours)} accent="text-[#6BFFEB]" />
+            {gainHC > 0 && <Row label={`${gainLabel} (headcount)`} value={formatCurrency(gainHC)} accent="text-[#6BFFEB]" />}
+            {gainProd > 0 && <Row label={`${gainLabel} (produtividade)`} value={formatCurrency(gainProd)} accent="text-[#6BFFEB]" />}
+            <Row
+              label={isOneTimeGain ? 'Ganho único total' : 'Total ganhos mensais'}
+              value={formatCurrency(metrics.total_gains)}
+              accent="text-[#40EB4F] font-bold"
+            />
+            {!isOneTimeGain && (
+              <Row label="Economia anual projetada" value={formatCurrency((metrics.total_gains || 0) * 12)} accent="text-[#40EB4F]" />
+            )}
+            {isOneTimeGain && (
+              <Row label="Projeção" value="Não se aplica (ganho pontual)" accent="text-amber-300 italic" />
+            )}
 
             <div className="pt-2">
               <div className="mb-2 mt-1 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-600">Investimento</div>

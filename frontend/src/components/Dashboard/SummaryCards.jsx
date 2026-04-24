@@ -46,14 +46,14 @@ const CARD_CONFIG = [
   {
     key: 'monthlySavings',
     label: 'OPEX/mês',
-    tooltip: 'OPEX (Operational Expenditure): Soma da economia operacional MENSAL de todas as iniciativas. Cálculo por iniciativa: OPEX = (horas_economizadas_mês × custo_hora_pessoa_afetada) + ganhos_headcount + ganhos_produtividade. Cresce cada mês que a automação opera.',
+    tooltip: 'OPEX (Operational Expenditure): Soma da economia operacional MENSAL de iniciativas recorrentes. Ganhos únicos não entram aqui pois não se repetem mensalmente. Cálculo por iniciativa: OPEX = (horas_economizadas_mês × custo_hora_pessoa_afetada) + ganhos_headcount + ganhos_produtividade.',
     color: '#6BFFEB',
     format: (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
   },
   {
     key: 'totalSavings',
     label: 'OPEX Anual',
-    tooltip: 'Projeção ANUAL da economia operacional (OPEX mensal × 12). Mostra o potencial de retorno em 12 meses se as automações continuarem operando.',
+    tooltip: 'Projeção ANUAL combinada: (OPEX mensal × 12) + ganhos únicos. Iniciativas marcadas como ganho único entram apenas uma vez (sem multiplicar por 12).',
     color: '#40EB4F',
     format: (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
   },
@@ -80,8 +80,15 @@ export default function SummaryCards({ initiatives, selectedInitiative, onClearS
     s + (i.development_estimate_seconds ? i.development_estimate_seconds / 3600 : 0), 0)
 
   const totalCosts = initiatives.reduce((s, i) => s + (i.metrics?.total_costs || 0), 0)
-  const monthlySavings = initiatives.reduce((s, i) => s + (i.metrics?.total_gains || 0), 0)
-  const totalSavings = monthlySavings * 12
+  const monthlySavings = initiatives.reduce(
+    (s, i) => s + (i.is_one_time_gain ? 0 : (i.metrics?.total_gains || 0)),
+    0,
+  )
+  const oneTimeSavings = initiatives.reduce(
+    (s, i) => s + (i.is_one_time_gain ? (i.metrics?.total_gains || 0) : 0),
+    0,
+  )
+  const totalSavings = monthlySavings * 12 + oneTimeSavings
 
   const values = {
     totalInitiatives,

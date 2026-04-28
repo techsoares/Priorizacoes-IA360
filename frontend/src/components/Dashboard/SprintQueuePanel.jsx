@@ -11,13 +11,18 @@ function formatROI(value) {
   return `${sign}${Math.round(value)}%`
 }
 
-function PanelItem({ initiativeId, initiatives, isAdmin }) {
-  const initiative = initiatives.find((i) => i.id === initiativeId)
+function PanelItem({ initiativeId, initiatives, isAdmin, queueGroup, activityType }) {
+  const initiative = initiatives.find((item) => item.id === initiativeId)
   const roi = initiative?.metrics?.roi_percent
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `panel-${initiativeId}`,
-    data: { type: 'panel', initiativeId },
+    data: {
+      type: 'panel-item',
+      initiativeId,
+      queueGroup,
+      activityType,
+    },
     disabled: !isAdmin,
   })
 
@@ -44,9 +49,11 @@ function PanelItem({ initiativeId, initiatives, isAdmin }) {
           </svg>
         </span>
       )}
+
       <span className="flex-1 truncate text-[12px] text-gray-300">
         {initiative?.summary || initiative?.jira_key || initiativeId}
       </span>
+
       <span
         className={`shrink-0 font-mono text-[10px] ${
           roi == null ? 'text-gray-700' : roi >= 0 ? 'text-emerald-400' : 'text-red-400'
@@ -58,9 +65,16 @@ function PanelItem({ initiativeId, initiatives, isAdmin }) {
   )
 }
 
-function DroppableList({ activityType, items, initiatives, isAdmin }) {
-  const droppableId = `panel-${activityType}`
-  const { setNodeRef, isOver } = useDroppable({ id: droppableId })
+function DroppableList({ queueGroup, activityType, items, initiatives, isAdmin }) {
+  const droppableId = `panel-${queueGroup}-${activityType}`
+  const { setNodeRef, isOver } = useDroppable({
+    id: droppableId,
+    data: {
+      type: 'panel-list',
+      queueGroup,
+      activityType,
+    },
+  })
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -82,7 +96,7 @@ function DroppableList({ activityType, items, initiatives, isAdmin }) {
         } flex flex-col gap-1 p-1.5`}
       >
         <SortableContext
-          items={items.map((i) => `panel-${i.initiative_id}`)}
+          items={items.map((item) => `panel-${item.initiative_id}`)}
           strategy={verticalListSortingStrategy}
         >
           {items.map((item) => (
@@ -91,6 +105,8 @@ function DroppableList({ activityType, items, initiatives, isAdmin }) {
               initiativeId={item.initiative_id}
               initiatives={initiatives}
               isAdmin={isAdmin}
+              queueGroup={queueGroup}
+              activityType={activityType}
             />
           ))}
         </SortableContext>
@@ -105,7 +121,14 @@ function DroppableList({ activityType, items, initiatives, isAdmin }) {
   )
 }
 
-export default function SprintQueuePanel({ queue, initiatives, isAdmin, toast }) {
+export default function SprintQueuePanel({
+  title,
+  queueGroup,
+  queue,
+  initiatives,
+  isAdmin,
+  toast,
+}) {
   const [collapsed, setCollapsed] = useState(false)
 
   return (
@@ -114,7 +137,6 @@ export default function SprintQueuePanel({ queue, initiatives, isAdmin, toast })
         collapsed ? 'w-10 items-center' : 'w-80'
       }`}
     >
-      {/* Header — mesmo padrão do thead da tabela */}
       <div
         className={`sticky top-0 z-10 flex shrink-0 items-center bg-surface-elevated/90 backdrop-blur-sm border-b border-white/[0.04] transition-all ${
           collapsed ? 'justify-center px-2 py-2' : 'justify-between px-3 py-2'
@@ -122,12 +144,13 @@ export default function SprintQueuePanel({ queue, initiatives, isAdmin, toast })
       >
         {!collapsed && (
           <span className="flex-1 text-center text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500">
-            Priorizações Comitê IA360°
+            {title}
           </span>
         )}
+
         <button
           type="button"
-          onClick={() => setCollapsed((c) => !c)}
+          onClick={() => setCollapsed((value) => !value)}
           title={collapsed ? 'Expandir painel' : 'Recolher painel'}
           className="rounded-lg p-1 text-gray-600 transition-colors hover:bg-white/[0.04] hover:text-gray-400"
         >
@@ -146,9 +169,10 @@ export default function SprintQueuePanel({ queue, initiatives, isAdmin, toast })
         <div className="flex flex-col gap-3 p-3">
           {ACTIVITY_TYPES.map((type) => (
             <DroppableList
-              key={type}
+              key={`${queueGroup}-${type}`}
+              queueGroup={queueGroup}
               activityType={type}
-              items={queue[type] || []}
+              items={queue?.[type] || []}
               initiatives={initiatives}
               isAdmin={isAdmin}
             />

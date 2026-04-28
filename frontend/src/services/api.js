@@ -285,16 +285,24 @@ export async function listSprintQueue() {
   const { data, error } = await supabase
     .from('sprint_queue')
     .select('*')
+    .order('queue_group', { ascending: true })
     .order('activity_type', { ascending: true })
     .order('position', { ascending: true })
   if (error) throw new Error(error.message)
   return data
 }
 
-export async function addToSprintQueue(initiativeId, activityType, position, createdBy) {
+export async function addToSprintQueue(
+  initiativeId,
+  activityType,
+  position,
+  createdBy,
+  queueGroup = 'priorizacoes'
+) {
   const { error } = await supabase.from('sprint_queue').insert({
     initiative_id: initiativeId,
     activity_type: activityType,
+    queue_group: queueGroup,
     position,
     created_by: createdBy || null,
   })
@@ -314,6 +322,18 @@ export async function reorderSprintQueue(items) {
       .eq('id', item.id)
     if (error) throw new Error(error.message)
   }
+}
+
+export async function moveSprintQueueItem(initiativeId, queueGroup, activityType, position) {
+  const { error } = await supabase
+    .from('sprint_queue')
+    .update({
+      queue_group: queueGroup,
+      activity_type: activityType,
+      position,
+    })
+    .eq('initiative_id', initiativeId)
+  if (error) throw new Error(error.message)
 }
 
 // Mantem compatibilidade com codigo que usa `api` como default (axios-style)

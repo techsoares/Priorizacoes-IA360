@@ -8,12 +8,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import {
-  SortableContext,
-  arrayMove,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
+import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import FilterBar from '../Dashboard/FilterBar'
 import InitiativeDetail from '../Dashboard/InitiativeDetail'
 import PriorityRequestModal from '../Dashboard/PriorityRequestModal'
@@ -34,14 +29,47 @@ function FeedbackBanner({ feedback }) {
   if (!feedback) return null
   const isError = feedback.type === 'error'
   return (
-    <div className={`mb-4 rounded-lg border px-4 py-2 text-[12px] ${
-      isError
+    <div className={`mb-4 rounded-lg border px-4 py-2 text-[12px] ${isError
         ? 'border-[#FE70BD]/20 bg-[#FE70BD]/10 text-[#FE70BD]'
         : 'border-[#40EB4F]/20 bg-[#40EB4F]/10 text-[#40EB4F]'
-    }`}>
+      }`}>
       {feedback.message}
     </div>
   )
+}
+
+function resolveDropTarget(over) {
+  if (!over) return null
+
+  const overData = over.data.current
+  if (overData?.type === 'panel-list') {
+    return {
+      queueGroup: overData.queueGroup,
+      activityType: overData.activityType,
+      overType: 'panel-list',
+      overInitiativeId: null,
+    }
+  }
+
+  if (overData?.type === 'panel-item') {
+    return {
+      queueGroup: overData.queueGroup,
+      activityType: overData.activityType,
+      overType: 'panel-item',
+      overInitiativeId: overData.initiativeId,
+    }
+  }
+
+  const overId = String(over.id || '')
+  const [, queueGroup, ...rest] = overId.split('-')
+  if (!queueGroup || rest.length === 0) return null
+
+  return {
+    queueGroup,
+    activityType: rest.join('-'),
+    overType: 'panel-list',
+    overInitiativeId: null,
+  }
 }
 
 export default function DashboardView({
@@ -67,7 +95,15 @@ export default function DashboardView({
     upsertRequestLocally,
   } = usePriorityRequests()
 
-  const { queue, toast, addToQueue, removeFromQueue, reorderQueue, getQueueType } = useSprintQueue()
+  const {
+    queue,
+    toast,
+    addToQueue,
+    moveQueueItem,
+    removeFromQueue,
+    reorderQueue,
+    getQueueLocation,
+  } = useSprintQueue()
 
   const enrichedInitiatives = useMemo(
     () => filteredInitiatives.map(enrichInitiative),
@@ -94,36 +130,57 @@ export default function DashboardView({
     if (!over) return
 
     const activeData = active.data.current
-    const overId = String(over.id)
+    const dropTarget = resolveDropTarget(over)
 
-    // Reordenação interna do painel (admin)
-    if (activeData?.type === 'panel') {
+    if (activeData?.type === 'panel-item') {
+      if (!isAdmin) return
       const { initiativeId } = activeData
-      if (!overId.startsWith('panel-')) {
+
+      if (!dropTarget) {
         removeFromQueue(initiativeId)
         return
       }
 
-      const overData = over.data.current
-      if (overData?.type === 'panel') {
-        const activityType = getQueueType(initiativeId)
-        if (!activityType) return
-        const list = queue[activityType] || []
-        const oldIndex = list.findIndex((item) => item.initiative_id === initiativeId)
-        const newIndex = list.findIndex((item) => item.initiative_id === overData.initiativeId)
+      const source = getQueueLocation(initiativeId)
+      if (!source) return
+
+      const sourceList = queue[source.queueGroup]?.[source.activityType] || []
+
+      if (
+        dropTarget.queueGroup === source.queueGroup &&
+        dropTarget.activityType === source.activityType &&
+        dropTarget.overType === 'panel-item' &&
+        dropTarget.overInitiativeId
+      ) {
+        const oldIndex = sourceList.findIndex((item) => item.initiative_id === initiativeId)
+        const newIndex = sourceList.findIndex((item) => item.initiative_id === dropTarget.overInitiativeId)
+
         if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-          reorderQueue(activityType, arrayMove(list, oldIndex, newIndex))
+          reorderQueue(source.queueGroup, source.activityType, arrayMove(sourceList, oldIndex, newIndex))
         }
+        return
       }
+
+      const targetList = queue[dropTarget.queueGroup]?.[dropTarget.activityType] || []
+      const targetIndex = dropTarget.overType === 'panel-item' && dropTarget.overInitiativeId
+        ? targetList.findIndex((item) => item.initiative_id === dropTarget.overInitiativeId)
+        : targetList.length
+
+      moveQueueItem(
+        initiativeId,
+        dropTarget.queueGroup,
+        dropTarget.activityType,
+        targetIndex === -1 ? targetList.length : targetIndex
+      )
       return
     }
 
-    // Linha da tabela solta no painel (somente admin)
-    if (overId.startsWith('panel-')) {
-      if (!isAdmin) return
-      const initiative = filteredInitiatives.find((item) => item.id === active.id)
-      if (initiative) addToQueue(initiative, initiative.activity_type)
-    }
+    if (!dropTarget || !isAdmin) return
+
+    const initiative = filteredInitiatives.find((item) => item.id === active.id)
+    if (!initiative) return
+
+    addToQueue(initiative, dropTarget.activityType, dropTarget.queueGroup)
   }
 
   async function handleDeleteRequest(requestId) {
@@ -205,13 +262,6 @@ export default function DashboardView({
       </div>
 
       <div className="flex items-stretch gap-3">
-        <SprintQueuePanel
-          queue={queue}
-          initiatives={initiatives}
-          isAdmin={isAdmin}
-          toast={toast}
-        />
-
         <div className="min-w-0 flex-1">
           <InitiativeTable
             initiatives={enrichedInitiatives}
@@ -226,6 +276,24 @@ export default function DashboardView({
             onDeleteRequest={handleDeleteRequest}
           />
         </div>
+
+        <SprintQueuePanel
+          title="em desenvolvimento"
+          queueGroup="em_desenvolvimento"
+          queue={queue.em_desenvolvimento}
+          initiatives={initiatives}
+          isAdmin={isAdmin}
+          toast={toast}
+        />
+
+        <SprintQueuePanel
+          title="Selecionado para desenvolvimento"
+          queueGroup="priorizacoes"
+          queue={queue.priorizacoes}
+          initiatives={initiatives}
+          isAdmin={isAdmin}
+          toast={toast}
+        />
       </div>
     </DndContext>
   )

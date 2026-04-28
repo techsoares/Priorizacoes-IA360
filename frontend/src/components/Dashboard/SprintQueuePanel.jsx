@@ -11,7 +11,14 @@ function formatROI(value) {
   return `${sign}${Math.round(value)}%`
 }
 
-function PanelItem({ initiativeId, initiatives, isAdmin, queueGroup, activityType }) {
+function PanelItem({
+  initiativeId,
+  initiatives,
+  isAdmin,
+  queueGroup,
+  activityType,
+  onRemoveItem,
+}) {
   const initiative = initiatives.find((item) => item.id === initiativeId)
   const roi = initiative?.metrics?.roi_percent
 
@@ -61,11 +68,29 @@ function PanelItem({ initiativeId, initiatives, isAdmin, queueGroup, activityTyp
       >
         {formatROI(roi)}
       </span>
+
+      {isAdmin && onRemoveItem && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            onRemoveItem(initiativeId)
+          }}
+          onPointerDown={(event) => event.stopPropagation()}
+          title="Remover da lista"
+          className="shrink-0 rounded p-0.5 text-gray-700 transition-colors hover:bg-white/[0.06] hover:text-red-400"
+          aria-label="Remover da lista"
+        >
+          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
     </div>
   )
 }
 
-function DroppableList({ queueGroup, activityType, items, initiatives, isAdmin }) {
+function DroppableList({ queueGroup, activityType, items, initiatives, isAdmin, onRemoveItem }) {
   const droppableId = `panel-${queueGroup}-${activityType}`
   const { setNodeRef, isOver } = useDroppable({
     id: droppableId,
@@ -107,6 +132,7 @@ function DroppableList({ queueGroup, activityType, items, initiatives, isAdmin }
               isAdmin={isAdmin}
               queueGroup={queueGroup}
               activityType={activityType}
+              onRemoveItem={onRemoveItem}
             />
           ))}
         </SortableContext>
@@ -128,6 +154,7 @@ export default function SprintQueuePanel({
   initiatives,
   isAdmin,
   toast,
+  onRemoveItem,
 }) {
   const [collapsed, setCollapsed] = useState(false)
 
@@ -175,6 +202,7 @@ export default function SprintQueuePanel({
               items={queue?.[type] || []}
               initiatives={initiatives}
               isAdmin={isAdmin}
+              onRemoveItem={onRemoveItem}
             />
           ))}
 

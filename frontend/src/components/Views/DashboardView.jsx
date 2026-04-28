@@ -284,6 +284,7 @@ export default function DashboardView({
           initiatives={initiatives}
           isAdmin={isAdmin}
           toast={toast}
+          onRemoveItem={removeFromQueue}
         />
 
         <SprintQueuePanel
@@ -293,6 +294,7 @@ export default function DashboardView({
           initiatives={initiatives}
           isAdmin={isAdmin}
           toast={toast}
+          onRemoveItem={removeFromQueue}
         />
       </div>
     </DndContext>
